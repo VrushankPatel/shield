@@ -1,0 +1,126 @@
+{
+  "version": "phase2-v1",
+  "tables": [
+    {
+      "name": "helpdesk_category",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "sla_hours", "type": "INTEGER", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_helpdesk_category_tenant", "columns": ["tenant_id"]}
+      ]
+    },
+    {
+      "name": "helpdesk_ticket",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "ticket_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "category_id", "type": "UUID", "nullable": true, "references": "helpdesk_category(id)"},
+        {"name": "raised_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "unit_id", "type": "UUID", "nullable": true},
+        {"name": "subject", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "description", "type": "TEXT", "nullable": true},
+        {"name": "priority", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "assigned_to", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "assigned_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "resolved_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "resolution_notes", "type": "VARCHAR(2000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_helpdesk_ticket_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_helpdesk_ticket_status", "columns": ["tenant_id", "status"]},
+        {"name": "idx_helpdesk_ticket_assigned", "columns": ["tenant_id", "assigned_to"]}
+      ]
+    },
+    {
+      "name": "helpdesk_comment",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "ticket_id", "type": "UUID", "nullable": false, "references": "helpdesk_ticket(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "comment", "type": "VARCHAR(2000)", "nullable": false},
+        {"name": "internal_note", "type": "BOOLEAN", "nullable": false, "default": "FALSE"}
+      ],
+      "indexes": [
+        {"name": "idx_helpdesk_comment_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_helpdesk_comment_ticket", "columns": ["ticket_id"]}
+      ]
+    },
+    {
+      "name": "emergency_contact",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "contact_type", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "contact_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "phone_primary", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "phone_secondary", "type": "VARCHAR(20)", "nullable": true},
+        {"name": "address", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "display_order", "type": "INTEGER", "nullable": true},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_emergency_contact_tenant", "columns": ["tenant_id"]}
+      ]
+    },
+    {
+      "name": "sos_alert",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "alert_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "raised_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "unit_id", "type": "UUID", "nullable": true},
+        {"name": "alert_type", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "location", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "description", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "latitude", "type": "NUMERIC(10, 8)", "nullable": true},
+        {"name": "longitude", "type": "NUMERIC(11, 8)", "nullable": true},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "responded_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "responded_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "resolved_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_sos_alert_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_sos_alert_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "document_category",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "category_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "parent_category_id", "type": "UUID", "nullable": true, "references": "document_category(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_document_category_tenant", "columns": ["tenant_id"]}
+      ]
+    },
+    {
+      "name": "document",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "document_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "category_id", "type": "UUID", "nullable": true, "references": "document_category(id)"},
+        {"name": "document_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "file_url", "type": "VARCHAR(2000)", "nullable": false},
+        {"name": "file_size", "type": "BIGINT", "nullable": true},
+        {"name": "description", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "version_label", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "public_access", "type": "BOOLEAN", "nullable": false, "default": "FALSE"},
+        {"name": "uploaded_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "upload_date", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "expiry_date", "type": "DATE", "nullable": true},
+        {"name": "tags", "type": "VARCHAR(500)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_document_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_document_category", "columns": ["tenant_id", "category_id"]}
+      ]
+    }
+  ]
+}
