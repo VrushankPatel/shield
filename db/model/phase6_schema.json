@@ -1,0 +1,53 @@
+{
+  "version": "phase6-v1",
+  "tables": [
+    {
+      "name": "tenant_config",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "config_key", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "config_value", "type": "TEXT", "nullable": true},
+        {"name": "category", "type": "VARCHAR(50)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_tenant_config_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_tenant_config_key", "columns": ["tenant_id", "config_key"]},
+        {"name": "idx_tenant_config_category", "columns": ["tenant_id", "category"]}
+      ]
+    },
+    {
+      "name": "system_setting",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "setting_key", "type": "VARCHAR(120)", "nullable": false},
+        {"name": "setting_value", "type": "TEXT", "nullable": true},
+        {"name": "setting_group", "type": "VARCHAR(80)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_system_setting_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_system_setting_key", "columns": ["tenant_id", "setting_key"]},
+        {"name": "idx_system_setting_group", "columns": ["tenant_id", "setting_group"]}
+      ]
+    },
+    {
+      "name": "stored_file",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "file_id", "type": "VARCHAR(120)", "nullable": false, "unique": true},
+        {"name": "file_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "content_type", "type": "VARCHAR(150)", "nullable": true},
+        {"name": "file_size", "type": "BIGINT", "nullable": false},
+        {"name": "storage_path", "type": "VARCHAR(2000)", "nullable": false},
+        {"name": "uploaded_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "checksum", "type": "VARCHAR(128)", "nullable": true},
+        {"name": "status", "type": "VARCHAR(32)", "nullable": false, "default": "'ACTIVE'"},
+        {"name": "expires_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_stored_file_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_stored_file_uploaded_by", "columns": ["tenant_id", "uploaded_by"]},
+        {"name": "idx_stored_file_status", "columns": ["tenant_id", "status"]}
+      ]
+    }
+  ]
+}
