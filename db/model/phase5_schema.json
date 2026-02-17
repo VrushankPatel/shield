@@ -1,0 +1,47 @@
+{
+  "version": "phase5-v1",
+  "tables": [
+    {
+      "name": "system_log",
+      "tenantScoped": false,
+      "columns": [
+        {"name": "tenant_id", "type": "UUID", "nullable": true, "references": "tenant(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "log_level", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "logger_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "message", "type": "TEXT", "nullable": false},
+        {"name": "exception_trace", "type": "TEXT", "nullable": true},
+        {"name": "endpoint", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "correlation_id", "type": "VARCHAR(100)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_system_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_system_log_level", "columns": ["log_level"]},
+        {"name": "idx_system_log_created_at", "columns": ["created_at"]}
+      ]
+    },
+    {
+      "name": "api_request_log",
+      "tenantScoped": false,
+      "columns": [
+        {"name": "request_id", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "tenant_id", "type": "UUID", "nullable": true, "references": "tenant(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "endpoint", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "http_method", "type": "VARCHAR(10)", "nullable": false},
+        {"name": "request_body", "type": "TEXT", "nullable": true},
+        {"name": "response_status", "type": "INTEGER", "nullable": false},
+        {"name": "response_time_ms", "type": "BIGINT", "nullable": false},
+        {"name": "ip_address", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "user_agent", "type": "VARCHAR(1000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_api_request_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_api_request_log_user", "columns": ["user_id"]},
+        {"name": "idx_api_request_log_status", "columns": ["response_status"]},
+        {"name": "idx_api_request_log_endpoint", "columns": ["endpoint"]},
+        {"name": "idx_api_request_log_created_at", "columns": ["created_at"]}
+      ]
+    }
+  ]
+}
