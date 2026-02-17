@@ -1,33 +1,144 @@
 # SHIELD Backend
 
-Smart Housing Infrastructure and Entry Log Digitalization (`shield`) is a multi-tenant Spring Boot REST API platform for residential society management.
+SHIELD stands for **Smart Housing Infrastructure and Entry Log Digitalization**.
+This repository contains a **multi-tenant modular monolith** backend built with Spring Boot.
+
+## Current Scope (Phase 1)
+Implemented foundation and core APIs from the provided spec:
+- JWT auth (`/auth/login`, `/auth/refresh`, `/auth/logout`)
+- Tenant management
+- Unit management
+- User management
+- Billing + payments
+- Accounting ledger + summary
+- Visitor pass flow
+- Asset CRUD
+- Complaint flow (create/assign/resolve)
+- Amenities + booking
+- Meeting + minutes
+
+Cross-cutting:
+- Tenant context + Hibernate tenant filter
+- RBAC with Spring Security
+- Login rate limiting
+- Global error handler
+- Flyway migrations
+- Structured JSON logs + correlation id
+- Actuator + Prometheus endpoint
 
 ## Tech Stack
-- Java 17 (local installed JDK)
+- Java 17 (aligned with locally installed JDK)
 - Spring Boot 3.2.x
-- Spring Security + JWT
-- PostgreSQL + Flyway
+- Spring Security + JWT (`jjwt`)
+- Spring Data JPA + PostgreSQL
+- Flyway
 - Springdoc OpenAPI
-- Testcontainers + RestAssured
+- MapStruct + Lombok
+- JUnit 5 + Mockito + Testcontainers + RestAssured
 - Docker
 
-## Repository Layout
+## Repository Structure
 ```text
 .
 ├── docs/
-├── src/
-│   ├── main/
-│   │   ├── java/com/shield/
-│   │   └── resources/
-│   └── test/
+├── src/main/java/com/shield/
+│   ├── common/
+│   ├── security/
+│   ├── tenant/
+│   ├── module/
+│   │   ├── auth/
+│   │   ├── tenant/
+│   │   ├── unit/
+│   │   ├── user/
+│   │   ├── billing/
+│   │   ├── accounting/
+│   │   ├── visitor/
+│   │   ├── asset/
+│   │   ├── complaint/
+│   │   ├── amenities/
+│   │   ├── meeting/
+│   │   └── notification/
+│   └── audit/
+├── src/main/resources/
+│   ├── db/migration/
+│   ├── openapi.yml
+│   └── application*.yml
+├── src/test/
+├── .github/workflows/ci.yml
 ├── Dockerfile
 ├── docker-compose.yml
-├── pom.xml
-└── README.md
+└── pom.xml
 ```
 
-## Development Rules
-Development conventions and quality gates are maintained in `docs/development-rules.md`.
+## Prerequisites
+- Java 17
+- Maven 3.9+
+- Docker Desktop (required for integration tests/Testcontainers)
+
+## Local Development
+### 1. Start dependencies
+```bash
+docker compose up -d postgres redis
+```
+
+### 2. Bootstrap first tenant + admin (first run only)
+Set these environment variables before starting the app:
+```bash
+export BOOTSTRAP_ENABLED=true
+export BOOTSTRAP_TENANT_NAME="Demo Society"
+export BOOTSTRAP_ADMIN_EMAIL="admin@shield.local"
+export BOOTSTRAP_ADMIN_PASSWORD="ChangeThis123!"
+```
+
+### 3. Run application
+```bash
+mvn spring-boot:run
+```
+
+### 4. OpenAPI docs
+- [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+## Build and Test
+### Package fat JAR
+```bash
+mvn clean package
+```
+Artifact:
+- `target/society-management-api-1.0.0.jar`
+
+### Unit tests only
+```bash
+mvn test -DskipITs
+```
+
+### Full verification (includes Testcontainers integration tests)
+```bash
+mvn verify
+```
+Note: requires Docker daemon running.
+
+## Docker
+### Build image
+```bash
+docker build -t shield-api:latest .
+```
+
+### Run full stack
+```bash
+docker compose up -d
+```
+
+## CI/CD
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
+1. Maven build + tests + coverage report
+2. Docker image build
+3. Maven artifact publish to GitLab Artifactory (when secrets are configured)
+
+Required secrets for publish job:
+- `GITLAB_MAVEN_REPOSITORY_URL`
+- `GITLAB_MAVEN_USERNAME`
+- `GITLAB_MAVEN_TOKEN`
 
 ## Documentation
 - `docs/architecture.md`
@@ -35,26 +146,5 @@ Development conventions and quality gates are maintained in `docs/development-ru
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`
+- `docs/development-rules.md`
 - `docs/developer_request.md`
-
-## Quick Start
-1. Start dependencies:
-   ```bash
-   docker compose up -d postgres
-   ```
-2. Run API:
-   ```bash
-   mvn spring-boot:run
-   ```
-3. Swagger UI:
-   - [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-
-## Build
-```bash
-mvn clean package
-```
-Artifact:
-- `target/society-management-api-1.0.0.jar`
-
-## CI/CD
-GitHub Actions workflow builds, tests, and prepares Docker image. Artifact publishing is configured for GitLab Artifactory via Maven `deploy` and repository secrets.

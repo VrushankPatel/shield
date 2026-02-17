@@ -49,6 +49,13 @@ shield:
     login-rate-limit:
       requests: ${LOGIN_RATE_LIMIT_REQUESTS:10}
       window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
+  bootstrap:
+    enabled: ${BOOTSTRAP_ENABLED:false}
+    tenant-name: ${BOOTSTRAP_TENANT_NAME:}
+    tenant-address: ${BOOTSTRAP_TENANT_ADDRESS:}
+    admin-name: ${BOOTSTRAP_ADMIN_NAME:Shield Admin}
+    admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
 
 logging:
   pattern:
