@@ -432,6 +432,306 @@ paths:
       responses:
         '200': {description: Notification preference fetched}
 
+  /helpdesk-categories:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Helpdesk categories fetched}
+    post:
+      tags: [Helpdesk]
+      summary: Create helpdesk category
+      responses:
+        '200': {description: Helpdesk category created}
+  /helpdesk-categories/{id}:
+    get:
+      tags: [Helpdesk]
+      summary: Get helpdesk category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk category fetched}
+    put:
+      tags: [Helpdesk]
+      summary: Update helpdesk category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk category updated}
+    delete:
+      tags: [Helpdesk]
+      summary: Delete helpdesk category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk category deleted}
+
+  /helpdesk-tickets:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk tickets
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Helpdesk tickets fetched}
+    post:
+      tags: [Helpdesk]
+      summary: Create helpdesk ticket
+      responses:
+        '200': {description: Helpdesk ticket created}
+  /helpdesk-tickets/{id}:
+    get:
+      tags: [Helpdesk]
+      summary: Get helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket fetched}
+    put:
+      tags: [Helpdesk]
+      summary: Update helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket updated}
+    delete:
+      tags: [Helpdesk]
+      summary: Delete helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket deleted}
+  /helpdesk-tickets/{id}/assign:
+    post:
+      tags: [Helpdesk]
+      summary: Assign helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket assigned}
+  /helpdesk-tickets/{id}/resolve:
+    post:
+      tags: [Helpdesk]
+      summary: Resolve helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket resolved}
+  /helpdesk-tickets/{id}/comments:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk ticket comments
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Helpdesk comments fetched}
+    post:
+      tags: [Helpdesk]
+      summary: Add helpdesk ticket comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk comment added}
+
+  /emergency-contacts:
+    get:
+      tags: [Emergency]
+      summary: List emergency contacts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Emergency contacts fetched}
+    post:
+      tags: [Emergency]
+      summary: Create emergency contact
+      responses:
+        '200': {description: Emergency contact created}
+  /emergency-contacts/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get emergency contact
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Emergency contact fetched}
+    put:
+      tags: [Emergency]
+      summary: Update emergency contact
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Emergency contact updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete emergency contact
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Emergency contact deleted}
+
+  /sos-alerts:
+    get:
+      tags: [Emergency]
+      summary: List SOS alerts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: SOS alerts fetched}
+  /sos-alerts/active:
+    get:
+      tags: [Emergency]
+      summary: List active SOS alerts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Active SOS alerts fetched}
+  /sos-alerts/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get SOS alert
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: SOS alert fetched}
+  /sos-alerts/raise:
+    post:
+      tags: [Emergency]
+      summary: Raise SOS alert
+      responses:
+        '200': {description: SOS alert raised}
+  /sos-alerts/{id}/respond:
+    post:
+      tags: [Emergency]
+      summary: Respond to SOS alert
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: SOS alert responded}
+  /sos-alerts/{id}/resolve:
+    post:
+      tags: [Emergency]
+      summary: Resolve SOS alert
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: SOS alert resolved}
+
+  /document-categories:
+    get:
+      tags: [Documents]
+      summary: List document categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Document categories fetched}
+    post:
+      tags: [Documents]
+      summary: Create document category
+      responses:
+        '200': {description: Document category created}
+  /document-categories/{id}:
+    get:
+      tags: [Documents]
+      summary: Get document category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document category fetched}
+    put:
+      tags: [Documents]
+      summary: Update document category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document category updated}
+    delete:
+      tags: [Documents]
+      summary: Delete document category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document category deleted}
+
+  /documents:
+    get:
+      tags: [Documents]
+      summary: List documents
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Documents fetched}
+    post:
+      tags: [Documents]
+      summary: Create document
+      responses:
+        '200': {description: Document created}
+  /documents/public:
+    get:
+      tags: [Documents]
+      summary: List public documents
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Public documents fetched}
+  /documents/category/{categoryId}:
+    get:
+      tags: [Documents]
+      summary: List documents by category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Category documents fetched}
+  /documents/{id}:
+    get:
+      tags: [Documents]
+      summary: Get document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document fetched}
+    put:
+      tags: [Documents]
+      summary: Update document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document updated}
+    delete:
+      tags: [Documents]
+      summary: Delete document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document deleted}
+
 components:
   securitySchemes:
     bearerAuth:
