@@ -1,0 +1,170 @@
+{
+  "version": "phase3-v1",
+  "tables": [
+    {
+      "name": "staff",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "employee_id", "type": "VARCHAR(50)", "nullable": false, "unique": true},
+        {"name": "first_name", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "last_name", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "phone", "type": "VARCHAR(20)", "nullable": true},
+        {"name": "email", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "designation", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "date_of_joining", "type": "DATE", "nullable": false},
+        {"name": "date_of_leaving", "type": "DATE", "nullable": true},
+        {"name": "employment_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "basic_salary", "type": "NUMERIC(10, 2)", "nullable": false},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_staff_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_staff_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "staff_attendance",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "staff_id", "type": "UUID", "nullable": false, "references": "staff(id)"},
+        {"name": "attendance_date", "type": "DATE", "nullable": false},
+        {"name": "check_in_time", "type": "TIMESTAMP", "nullable": true},
+        {"name": "check_out_time", "type": "TIMESTAMP", "nullable": true},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "marked_by", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_staff_attendance_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_staff_attendance_staff_date", "columns": ["staff_id", "attendance_date"]}
+      ]
+    },
+    {
+      "name": "payroll",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "staff_id", "type": "UUID", "nullable": false, "references": "staff(id)"},
+        {"name": "month", "type": "INTEGER", "nullable": false},
+        {"name": "year", "type": "INTEGER", "nullable": false},
+        {"name": "working_days", "type": "INTEGER", "nullable": false},
+        {"name": "present_days", "type": "INTEGER", "nullable": false},
+        {"name": "gross_salary", "type": "NUMERIC(10, 2)", "nullable": false},
+        {"name": "total_deductions", "type": "NUMERIC(10, 2)", "nullable": false, "default": "0"},
+        {"name": "net_salary", "type": "NUMERIC(10, 2)", "nullable": false},
+        {"name": "payment_date", "type": "DATE", "nullable": true},
+        {"name": "payment_method", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "payment_reference", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "payslip_url", "type": "VARCHAR(2000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_payroll_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_payroll_staff_period", "columns": ["staff_id", "year", "month"]}
+      ]
+    },
+    {
+      "name": "water_tank",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "tank_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "tank_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "capacity", "type": "NUMERIC(10, 2)", "nullable": false},
+        {"name": "location", "type": "VARCHAR(255)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_water_tank_tenant", "columns": ["tenant_id"]}
+      ]
+    },
+    {
+      "name": "water_level_log",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "tank_id", "type": "UUID", "nullable": false, "references": "water_tank(id)"},
+        {"name": "reading_time", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "level_percentage", "type": "NUMERIC(5, 2)", "nullable": false},
+        {"name": "volume", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "recorded_by", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_water_level_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_water_level_log_tank_time", "columns": ["tank_id", "reading_time"]}
+      ]
+    },
+    {
+      "name": "electricity_meter",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meter_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "meter_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "location", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "unit_id", "type": "UUID", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_electricity_meter_tenant", "columns": ["tenant_id"]}
+      ]
+    },
+    {
+      "name": "electricity_reading",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meter_id", "type": "UUID", "nullable": false, "references": "electricity_meter(id)"},
+        {"name": "reading_date", "type": "DATE", "nullable": false},
+        {"name": "reading_value", "type": "NUMERIC(10, 2)", "nullable": false},
+        {"name": "units_consumed", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "cost", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "recorded_by", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_electricity_reading_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_electricity_reading_meter_date", "columns": ["meter_id", "reading_date"]}
+      ]
+    },
+    {
+      "name": "marketplace_category",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "category_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(500)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_marketplace_category_tenant", "columns": ["tenant_id"]}
+      ]
+    },
+    {
+      "name": "marketplace_listing",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "listing_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "category_id", "type": "UUID", "nullable": true, "references": "marketplace_category(id)"},
+        {"name": "listing_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "title", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "description", "type": "TEXT", "nullable": true},
+        {"name": "price", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "negotiable", "type": "BOOLEAN", "nullable": false, "default": "FALSE"},
+        {"name": "images", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "posted_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "unit_id", "type": "UUID", "nullable": true},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "views_count", "type": "INTEGER", "nullable": false, "default": "0"},
+        {"name": "expires_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_marketplace_listing_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_marketplace_listing_status", "columns": ["tenant_id", "status"]},
+        {"name": "idx_marketplace_listing_posted_by", "columns": ["tenant_id", "posted_by"]}
+      ]
+    },
+    {
+      "name": "marketplace_inquiry",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "listing_id", "type": "UUID", "nullable": false, "references": "marketplace_listing(id)"},
+        {"name": "inquired_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "message", "type": "VARCHAR(2000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_marketplace_inquiry_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_marketplace_inquiry_listing", "columns": ["listing_id"]}
+      ]
+    }
+  ]
+}
