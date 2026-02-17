@@ -18,6 +18,7 @@
   - full auth -> JWT -> secured endpoint lifecycle
   - tenant isolation behavior
   - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)
+  - observability flows (`audit-logs`, `system-logs`, `api-request-logs`)
 
 ## 3. Security Tests
 - Unauthorized access returns 401

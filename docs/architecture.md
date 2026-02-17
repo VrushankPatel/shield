@@ -51,9 +51,10 @@ Cross-cutting modules:
 1. Correlation ID filter injects request id
 2. JWT filter authenticates token and principal
 3. Tenant context filter stores tenant id in thread context
-4. Service transaction activates tenant filter
-5. Repository queries are tenant-scoped
-6. Response is wrapped in standard API response envelope
+4. API request logging filter persists request/response metadata
+5. Service transaction activates tenant filter
+6. Repository queries are tenant-scoped
+7. Response is wrapped in standard API response envelope
 
 ## Non-functional Design Choices
 - Soft delete via `deleted` flag

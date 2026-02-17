@@ -1418,6 +1418,260 @@ paths:
       responses:
         '200': {description: Visitor trends fetched}
 
+  /audit-logs:
+    get:
+      tags: [Observability]
+      summary: List audit logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Audit logs fetched}
+  /audit-logs/{id}:
+    get:
+      tags: [Observability]
+      summary: Get audit log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Audit log fetched}
+  /audit-logs/user/{userId}:
+    get:
+      tags: [Observability]
+      summary: List audit logs by user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Audit logs by user fetched}
+  /audit-logs/entity/{entityType}/{entityId}:
+    get:
+      tags: [Observability]
+      summary: List audit logs by entity
+      parameters:
+        - in: path
+          name: entityType
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: entityId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Audit logs by entity fetched}
+  /audit-logs/date-range:
+    get:
+      tags: [Observability]
+      summary: List audit logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Audit logs by date range fetched}
+  /audit-logs/action/{action}:
+    get:
+      tags: [Observability]
+      summary: List audit logs by action
+      parameters:
+        - in: path
+          name: action
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Audit logs by action fetched}
+  /audit-logs/export:
+    get:
+      tags: [Observability]
+      summary: Export audit logs
+      responses:
+        '200': {description: Audit logs exported}
+
+  /system-logs:
+    get:
+      tags: [Observability]
+      summary: List system logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: System logs fetched}
+  /system-logs/{id}:
+    get:
+      tags: [Observability]
+      summary: Get system log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: System log fetched}
+  /system-logs/level/{level}:
+    get:
+      tags: [Observability]
+      summary: List system logs by level
+      parameters:
+        - in: path
+          name: level
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: System logs by level fetched}
+  /system-logs/date-range:
+    get:
+      tags: [Observability]
+      summary: List system logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: System logs by date range fetched}
+  /system-logs/export:
+    get:
+      tags: [Observability]
+      summary: Export system logs
+      responses:
+        '200': {description: System logs exported}
+
+  /api-request-logs:
+    get:
+      tags: [Observability]
+      summary: List API request logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: API request logs fetched}
+  /api-request-logs/{id}:
+    get:
+      tags: [Observability]
+      summary: Get API request log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: API request log fetched}
+  /api-request-logs/user/{userId}:
+    get:
+      tags: [Observability]
+      summary: List API request logs by user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: API request logs by user fetched}
+  /api-request-logs/endpoint/{endpoint}:
+    get:
+      tags: [Observability]
+      summary: List API request logs by endpoint
+      parameters:
+        - in: path
+          name: endpoint
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: API request logs by endpoint fetched}
+  /api-request-logs/date-range:
+    get:
+      tags: [Observability]
+      summary: List API request logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: API request logs by date range fetched}
+  /api-request-logs/slow-requests:
+    get:
+      tags: [Observability]
+      summary: List slow API requests
+      parameters:
+        - in: query
+          name: thresholdMs
+          required: false
+          schema:
+            type: integer
+            default: 1000
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Slow API requests fetched}
+  /api-request-logs/failed-requests:
+    get:
+      tags: [Observability]
+      summary: List failed API requests
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Failed API requests fetched}
+  /api-request-logs/export:
+    get:
+      tags: [Observability]
+      summary: Export API request logs
+      responses:
+        '200': {description: API request logs exported}
+
 components:
   securitySchemes:
     bearerAuth:

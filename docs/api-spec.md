@@ -40,6 +40,9 @@ Phase 2:
 - Analytics reports/templates: `/report-templates/*`, `/scheduled-reports/*`
 - Analytics dashboards: `/analytics-dashboards/*`
 - Analytics insights: `/analytics/*`
+- Audit logs: `/audit-logs/*`
+- System logs: `/system-logs/*`
+- API request logs: `/api-request-logs/*`
 
 ## Common Error Envelope
 ```json
