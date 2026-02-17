@@ -1175,6 +1175,249 @@ paths:
       responses:
         '200': {description: My marketplace inquiries fetched}
 
+  /report-templates:
+    get:
+      tags: [Analytics]
+      summary: List report templates
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Report templates fetched}
+    post:
+      tags: [Analytics]
+      summary: Create report template
+      responses:
+        '200': {description: Report template created}
+  /report-templates/{id}:
+    get:
+      tags: [Analytics]
+      summary: Get report template
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Report template fetched}
+    put:
+      tags: [Analytics]
+      summary: Update report template
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Report template updated}
+    delete:
+      tags: [Analytics]
+      summary: Delete report template
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Report template deleted}
+  /report-templates/type/{type}:
+    get:
+      tags: [Analytics]
+      summary: List report templates by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Report templates by type fetched}
+  /report-templates/{id}/execute:
+    post:
+      tags: [Analytics]
+      summary: Execute report template
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Report template executed}
+
+  /scheduled-reports:
+    get:
+      tags: [Analytics]
+      summary: List scheduled reports
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Scheduled reports fetched}
+    post:
+      tags: [Analytics]
+      summary: Create scheduled report
+      responses:
+        '200': {description: Scheduled report created}
+  /scheduled-reports/{id}:
+    get:
+      tags: [Analytics]
+      summary: Get scheduled report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Scheduled report fetched}
+    put:
+      tags: [Analytics]
+      summary: Update scheduled report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Scheduled report updated}
+    delete:
+      tags: [Analytics]
+      summary: Delete scheduled report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Scheduled report deleted}
+  /scheduled-reports/{id}/activate:
+    post:
+      tags: [Analytics]
+      summary: Activate scheduled report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Scheduled report activated}
+  /scheduled-reports/{id}/deactivate:
+    post:
+      tags: [Analytics]
+      summary: Deactivate scheduled report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Scheduled report deactivated}
+  /scheduled-reports/{id}/send-now:
+    post:
+      tags: [Analytics]
+      summary: Trigger scheduled report now
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Scheduled report generated}
+
+  /analytics-dashboards:
+    get:
+      tags: [Analytics]
+      summary: List analytics dashboards
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Analytics dashboards fetched}
+    post:
+      tags: [Analytics]
+      summary: Create analytics dashboard
+      responses:
+        '200': {description: Analytics dashboard created}
+  /analytics-dashboards/{id}:
+    get:
+      tags: [Analytics]
+      summary: Get analytics dashboard
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Analytics dashboard fetched}
+    put:
+      tags: [Analytics]
+      summary: Update analytics dashboard
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Analytics dashboard updated}
+    delete:
+      tags: [Analytics]
+      summary: Delete analytics dashboard
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Analytics dashboard deleted}
+  /analytics-dashboards/type/{type}:
+    get:
+      tags: [Analytics]
+      summary: List analytics dashboards by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Analytics dashboards by type fetched}
+  /analytics-dashboards/{id}/set-default:
+    post:
+      tags: [Analytics]
+      summary: Set default analytics dashboard
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Analytics dashboard set as default}
+
+  /analytics/collection-efficiency:
+    get:
+      tags: [Analytics]
+      summary: Collection efficiency insight
+      responses:
+        '200': {description: Collection efficiency fetched}
+  /analytics/expense-distribution:
+    get:
+      tags: [Analytics]
+      summary: Expense distribution insight
+      responses:
+        '200': {description: Expense distribution fetched}
+  /analytics/complaint-resolution-time:
+    get:
+      tags: [Analytics]
+      summary: Complaint resolution time insight
+      responses:
+        '200': {description: Complaint resolution time fetched}
+  /analytics/asset-failure-frequency:
+    get:
+      tags: [Analytics]
+      summary: Asset failure frequency insight
+      responses:
+        '200': {description: Asset failure frequency fetched}
+  /analytics/occupancy-rate:
+    get:
+      tags: [Analytics]
+      summary: Occupancy rate insight
+      responses:
+        '200': {description: Occupancy rate fetched}
+  /analytics/amenity-utilization:
+    get:
+      tags: [Analytics]
+      summary: Amenity utilization insight
+      responses:
+        '200': {description: Amenity utilization fetched}
+  /analytics/defaulter-trend:
+    get:
+      tags: [Analytics]
+      summary: Defaulter trend insight
+      responses:
+        '200': {description: Defaulter trend fetched}
+  /analytics/fund-allocation:
+    get:
+      tags: [Analytics]
+      summary: Fund allocation insight
+      responses:
+        '200': {description: Fund allocation fetched}
+  /analytics/staff-attendance-summary:
+    get:
+      tags: [Analytics]
+      summary: Staff attendance summary insight
+      responses:
+        '200': {description: Staff attendance summary fetched}
+  /analytics/visitor-trends:
+    get:
+      tags: [Analytics]
+      summary: Visitor trends insight
+      responses:
+        '200': {description: Visitor trends fetched}
+
 components:
   securitySchemes:
     bearerAuth:

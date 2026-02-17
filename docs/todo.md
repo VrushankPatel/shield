@@ -10,7 +10,7 @@
 - [x] Helpdesk module baseline
 - [x] Emergency module baseline
 - [x] Document repository baseline
-- [ ] Staff & Payroll module
-- [ ] Utility monitoring module
-- [ ] Marketplace module
-- [ ] Analytics module
+- [x] Staff & Payroll module
+- [x] Utility monitoring module
+- [x] Marketplace module
+- [x] Analytics module

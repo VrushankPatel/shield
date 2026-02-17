@@ -29,6 +29,11 @@ Current modules:
 - helpdesk
 - emergency
 - document
+- staff
+- payroll
+- utility
+- marketplace
+- analytics
 
 Cross-cutting modules:
 - common
@@ -55,4 +60,4 @@ Cross-cutting modules:
 - Optimistic locking via `version` column
 - Audit log for critical operations
 - Pagination/sorting on list endpoints
-- Database schema source model for phase-2 modules under `db/model/phase2_schema.json`
+- Database schema source models under `db/model/phase2_schema.json`, `db/model/phase3_schema.json`, `db/model/phase4_schema.json`

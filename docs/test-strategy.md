@@ -6,7 +6,8 @@
   - auth service credential paths
   - notification dispatch behavior (enabled/disabled)
   - announcement publish audience filtering
-  - phase-2 module service behavior (helpdesk/emergency/document)
+  - phase-2 module service behavior (helpdesk/emergency/document/staff/payroll/utility/marketplace)
+  - analytics service behavior (templates, dashboards, KPI calculations)
   - validation and exception paths
 
 ## 2. Integration Tests
@@ -16,6 +17,7 @@
   - Flyway migrations applied on fresh database
   - full auth -> JWT -> secured endpoint lifecycle
   - tenant isolation behavior
+  - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)
 
 ## 3. Security Tests
 - Unauthorized access returns 401

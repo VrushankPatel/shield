@@ -26,16 +26,18 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Staff and payroll module (`/staff`, `/staff-attendance`, `/payroll`)
 - Utility monitoring module (`/water-tanks`, `/water-level-logs`, `/electricity-meters`, `/electricity-readings`)
 - Marketplace module (`/marketplace-categories`, `/marketplace-listings`, `/marketplace-inquiries`)
+- Analytics module (`/report-templates`, `/scheduled-reports`, `/analytics-dashboards`, `/analytics/*`)
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
+  - `db/model/phase4_schema.json` -> `V5__phase3_analytics_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V4`)
+- Flyway migrations (`V1` to `V5`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -79,7 +81,8 @@ Cross-cutting:
 │   │   ├── staff/
 │   │   ├── payroll/
 │   │   ├── utility/
-│   │   └── marketplace/
+│   │   ├── marketplace/
+│   │   └── analytics/
 │   └── audit/
 ├── src/main/resources/
 │   ├── db/migration/
@@ -176,6 +179,7 @@ Required secrets for publish job:
 - `docs/database-schema.md`
 - `docs/generated/phase2_schema_generated.md`
 - `docs/generated/phase3_schema_generated.md`
+- `docs/generated/phase4_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

@@ -37,6 +37,9 @@ Phase 2:
 - Payroll: `/payroll/*`
 - Utility monitoring: `/water-tanks/*`, `/water-level-logs/*`, `/electricity-meters/*`, `/electricity-readings/*`
 - Marketplace: `/marketplace-categories/*`, `/marketplace-listings/*`, `/marketplace-inquiries/*`
+- Analytics reports/templates: `/report-templates/*`, `/scheduled-reports/*`
+- Analytics dashboards: `/analytics-dashboards/*`
+- Analytics insights: `/analytics/*`
 
 ## Common Error Envelope
 ```json
