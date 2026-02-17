@@ -732,6 +732,449 @@ paths:
       responses:
         '200': {description: Document deleted}
 
+  /staff:
+    get:
+      tags: [Staff]
+      summary: List staff
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Staff fetched}
+    post:
+      tags: [Staff]
+      summary: Create staff
+      responses:
+        '200': {description: Staff created}
+  /staff/active:
+    get:
+      tags: [Staff]
+      summary: List active staff
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Active staff fetched}
+  /staff/{id}:
+    get:
+      tags: [Staff]
+      summary: Get staff
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff fetched}
+    put:
+      tags: [Staff]
+      summary: Update staff
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff updated}
+    delete:
+      tags: [Staff]
+      summary: Delete staff
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff deleted}
+  /staff/{id}/status:
+    patch:
+      tags: [Staff]
+      summary: Update staff status
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff status updated}
+
+  /staff-attendance/check-in:
+    post:
+      tags: [Staff]
+      summary: Staff check-in
+      responses:
+        '200': {description: Staff check-in recorded}
+  /staff-attendance/check-out:
+    post:
+      tags: [Staff]
+      summary: Staff check-out
+      responses:
+        '200': {description: Staff check-out recorded}
+  /staff-attendance/staff/{staffId}:
+    get:
+      tags: [Staff]
+      summary: List staff attendance by staff id
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Staff attendance fetched}
+
+  /payroll:
+    get:
+      tags: [Payroll]
+      summary: List payroll
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payroll fetched}
+  /payroll/{id}:
+    get:
+      tags: [Payroll]
+      summary: Get payroll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll fetched}
+  /payroll/generate:
+    post:
+      tags: [Payroll]
+      summary: Generate payroll
+      responses:
+        '200': {description: Payroll generated}
+
+  /water-tanks:
+    get:
+      tags: [Utility]
+      summary: List water tanks
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Water tanks fetched}
+    post:
+      tags: [Utility]
+      summary: Create water tank
+      responses:
+        '200': {description: Water tank created}
+  /water-tanks/{id}:
+    get:
+      tags: [Utility]
+      summary: Get water tank
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Water tank fetched}
+    put:
+      tags: [Utility]
+      summary: Update water tank
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Water tank updated}
+    delete:
+      tags: [Utility]
+      summary: Delete water tank
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Water tank deleted}
+
+  /water-level-logs:
+    get:
+      tags: [Utility]
+      summary: List water level logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Water level logs fetched}
+    post:
+      tags: [Utility]
+      summary: Create water level log
+      responses:
+        '200': {description: Water level log created}
+  /water-level-logs/{id}:
+    get:
+      tags: [Utility]
+      summary: Get water level log
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Water level log fetched}
+  /water-level-logs/tank/{tankId}:
+    get:
+      tags: [Utility]
+      summary: List water level logs by tank
+      parameters:
+        - in: path
+          name: tankId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Tank water level logs fetched}
+
+  /electricity-meters:
+    get:
+      tags: [Utility]
+      summary: List electricity meters
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Electricity meters fetched}
+    post:
+      tags: [Utility]
+      summary: Create electricity meter
+      responses:
+        '200': {description: Electricity meter created}
+  /electricity-meters/{id}:
+    get:
+      tags: [Utility]
+      summary: Get electricity meter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Electricity meter fetched}
+    put:
+      tags: [Utility]
+      summary: Update electricity meter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Electricity meter updated}
+    delete:
+      tags: [Utility]
+      summary: Delete electricity meter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Electricity meter deleted}
+  /electricity-meters/unit/{unitId}:
+    get:
+      tags: [Utility]
+      summary: List electricity meters by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Unit electricity meters fetched}
+
+  /electricity-readings:
+    get:
+      tags: [Utility]
+      summary: List electricity readings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Electricity readings fetched}
+    post:
+      tags: [Utility]
+      summary: Create electricity reading
+      responses:
+        '200': {description: Electricity reading created}
+  /electricity-readings/{id}:
+    get:
+      tags: [Utility]
+      summary: Get electricity reading
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Electricity reading fetched}
+  /electricity-readings/meter/{meterId}:
+    get:
+      tags: [Utility]
+      summary: List electricity readings by meter
+      parameters:
+        - in: path
+          name: meterId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Meter electricity readings fetched}
+
+  /marketplace-categories:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Marketplace categories fetched}
+    post:
+      tags: [Marketplace]
+      summary: Create marketplace category
+      responses:
+        '200': {description: Marketplace category created}
+  /marketplace-categories/{id}:
+    get:
+      tags: [Marketplace]
+      summary: Get marketplace category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace category fetched}
+    put:
+      tags: [Marketplace]
+      summary: Update marketplace category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace category updated}
+    delete:
+      tags: [Marketplace]
+      summary: Delete marketplace category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace category deleted}
+
+  /marketplace-listings:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace listings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Marketplace listings fetched}
+    post:
+      tags: [Marketplace]
+      summary: Create marketplace listing
+      responses:
+        '200': {description: Marketplace listing created}
+  /marketplace-listings/{id}:
+    get:
+      tags: [Marketplace]
+      summary: Get marketplace listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace listing fetched}
+    put:
+      tags: [Marketplace]
+      summary: Update marketplace listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace listing updated}
+    delete:
+      tags: [Marketplace]
+      summary: Delete marketplace listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace listing deleted}
+  /marketplace-listings/category/{categoryId}:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace listings by category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Category marketplace listings fetched}
+  /marketplace-listings/status/{status}:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace listings by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Status marketplace listings fetched}
+  /marketplace-listings/my-listings:
+    get:
+      tags: [Marketplace]
+      summary: List current user marketplace listings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My marketplace listings fetched}
+  /marketplace-listings/{id}/mark-sold:
+    post:
+      tags: [Marketplace]
+      summary: Mark marketplace listing as sold
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace listing marked sold}
+  /marketplace-listings/{id}/mark-inactive:
+    post:
+      tags: [Marketplace]
+      summary: Mark marketplace listing as inactive
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace listing marked inactive}
+  /marketplace-listings/{id}/increment-views:
+    post:
+      tags: [Marketplace]
+      summary: Increment marketplace listing views
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace listing view incremented}
+  /marketplace-listings/{id}/inquiries:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace inquiries by listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Marketplace listing inquiries fetched}
+    post:
+      tags: [Marketplace]
+      summary: Create marketplace inquiry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Marketplace inquiry created}
+
+  /marketplace-inquiries/my-inquiries:
+    get:
+      tags: [Marketplace]
+      summary: List current user marketplace inquiries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My marketplace inquiries fetched}
+
 components:
   securitySchemes:
     bearerAuth:

@@ -23,14 +23,19 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Helpdesk module (`/helpdesk-categories`, `/helpdesk-tickets`)
 - Emergency module (`/emergency-contacts`, `/sos-alerts`)
 - Document repository module (`/document-categories`, `/documents`)
-- DB model-driven migration generation (`db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`)
+- Staff and payroll module (`/staff`, `/staff-attendance`, `/payroll`)
+- Utility monitoring module (`/water-tanks`, `/water-level-logs`, `/electricity-meters`, `/electricity-readings`)
+- Marketplace module (`/marketplace-categories`, `/marketplace-listings`, `/marketplace-inquiries`)
+- DB model-driven migration generation:
+  - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
+  - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1`, `V2`)
+- Flyway migrations (`V1` to `V4`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -70,7 +75,11 @@ Cross-cutting:
 │   │   ├── notification/
 │   │   ├── helpdesk/
 │   │   ├── emergency/
-│   │   └── document/
+│   │   ├── document/
+│   │   ├── staff/
+│   │   ├── payroll/
+│   │   ├── utility/
+│   │   └── marketplace/
 │   └── audit/
 ├── src/main/resources/
 │   ├── db/migration/
@@ -128,7 +137,7 @@ mvn spring-boot:run
 mvn clean package
 ```
 Artifact:
-- `target/society-management-api-1.0.0.jar`
+- `target/shield-1.0.0.jar`
 
 ### Unit tests only
 ```bash
@@ -166,6 +175,7 @@ Required secrets for publish job:
 - `docs/architecture.md`
 - `docs/database-schema.md`
 - `docs/generated/phase2_schema_generated.md`
+- `docs/generated/phase3_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

@@ -33,6 +33,10 @@ Phase 2:
 - Helpdesk: `/helpdesk-categories/*`, `/helpdesk-tickets/*`
 - Emergency: `/emergency-contacts/*`, `/sos-alerts/*`
 - Documents: `/document-categories/*`, `/documents/*`
+- Staff: `/staff/*`, `/staff-attendance/*`
+- Payroll: `/payroll/*`
+- Utility monitoring: `/water-tanks/*`, `/water-level-logs/*`, `/electricity-meters/*`, `/electricity-readings/*`
+- Marketplace: `/marketplace-categories/*`, `/marketplace-listings/*`, `/marketplace-inquiries/*`
 
 ## Common Error Envelope
 ```json

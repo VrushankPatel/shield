@@ -8,7 +8,9 @@ PostgreSQL 15+
 - `V1__init_schema.sql`: phase-1 baseline schema
 - `V2__announcement_and_notification.sql`: announcements + notification/email tables
 - `V3__phase2_generated_modules.sql`: generated phase-2 helpdesk/emergency/document tables
+- `V4__phase2_staff_utility_marketplace_generated.sql`: generated phase-2 staff/payroll/utility/marketplace tables
 - Generator source model: `db/model/phase2_schema.json`
+- Generator source model: `db/model/phase3_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -38,6 +40,16 @@ Phase 2:
 - `sos_alert`
 - `document_category`
 - `document`
+- `staff`
+- `staff_attendance`
+- `payroll`
+- `water_tank`
+- `water_level_log`
+- `electricity_meter`
+- `electricity_reading`
+- `marketplace_category`
+- `marketplace_listing`
+- `marketplace_inquiry`
 
 ## Common Columns
 Most domain tables include:
