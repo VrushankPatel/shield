@@ -30,6 +30,9 @@ Phase 2:
 - Announcements: `/announcements/*`
 - Notifications: `/notifications/*`
 - Notification preferences: `/notification-preferences/*`
+- Helpdesk: `/helpdesk-categories/*`, `/helpdesk-tickets/*`
+- Emergency: `/emergency-contacts/*`, `/sos-alerts/*`
+- Documents: `/document-categories/*`, `/documents/*`
 
 ## Common Error Envelope
 ```json

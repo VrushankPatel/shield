@@ -20,6 +20,10 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Email notifications module (`/notifications/send`, `/notifications`, `/notifications/{id}`)
 - Notification preferences (`/notification-preferences`)
 - Announcement publish -> tenant audience filtered email dispatch
+- Helpdesk module (`/helpdesk-categories`, `/helpdesk-tickets`)
+- Emergency module (`/emergency-contacts`, `/sos-alerts`)
+- Document repository module (`/document-categories`, `/documents`)
+- DB model-driven migration generation (`db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
@@ -63,7 +67,10 @@ Cross-cutting:
 │   │   ├── amenities/
 │   │   ├── meeting/
 │   │   ├── announcement/
-│   │   └── notification/
+│   │   ├── notification/
+│   │   ├── helpdesk/
+│   │   ├── emergency/
+│   │   └── document/
 │   └── audit/
 ├── src/main/resources/
 │   ├── db/migration/
@@ -158,8 +165,10 @@ Required secrets for publish job:
 ## Documentation
 - `docs/architecture.md`
 - `docs/database-schema.md`
+- `docs/generated/phase2_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`
 - `docs/development-rules.md`
 - `docs/developer_request.md`
+- `docs/todo.md`

@@ -7,6 +7,9 @@ PostgreSQL 15+
 - Flyway SQL migrations under `src/main/resources/db/migration`
 - `V1__init_schema.sql`: phase-1 baseline schema
 - `V2__announcement_and_notification.sql`: announcements + notification/email tables
+- `V3__phase2_generated_modules.sql`: generated phase-2 helpdesk/emergency/document tables
+- Generator source model: `db/model/phase2_schema.json`
+- Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
 Phase 1:
@@ -28,6 +31,13 @@ Phase 2:
 - `announcement`
 - `notification_preference`
 - `notification_email_log`
+- `helpdesk_category`
+- `helpdesk_ticket`
+- `helpdesk_comment`
+- `emergency_contact`
+- `sos_alert`
+- `document_category`
+- `document`
 
 ## Common Columns
 Most domain tables include:

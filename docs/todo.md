@@ -1,0 +1,16 @@
+# TODO
+
+## Pending Integrations
+- [ ] Configure Gmail SMTP app password and set runtime secrets.
+  - Status: On hold by request.
+  - Reference: `docs/developer_request.md` (section `Detailed Steps: Generate Gmail App Password`).
+
+## Phase-2 Continuation
+- [x] Announcements and notification email dispatch
+- [x] Helpdesk module baseline
+- [x] Emergency module baseline
+- [x] Document repository baseline
+- [ ] Staff & Payroll module
+- [ ] Utility monitoring module
+- [ ] Marketplace module
+- [ ] Analytics module

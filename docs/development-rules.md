@@ -23,6 +23,7 @@
 
 ## 5. Database and Migration Rules
 - Schema changes only via Flyway under `db/migration`.
+- For phase-2 domain tables, update `db/model/phase2_schema.json` first, then regenerate artifacts with `scripts/generate_db_artifacts.py`.
 - Migrations are immutable once merged.
 - Include indexes/constraints for new query paths.
 

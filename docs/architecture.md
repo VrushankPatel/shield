@@ -26,6 +26,9 @@ Current modules:
 - meeting
 - announcement
 - notification
+- helpdesk
+- emergency
+- document
 
 Cross-cutting modules:
 - common
@@ -52,3 +55,4 @@ Cross-cutting modules:
 - Optimistic locking via `version` column
 - Audit log for critical operations
 - Pagination/sorting on list endpoints
+- Database schema source model for phase-2 modules under `db/model/phase2_schema.json`

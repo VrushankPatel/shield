@@ -6,6 +6,7 @@
   - auth service credential paths
   - notification dispatch behavior (enabled/disabled)
   - announcement publish audience filtering
+  - phase-2 module service behavior (helpdesk/emergency/document)
   - validation and exception paths
 
 ## 2. Integration Tests

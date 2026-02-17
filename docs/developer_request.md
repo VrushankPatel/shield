@@ -52,6 +52,7 @@ For SMTP email notifications (announcements + manual notification dispatch), pro
 Important:
 - Do not use your normal Gmail account password.
 - Use a Google App Password.
+- Current status: on hold (tracked in `docs/todo.md`).
 
 ## E. Detailed Steps: Generate Gmail App Password
 1. Open [Google Account](https://myaccount.google.com/) and sign in.
