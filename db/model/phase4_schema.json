@@ -1,0 +1,55 @@
+{
+  "version": "phase4-v1",
+  "tables": [
+    {
+      "name": "report_template",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "template_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "report_type", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "query_template", "type": "TEXT", "nullable": true},
+        {"name": "parameters_json", "type": "TEXT", "nullable": true},
+        {"name": "created_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "system_template", "type": "BOOLEAN", "nullable": false, "default": "FALSE"}
+      ],
+      "indexes": [
+        {"name": "idx_report_template_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_report_template_type", "columns": ["tenant_id", "report_type"]}
+      ]
+    },
+    {
+      "name": "scheduled_report",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "template_id", "type": "UUID", "nullable": false, "references": "report_template(id)"},
+        {"name": "report_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "frequency", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "recipients", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"},
+        {"name": "last_generated_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "next_generation_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_scheduled_report_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_scheduled_report_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "analytics_dashboard",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "dashboard_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "dashboard_type", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "widgets_json", "type": "TEXT", "nullable": true},
+        {"name": "created_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "default_dashboard", "type": "BOOLEAN", "nullable": false, "default": "FALSE"}
+      ],
+      "indexes": [
+        {"name": "idx_analytics_dashboard_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_analytics_dashboard_type", "columns": ["tenant_id", "dashboard_type"]},
+        {"name": "idx_analytics_dashboard_default", "columns": ["tenant_id", "default_dashboard"]}
+      ]
+    }
+  ]
+}
