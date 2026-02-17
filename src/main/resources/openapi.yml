@@ -350,6 +350,88 @@ paths:
       responses:
         '200': {description: Meeting minutes updated}
 
+  /announcements:
+    post:
+      tags: [Announcements]
+      summary: Create announcement
+      responses:
+        '200': {description: Announcement created}
+    get:
+      tags: [Announcements]
+      summary: List announcements
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Announcements fetched}
+  /announcements/{id}:
+    get:
+      tags: [Announcements]
+      summary: Get announcement by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Announcement fetched}
+  /announcements/{id}/publish:
+    post:
+      tags: [Announcements]
+      summary: Publish announcement and dispatch email notifications
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Announcement published}
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notification delivery logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Notification logs fetched}
+  /notifications/{id}:
+    get:
+      tags: [Notifications]
+      summary: Get notification delivery log
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Notification log fetched}
+  /notifications/send:
+    post:
+      tags: [Notifications]
+      summary: Send manual email notification
+      responses:
+        '200': {description: Notification dispatch completed}
+
+  /notification-preferences:
+    get:
+      tags: [Notifications]
+      summary: Get current user notification preference
+      responses:
+        '200': {description: Notification preference fetched}
+    put:
+      tags: [Notifications]
+      summary: Update current user notification preference
+      responses:
+        '200': {description: Notification preference updated}
+  /notification-preferences/user/{userId}:
+    get:
+      tags: [Notifications]
+      summary: Get notification preference by user id
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Notification preference fetched}
+
 components:
   securitySchemes:
     bearerAuth:
