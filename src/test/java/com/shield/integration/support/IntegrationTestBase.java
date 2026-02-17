@@ -49,22 +49,15 @@ public abstract class IntegrationTestBase {
     }
 
     private void truncateAll() {
-        jdbcTemplate.execute("""
-                TRUNCATE TABLE
-                    payment,
-                    maintenance_bill,
-                    ledger_entry,
-                    visitor_pass,
-                    complaint,
-                    amenity_booking,
-                    amenity,
-                    meeting,
-                    asset,
-                    users,
-                    unit,
-                    audit_log,
-                    tenant
-                RESTART IDENTITY CASCADE
-                """);
+        String tables = jdbcTemplate.queryForObject("""
+                SELECT string_agg(format('%I.%I', schemaname, tablename), ', ')
+                FROM pg_tables
+                WHERE schemaname = 'public'
+                  AND tablename <> 'flyway_schema_history'
+                """, String.class);
+
+        if (tables != null && !tables.isBlank()) {
+            jdbcTemplate.execute("TRUNCATE TABLE " + tables + " RESTART IDENTITY CASCADE");
+        }
     }
 }
