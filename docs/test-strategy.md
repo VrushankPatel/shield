@@ -4,12 +4,13 @@
 - Framework: JUnit 5 + Mockito
 - Focus:
   - auth service credential paths
+  - notification dispatch behavior (enabled/disabled)
+  - announcement publish audience filtering
   - validation and exception paths
-  - core business logic in services
 
 ## 2. Integration Tests
 - Framework: Spring Boot Test + Testcontainers + RestAssured
-- Database: ephemeral PostgreSQL container
+- Database: singleton PostgreSQL container
 - Focus:
   - Flyway migrations applied on fresh database
   - full auth -> JWT -> secured endpoint lifecycle
@@ -25,7 +26,7 @@
   ```bash
   mvn test -DskipITs
   ```
-- Full suite (requires Docker):
+- Full suite:
   ```bash
   mvn verify
   ```

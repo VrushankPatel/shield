@@ -5,9 +5,11 @@ PostgreSQL 15+
 
 ## Migration Strategy
 - Flyway SQL migrations under `src/main/resources/db/migration`
-- Initial schema in `V1__init_schema.sql`
+- `V1__init_schema.sql`: phase-1 baseline schema
+- `V2__announcement_and_notification.sql`: announcements + notification/email tables
 
-## Core Tables (Phase 1)
+## Core Tables
+Phase 1:
 - `tenant`
 - `unit`
 - `users`
@@ -21,6 +23,11 @@ PostgreSQL 15+
 - `amenity_booking`
 - `meeting`
 - `audit_log`
+
+Phase 2:
+- `announcement`
+- `notification_preference`
+- `notification_email_log`
 
 ## Common Columns
 Most domain tables include:

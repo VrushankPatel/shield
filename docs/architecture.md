@@ -1,7 +1,7 @@
 # Architecture
 
 ## Style
-SHIELD is implemented as a **modular monolith** with explicit package boundaries and future microservice extraction in mind.
+SHIELD is implemented as a modular monolith with explicit package boundaries and future microservice extraction in mind.
 
 ## Runtime Stack
 - Spring Boot 3.2.x
@@ -9,6 +9,7 @@ SHIELD is implemented as a **modular monolith** with explicit package boundaries
 - Spring Data JPA + Hibernate
 - PostgreSQL + Flyway
 - OpenAPI (springdoc)
+- SMTP email via Spring Mail
 
 ## Module Boundaries
 Current modules:
@@ -23,7 +24,8 @@ Current modules:
 - complaint
 - amenities
 - meeting
-- notification (placeholder)
+- announcement
+- notification
 
 Cross-cutting modules:
 - common

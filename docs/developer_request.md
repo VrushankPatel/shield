@@ -1,6 +1,6 @@
 # Developer Request: Required Inputs
 
-This file tracks values that must be provided by the developer/team for a complete deployment and integration rollout.
+This file tracks values that must be provided by the developer/team for complete deployment and integrations.
 
 ## A. Mandatory Runtime Inputs
 Provide these for every environment:
@@ -18,7 +18,7 @@ Set only during first startup to create initial tenant + admin:
 - `BOOTSTRAP_ADMIN_EMAIL`
 - `BOOTSTRAP_ADMIN_PASSWORD`
 
-After the first successful bootstrap, set:
+After first successful bootstrap:
 - `BOOTSTRAP_ENABLED=false`
 
 ## C. GitHub Actions -> GitLab Artifactory Publish Inputs
@@ -27,35 +27,60 @@ Add these as GitHub repository secrets:
 - `GITLAB_MAVEN_USERNAME`
 - `GITLAB_MAVEN_TOKEN`
 
-## D. Integrations Requiring Your Decision/API Keys
-The following modules are planned; provide values when enabled:
+Set with GitHub CLI:
+```bash
+gh secret set GITLAB_MAVEN_REPOSITORY_URL --repo VrushankPatel/shield
+gh secret set GITLAB_MAVEN_USERNAME --repo VrushankPatel/shield
+gh secret set GITLAB_MAVEN_TOKEN --repo VrushankPatel/shield
+```
 
-### Payments
-- Payment provider choice (Razorpay/Stripe/etc.)
-- API key / secret / webhook secret
-- Settlement account config
+## D. Email Integration Inputs (Phase-2 Active)
+For SMTP email notifications (announcements + manual notification dispatch), provide:
+- `NOTIFICATION_EMAIL_ENABLED=true`
+- `NOTIFICATION_EMAIL_FROM`
+- `SPRING_MAIL_HOST`
+- `SPRING_MAIL_PORT`
+- `SPRING_MAIL_USERNAME`
+- `SPRING_MAIL_PASSWORD`
 
-### SMS / OTP
-- Provider selection (Twilio or AWS SNS)
-- API credentials
-- Sender ID / messaging profile
+### Gmail-specific values
+- `SPRING_MAIL_HOST=smtp.gmail.com`
+- `SPRING_MAIL_PORT=587`
+- `SPRING_MAIL_USERNAME=<your-gmail-address>`
+- `SPRING_MAIL_PASSWORD=<gmail-app-password>`
 
-### Email
-- Provider selection (SendGrid or AWS SES)
-- API key or IAM credentials
-- Verified sender domain/email
+Important:
+- Do not use your normal Gmail account password.
+- Use a Google App Password.
 
-### WhatsApp Notifications
-- Provider credentials and template IDs
+## E. Detailed Steps: Generate Gmail App Password
+1. Open [Google Account](https://myaccount.google.com/) and sign in.
+2. Go to `Security`.
+3. Enable `2-Step Verification` if not already enabled.
+4. After 2FA is enabled, return to `Security` and open `App passwords`.
+5. In app passwords:
+- Select app as `Mail` (or choose `Other` and enter `shield-backend`).
+- Click `Generate`.
+6. Google shows a 16-character app password.
+7. Copy it immediately and store it in your secret manager.
+8. Use that 16-character value as `SPRING_MAIL_PASSWORD`.
 
-### File Storage
-- S3/GCS/Azure bucket info
-- Access key/secret or IAM role config
+## F. GitHub CLI: set email secrets for this repo
+```bash
+gh secret set NOTIFICATION_EMAIL_ENABLED --repo VrushankPatel/shield
+gh secret set NOTIFICATION_EMAIL_FROM --repo VrushankPatel/shield
+gh secret set SPRING_MAIL_HOST --repo VrushankPatel/shield
+gh secret set SPRING_MAIL_PORT --repo VrushankPatel/shield
+gh secret set SPRING_MAIL_USERNAME --repo VrushankPatel/shield
+gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
+```
 
-### Optional Monitoring and Alerting
-- Log sink endpoint (if external)
-- Alert webhook URLs (Slack/Teams/PagerDuty)
+## G. Inputs Still Pending for Future Modules
+- Payments provider + API/webhook credentials
+- SMS/OTP provider credentials
+- WhatsApp provider credentials
+- File storage credentials
 
-## E. Security Notes
-- Do not commit any secrets in `application*.yml`.
-- Keep credentials only in secret managers / CI secrets / runtime env vars.
+## H. Security Notes
+- Never commit credentials in source control.
+- Keep credentials in secret manager / CI secrets / runtime env vars only.

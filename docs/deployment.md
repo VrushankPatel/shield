@@ -22,17 +22,26 @@ Services:
 - redis: `localhost:6379`
 
 ## 4. Required Environment Variables
+Core:
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 - `JWT_SECRET`
 
-For first run bootstrap, see `docs/developer_request.md`.
+Email notifications (phase-2 optional):
+- `NOTIFICATION_EMAIL_ENABLED`
+- `NOTIFICATION_EMAIL_FROM`
+- `SPRING_MAIL_HOST`
+- `SPRING_MAIL_PORT`
+- `SPRING_MAIL_USERNAME`
+- `SPRING_MAIL_PASSWORD`
+
+For bootstrap and full integration input list, see `docs/developer_request.md`.
 
 ## 5. CI/CD Pipeline
 GitHub Actions workflow in `.github/workflows/ci.yml`:
-- Build + tests
-- Coverage artifact
+- Build + tests (unit + integration)
+- Coverage artifact upload
 - Docker image build
 - Maven deploy to GitLab Artifactory (if secrets set)
 

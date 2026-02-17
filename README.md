@@ -3,26 +3,30 @@
 SHIELD stands for **Smart Housing Infrastructure and Entry Log Digitalization**.
 This repository contains a **multi-tenant modular monolith** backend built with Spring Boot.
 
-## Current Scope (Phase 1)
-Implemented foundation and core APIs from the provided spec:
+## Current Scope
+### Phase 1
 - JWT auth (`/auth/login`, `/auth/refresh`, `/auth/logout`)
-- Tenant management
-- Unit management
-- User management
-- Billing + payments
-- Accounting ledger + summary
-- Visitor pass flow
-- Asset CRUD
-- Complaint flow (create/assign/resolve)
-- Amenities + booking
-- Meeting + minutes
+- Tenant, Unit, User
+- Billing + Payments
+- Accounting Ledger
+- Visitor Pass
+- Asset
+- Complaint
+- Amenities + Bookings
+- Meeting + Minutes
+
+### Phase 2 (started)
+- Announcements module (`/announcements`)
+- Email notifications module (`/notifications/send`, `/notifications`, `/notifications/{id}`)
+- Notification preferences (`/notification-preferences`)
+- Announcement publish -> tenant audience filtered email dispatch
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations
+- Flyway migrations (`V1`, `V2`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -32,6 +36,7 @@ Cross-cutting:
 - Spring Security + JWT (`jjwt`)
 - Spring Data JPA + PostgreSQL
 - Flyway
+- Spring Mail (SMTP)
 - Springdoc OpenAPI
 - MapStruct + Lombok
 - JUnit 5 + Mockito + Testcontainers + RestAssured
@@ -57,6 +62,7 @@ Cross-cutting:
 │   │   ├── complaint/
 │   │   ├── amenities/
 │   │   ├── meeting/
+│   │   ├── announcement/
 │   │   └── notification/
 │   └── audit/
 ├── src/main/resources/
@@ -82,7 +88,6 @@ docker compose up -d postgres redis
 ```
 
 ### 2. Bootstrap first tenant + admin (first run only)
-Set these environment variables before starting the app:
 ```bash
 export BOOTSTRAP_ENABLED=true
 export BOOTSTRAP_TENANT_NAME="Demo Society"
@@ -90,12 +95,23 @@ export BOOTSTRAP_ADMIN_EMAIL="admin@shield.local"
 export BOOTSTRAP_ADMIN_PASSWORD="ChangeThis123!"
 ```
 
-### 3. Run application
+### 3. Optional: enable SMTP email notifications
+```bash
+export NOTIFICATION_EMAIL_ENABLED=true
+export NOTIFICATION_EMAIL_FROM="your@gmail.com"
+export SPRING_MAIL_HOST="smtp.gmail.com"
+export SPRING_MAIL_PORT="587"
+export SPRING_MAIL_USERNAME="your@gmail.com"
+export SPRING_MAIL_PASSWORD="your-16-char-app-password"
+```
+Detailed Gmail setup is documented in `docs/developer_request.md`.
+
+### 4. Run application
 ```bash
 mvn spring-boot:run
 ```
 
-### 4. OpenAPI docs
+### 5. OpenAPI docs
 - [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
@@ -116,7 +132,6 @@ mvn test -DskipITs
 ```bash
 mvn verify
 ```
-Note: requires Docker daemon running.
 
 ## Docker
 ### Build image

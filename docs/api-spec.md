@@ -10,9 +10,10 @@
 
 ## Security Model
 - JWT bearer auth for all endpoints except `/auth/login` and `/auth/refresh`
-- RBAC enforced via Spring Security
+- RBAC enforced via Spring Security and method-level security
 
-## Phase-1 Endpoint Groups
+## Endpoint Groups
+Phase 1:
 - Auth: `/auth/*`
 - Tenant: `/tenants/*`
 - Unit: `/units/*`
@@ -24,6 +25,11 @@
 - Complaint: `/complaints/*`
 - Amenities: `/amenities/*`
 - Meeting: `/meetings/*`
+
+Phase 2:
+- Announcements: `/announcements/*`
+- Notifications: `/notifications/*`
+- Notification preferences: `/notification-preferences/*`
 
 ## Common Error Envelope
 ```json
