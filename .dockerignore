@@ -4,5 +4,4 @@
 .vscode
 docs
 src/test
-target
 *.log
