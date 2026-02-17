@@ -22,13 +22,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class LoginRateLimiterFilter extends OncePerRequestFilter {
 
     private final Map<String, Deque<Long>> requestWindows = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final int maxRequests;
     private final int windowSeconds;
 
     public LoginRateLimiterFilter(
+            ObjectMapper objectMapper,
             @Value("${shield.auth.login-rate-limit.requests}") int maxRequests,
             @Value("${shield.auth.login-rate-limit.window-seconds}") int windowSeconds) {
+        this.objectMapper = objectMapper;
         this.maxRequests = maxRequests;
         this.windowSeconds = windowSeconds;
     }
