@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shield
+    username: shield
+    password: shield
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.shield: DEBUG

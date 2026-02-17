@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:15:///shield-test
+    username: test
+    password: test
+  jpa:
+    show-sql: false
+  flyway:
+    enabled: true

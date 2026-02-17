@@ -11,7 +11,7 @@ paths:
   /auth/login:
     post:
       tags: [Auth]
-      summary: Login and obtain JWT tokens
+      summary: Login
       security: []
       requestBody:
         required: true
@@ -22,34 +22,369 @@ paths:
       responses:
         '200':
           description: Login successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh token
+      security: []
+      responses:
+        '200':
+          description: Token refreshed
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      responses:
+        '200':
+          description: Logout successful
+
+  /tenants:
+    post:
+      tags: [Tenant]
+      summary: Create tenant
+      responses:
+        '200': {description: Tenant created}
   /tenants/{id}:
     get:
       tags: [Tenant]
       summary: Get tenant by id
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/IdPath'
       responses:
-        '200':
-          description: Tenant found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TenantResponse'
+        '200': {description: Tenant fetched}
+    put:
+      tags: [Tenant]
+      summary: Update tenant
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Tenant updated}
+
+  /units:
+    post:
+      tags: [Unit]
+      summary: Create unit
+      responses:
+        '200': {description: Unit created}
+    get:
+      tags: [Unit]
+      summary: List units
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Units fetched}
+  /units/{id}:
+    get:
+      tags: [Unit]
+      summary: Get unit by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Unit fetched}
+    put:
+      tags: [Unit]
+      summary: Update unit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Unit updated}
+    delete:
+      tags: [Unit]
+      summary: Delete unit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Unit deleted}
+
+  /users:
+    post:
+      tags: [User]
+      summary: Create user
+      responses:
+        '200': {description: User created}
+    get:
+      tags: [User]
+      summary: List users
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Users fetched}
+  /users/{id}:
+    get:
+      tags: [User]
+      summary: Get user by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: User fetched}
+    put:
+      tags: [User]
+      summary: Update user
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: User updated}
+    delete:
+      tags: [User]
+      summary: Delete user
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: User deleted}
+
+  /billing/generate:
+    post:
+      tags: [Billing]
+      summary: Generate maintenance bill
+      responses:
+        '200': {description: Bill generated}
+  /billing/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: Get bills by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Bills fetched}
+
+  /payments:
+    post:
+      tags: [Billing]
+      summary: Create payment
+      responses:
+        '200': {description: Payment created}
+  /payments/{id}:
+    get:
+      tags: [Billing]
+      summary: Get payment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payment fetched}
+
+  /ledger:
+    post:
+      tags: [Accounting]
+      summary: Create ledger entry
+      responses:
+        '200': {description: Ledger entry created}
+    get:
+      tags: [Accounting]
+      summary: List ledger entries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Ledger entries fetched}
+  /ledger/summary:
+    get:
+      tags: [Accounting]
+      summary: Ledger summary
+      responses:
+        '200': {description: Ledger summary fetched}
+
+  /visitors/pass:
+    post:
+      tags: [Visitor]
+      summary: Create visitor pass
+      responses:
+        '200': {description: Visitor pass created}
+  /visitors/pass/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass fetched}
+  /visitors/pass/{id}/approve:
+    put:
+      tags: [Visitor]
+      summary: Approve visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass approved}
+  /visitors/pass/{id}/reject:
+    put:
+      tags: [Visitor]
+      summary: Reject visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass rejected}
+
+  /assets:
+    post:
+      tags: [Asset]
+      summary: Create asset
+      responses:
+        '200': {description: Asset created}
+    get:
+      tags: [Asset]
+      summary: List assets
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Assets fetched}
+  /assets/{id}:
+    get:
+      tags: [Asset]
+      summary: Get asset by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset fetched}
+    put:
+      tags: [Asset]
+      summary: Update asset
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset updated}
+    delete:
+      tags: [Asset]
+      summary: Delete asset
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset deleted}
+
+  /complaints:
+    post:
+      tags: [Complaint]
+      summary: Create complaint
+      responses:
+        '200': {description: Complaint created}
+    get:
+      tags: [Complaint]
+      summary: List complaints
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Complaints fetched}
+  /complaints/{id}/assign:
+    put:
+      tags: [Complaint]
+      summary: Assign complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint assigned}
+  /complaints/{id}/resolve:
+    put:
+      tags: [Complaint]
+      summary: Resolve complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint resolved}
+
+  /amenities:
+    post:
+      tags: [Amenities]
+      summary: Create amenity
+      responses:
+        '200': {description: Amenity created}
+    get:
+      tags: [Amenities]
+      summary: List amenities
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Amenities fetched}
+  /amenities/{id}/book:
+    post:
+      tags: [Amenities]
+      summary: Book amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booked}
+  /amenities/bookings:
+    get:
+      tags: [Amenities]
+      summary: List amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Amenity bookings fetched}
+
+  /meetings:
+    post:
+      tags: [Meeting]
+      summary: Create meeting
+      responses:
+        '200': {description: Meeting created}
+    get:
+      tags: [Meeting]
+      summary: List meetings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Meetings fetched}
+  /meetings/{id}/minutes:
+    put:
+      tags: [Meeting]
+      summary: Update meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes updated}
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  parameters:
+    IdPath:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      in: query
+      name: size
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+    Sort:
+      in: query
+      name: sort
+      schema:
+        type: string
+        example: createdAt,desc
   schemas:
     LoginRequest:
       type: object
@@ -61,26 +396,17 @@ components:
         password:
           type: string
           minLength: 8
-    AuthResponse:
+    ErrorResponse:
       type: object
       properties:
-        accessToken:
+        timestamp:
           type: string
-        refreshToken:
-          type: string
-        tokenType:
-          type: string
-          example: Bearer
-        expiresIn:
+          format: date-time
+        status:
           type: integer
-          format: int64
-    TenantResponse:
-      type: object
-      properties:
-        id:
+        error:
           type: string
-          format: uuid
-        name:
+        message:
           type: string
-        address:
+        path:
           type: string
