@@ -1,0 +1,29 @@
+# Maven
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Env/Secrets
+.env
+application-local.yml
+application-secrets.yml
+
+# Build artifacts
+*.class
+*.jar
+*.war
+coverage/

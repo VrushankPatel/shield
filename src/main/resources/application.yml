@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: shield
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/shield}
+    username: ${SPRING_DATASOURCE_USERNAME:shield}
+    password: ${SPRING_DATASOURCE_PASSWORD:shield}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+shield:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
+      access-token-ttl-minutes: ${JWT_ACCESS_TOKEN_TTL_MINUTES:30}
+      refresh-token-ttl-minutes: ${JWT_REFRESH_TOKEN_TTL_MINUTES:4320}
+  auth:
+    login-rate-limit:
+      requests: ${LOGIN_RATE_LIMIT_REQUESTS:10}
+      window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
+
+logging:
+  pattern:
+    level: '%5p [corr:%X{correlationId}]'
