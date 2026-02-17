@@ -53,7 +53,7 @@ jobs:
   publish-artifact:
     runs-on: ubuntu-latest
     needs: build-test
-    if: github.ref == 'refs/heads/main' && secrets.GITLAB_MAVEN_REPOSITORY_URL != '' && secrets.GITLAB_MAVEN_USERNAME != '' && secrets.GITLAB_MAVEN_TOKEN != ''
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,7 +65,17 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Check publish secrets
+        id: publish_check
+        run: |
+          if [ -n "${{ secrets.GITLAB_MAVEN_REPOSITORY_URL }}" ] && [ -n "${{ secrets.GITLAB_MAVEN_USERNAME }}" ] && [ -n "${{ secrets.GITLAB_MAVEN_TOKEN }}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create Maven settings
+        if: steps.publish_check.outputs.enabled == 'true'
         run: |
           mkdir -p ~/.m2
           cat > ~/.m2/settings.xml <<SETTINGS
@@ -84,6 +94,11 @@ jobs:
           GITLAB_MAVEN_TOKEN: ${{ secrets.GITLAB_MAVEN_TOKEN }}
 
       - name: Deploy Maven artifact
+        if: steps.publish_check.outputs.enabled == 'true'
         run: mvn -B -DskipTests deploy
         env:
           GITLAB_MAVEN_REPOSITORY_URL: ${{ secrets.GITLAB_MAVEN_REPOSITORY_URL }}
+
+      - name: Skip publish (secrets missing)
+        if: steps.publish_check.outputs.enabled != 'true'
+        run: echo "GitLab publish skipped because required secrets are not configured."
