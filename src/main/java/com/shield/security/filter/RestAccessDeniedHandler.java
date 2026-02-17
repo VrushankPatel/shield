@@ -1,6 +1,7 @@
 package com.shield.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shield.audit.service.SystemLogService;
 import com.shield.common.dto.ErrorResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,9 +18,11 @@ import org.springframework.stereotype.Component;
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
+    private final SystemLogService systemLogService;
 
-    public RestAccessDeniedHandler(ObjectMapper objectMapper) {
+    public RestAccessDeniedHandler(ObjectMapper objectMapper, SystemLogService systemLogService) {
         this.objectMapper = objectMapper;
+        this.systemLogService = systemLogService;
     }
 
     @Override
@@ -32,6 +35,12 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
                 "Access denied",
+                request.getRequestURI());
+
+        systemLogService.recordWarn(
+                RestAccessDeniedHandler.class.getSimpleName(),
+                "Access denied",
+                accessDeniedException,
                 request.getRequestURI());
 
         response.setStatus(HttpStatus.FORBIDDEN.value());

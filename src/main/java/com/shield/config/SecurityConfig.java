@@ -1,5 +1,6 @@
 package com.shield.config;
 
+import com.shield.audit.filter.ApiRequestLoggingFilter;
 import com.shield.common.logging.CorrelationIdFilter;
 import com.shield.security.filter.JwtAuthenticationFilter;
 import com.shield.security.filter.LoginRateLimiterFilter;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final LoginRateLimiterFilter loginRateLimiterFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final TenantContextFilter tenantContextFilter;
+    private final ApiRequestLoggingFilter apiRequestLoggingFilter;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
@@ -56,7 +58,8 @@ public class SecurityConfig {
                 .addFilterBefore(correlationIdFilter, LogoutFilter.class)
                 .addFilterBefore(loginRateLimiterFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(tenantContextFilter, JwtAuthenticationFilter.class);
+                .addFilterAfter(tenantContextFilter, JwtAuthenticationFilter.class)
+                .addFilterAfter(apiRequestLoggingFilter, TenantContextFilter.class);
 
         return http.build();
     }

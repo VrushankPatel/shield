@@ -1,6 +1,7 @@
 package com.shield.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shield.audit.service.SystemLogService;
 import com.shield.common.dto.ErrorResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,9 +18,11 @@ import org.springframework.stereotype.Component;
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
+    private final SystemLogService systemLogService;
 
-    public RestAuthenticationEntryPoint(ObjectMapper objectMapper) {
+    public RestAuthenticationEntryPoint(ObjectMapper objectMapper, SystemLogService systemLogService) {
         this.objectMapper = objectMapper;
+        this.systemLogService = systemLogService;
     }
 
     @Override
@@ -32,6 +35,12 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                 "Authentication is required",
+                request.getRequestURI());
+
+        systemLogService.recordWarn(
+                RestAuthenticationEntryPoint.class.getSimpleName(),
+                "Authentication is required",
+                authException,
                 request.getRequestURI());
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
