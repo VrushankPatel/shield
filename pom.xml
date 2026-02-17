@@ -151,7 +151,7 @@
     </distributionManagement>
 
     <build>
-        <finalName>society-management-api-${project.version}</finalName>
+        <finalName>shield-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
