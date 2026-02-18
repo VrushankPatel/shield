@@ -39,7 +39,7 @@ Exit Criteria:
 - IAM endpoints in OpenAPI and working in integration tests.
 
 ### M2. Communication Module Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Announcement attachments:

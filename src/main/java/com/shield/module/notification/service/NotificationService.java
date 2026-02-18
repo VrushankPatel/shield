@@ -3,6 +3,7 @@ package com.shield.module.notification.service;
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.notification.dto.NotificationBulkSendRequest;
 import com.shield.module.notification.dto.NotificationDispatchResponse;
 import com.shield.module.notification.dto.NotificationLogResponse;
 import com.shield.module.notification.dto.NotificationPreferenceResponse;
@@ -18,7 +19,6 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.model.ShieldPrincipal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -113,7 +113,8 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public PagedResponse<NotificationLogResponse> list(Pageable pageable) {
-        return PagedResponse.from(notificationEmailLogRepository.findAllByDeletedFalse(pageable).map(this::toLogResponse));
+        return PagedResponse
+                .from(notificationEmailLogRepository.findAllByDeletedFalse(pageable).map(this::toLogResponse));
     }
 
     @Transactional(readOnly = true)
@@ -264,5 +265,51 @@ public class NotificationService {
     }
 
     private record DispatchTarget(UUID userId, String email) {
+    }
+
+    public void sendBulk(NotificationBulkSendRequest request, ShieldPrincipal principal) {
+        request.notifications().forEach(req -> sendManual(req, principal));
+    }
+
+    public void markRead(UUID notificationId, ShieldPrincipal principal) {
+        NotificationEmailLogEntity entity = notificationEmailLogRepository.findByIdAndDeletedFalse(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
+
+        if (!entity.getUserId().equals(principal.userId())) {
+            throw new ResourceNotFoundException("Notification not found"); // conceal existence
+        }
+
+        if (entity.getReadAt() == null) {
+            entity.setReadAt(Instant.now());
+            notificationEmailLogRepository.save(entity);
+        }
+    }
+
+    public void markAllRead(ShieldPrincipal principal) {
+        List<NotificationEmailLogEntity> unread = notificationEmailLogRepository
+                .findAllByUserIdAndDeletedFalse(principal.userId())
+                .stream()
+                .filter(n -> n.getReadAt() == null)
+                .toList();
+
+        Instant now = Instant.now();
+        unread.forEach(n -> n.setReadAt(now));
+        notificationEmailLogRepository.saveAll(unread);
+    }
+
+    public long getUnreadCount(ShieldPrincipal principal) {
+        return notificationEmailLogRepository.countByUserIdAndReadAtIsNullAndDeletedFalse(principal.userId());
+    }
+
+    public void delete(UUID notificationId, ShieldPrincipal principal) {
+        NotificationEmailLogEntity entity = notificationEmailLogRepository.findByIdAndDeletedFalse(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
+
+        if (!entity.getUserId().equals(principal.userId())) {
+            throw new ResourceNotFoundException("Notification not found");
+        }
+
+        entity.setDeleted(true);
+        notificationEmailLogRepository.save(entity);
     }
 }

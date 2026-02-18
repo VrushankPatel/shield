@@ -1,6 +1,7 @@
 package com.shield.module.notification.repository;
 
 import com.shield.module.notification.entity.NotificationEmailLogEntity;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -12,4 +13,8 @@ public interface NotificationEmailLogRepository extends JpaRepository<Notificati
     Page<NotificationEmailLogEntity> findAllByDeletedFalse(Pageable pageable);
 
     Optional<NotificationEmailLogEntity> findByIdAndDeletedFalse(UUID id);
+
+    long countByUserIdAndReadAtIsNullAndDeletedFalse(UUID userId);
+
+    List<NotificationEmailLogEntity> findAllByUserIdAndDeletedFalse(UUID userId);
 }

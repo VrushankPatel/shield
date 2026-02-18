@@ -44,4 +44,7 @@ public class NotificationEmailLogEntity extends TenantAwareEntity {
 
     @Column(name = "sent_at")
     private Instant sentAt;
+
+    @Column(name = "read_at")
+    private Instant readAt;
 }

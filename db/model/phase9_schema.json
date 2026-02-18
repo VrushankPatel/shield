@@ -1,0 +1,118 @@
+{
+  "phase": "phase9_communication_completion",
+  "description": "M2 Communication Module Completion: announcement attachments, polls, newsletters, notification extensions",
+  "tables": [
+    {
+      "name": "announcement_attachment",
+      "columns": [
+        {"name": "id", "type": "UUID", "primaryKey": true, "default": "gen_random_uuid()"},
+        {"name": "tenant_id", "type": "UUID", "nullable": false, "references": "tenant(id)"},
+        {"name": "announcement_id", "type": "UUID", "nullable": false, "references": "announcement(id)"},
+        {"name": "file_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "file_url", "type": "VARCHAR(1000)", "nullable": false},
+        {"name": "file_size", "type": "BIGINT"},
+        {"name": "content_type", "type": "VARCHAR(100)"},
+        {"name": "created_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "updated_at", "type": "TIMESTAMP"},
+        {"name": "version", "type": "BIGINT", "nullable": false, "default": 0},
+        {"name": "deleted", "type": "BOOLEAN", "nullable": false, "default": false}
+      ],
+      "indexes": [
+        {"name": "idx_ann_attach_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_ann_attach_announcement", "columns": ["announcement_id"]}
+      ]
+    },
+    {
+      "name": "poll",
+      "columns": [
+        {"name": "id", "type": "UUID", "primaryKey": true, "default": "gen_random_uuid()"},
+        {"name": "tenant_id", "type": "UUID", "nullable": false, "references": "tenant(id)"},
+        {"name": "title", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "description", "type": "TEXT"},
+        {"name": "status", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "multiple_choice", "type": "BOOLEAN", "nullable": false, "default": false},
+        {"name": "expires_at", "type": "TIMESTAMP"},
+        {"name": "created_by", "type": "UUID", "nullable": false},
+        {"name": "created_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "updated_at", "type": "TIMESTAMP"},
+        {"name": "version", "type": "BIGINT", "nullable": false, "default": 0},
+        {"name": "deleted", "type": "BOOLEAN", "nullable": false, "default": false}
+      ],
+      "indexes": [
+        {"name": "idx_poll_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_poll_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "poll_option",
+      "columns": [
+        {"name": "id", "type": "UUID", "primaryKey": true, "default": "gen_random_uuid()"},
+        {"name": "tenant_id", "type": "UUID", "nullable": false, "references": "tenant(id)"},
+        {"name": "poll_id", "type": "UUID", "nullable": false, "references": "poll(id)"},
+        {"name": "option_text", "type": "VARCHAR(500)", "nullable": false},
+        {"name": "display_order", "type": "INTEGER", "nullable": false, "default": 0},
+        {"name": "created_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "updated_at", "type": "TIMESTAMP"},
+        {"name": "version", "type": "BIGINT", "nullable": false, "default": 0},
+        {"name": "deleted", "type": "BOOLEAN", "nullable": false, "default": false}
+      ],
+      "indexes": [
+        {"name": "idx_poll_option_poll", "columns": ["poll_id"]}
+      ]
+    },
+    {
+      "name": "poll_vote",
+      "columns": [
+        {"name": "id", "type": "UUID", "primaryKey": true, "default": "gen_random_uuid()"},
+        {"name": "tenant_id", "type": "UUID", "nullable": false, "references": "tenant(id)"},
+        {"name": "poll_id", "type": "UUID", "nullable": false, "references": "poll(id)"},
+        {"name": "option_id", "type": "UUID", "nullable": false, "references": "poll_option(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": false},
+        {"name": "created_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "updated_at", "type": "TIMESTAMP"},
+        {"name": "version", "type": "BIGINT", "nullable": false, "default": 0},
+        {"name": "deleted", "type": "BOOLEAN", "nullable": false, "default": false}
+      ],
+      "indexes": [
+        {"name": "idx_poll_vote_poll", "columns": ["poll_id"]},
+        {"name": "idx_poll_vote_user", "columns": ["poll_id", "user_id"]}
+      ],
+      "constraints": [
+        {"name": "uk_poll_vote_user_poll", "type": "UNIQUE", "columns": ["poll_id", "user_id"]}
+      ]
+    },
+    {
+      "name": "newsletter",
+      "columns": [
+        {"name": "id", "type": "UUID", "primaryKey": true, "default": "gen_random_uuid()"},
+        {"name": "tenant_id", "type": "UUID", "nullable": false, "references": "tenant(id)"},
+        {"name": "title", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "content", "type": "TEXT"},
+        {"name": "summary", "type": "VARCHAR(1000)"},
+        {"name": "file_url", "type": "VARCHAR(1000)"},
+        {"name": "year", "type": "INTEGER", "nullable": false},
+        {"name": "month", "type": "INTEGER", "nullable": false},
+        {"name": "status", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "published_at", "type": "TIMESTAMP"},
+        {"name": "published_by", "type": "UUID"},
+        {"name": "created_by", "type": "UUID", "nullable": false},
+        {"name": "created_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "updated_at", "type": "TIMESTAMP"},
+        {"name": "version", "type": "BIGINT", "nullable": false, "default": 0},
+        {"name": "deleted", "type": "BOOLEAN", "nullable": false, "default": false}
+      ],
+      "indexes": [
+        {"name": "idx_newsletter_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_newsletter_year", "columns": ["tenant_id", "year"]}
+      ]
+    }
+  ],
+  "alterations": [
+    {
+      "table": "notification_email_log",
+      "addColumns": [
+        {"name": "read_at", "type": "TIMESTAMP"}
+      ]
+    }
+  ]
+}
