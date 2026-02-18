@@ -82,6 +82,14 @@ Phase 1:
   - Domestic help: `/domestic-help/*`, `/domestic-help/type/{type}`, `/domestic-help/{id}/verify`, `/domestic-help/{id}/assign-unit`, `/domestic-help/{helpId}/unit/{unitId}`
   - Blacklist: `/blacklist/*`, `/blacklist/check/{phone}`, `/blacklist/{id}/activate`, `/blacklist/{id}/deactivate`
   - Delivery logs: `/delivery-logs/*`, `/delivery-logs/unit/{unitId}`, `/delivery-logs/date-range`, `/delivery-logs/partner/{partner}`
+- Asset and complaint expansion:
+  - Asset categories: `/asset-categories/*`
+  - Asset advanced search/export: `/assets/category/{categoryId}`, `/assets/location/{location}`, `/assets/tag/{tag}`, `/assets/verify-qr/{qrCode}`, `/assets/amc-expiring`, `/assets/warranty-expiring`, `/assets/export`
+  - Complaint full lifecycle and filters: `/complaints/{id}`, `/complaints/{id}/assign`, `/complaints/{id}/resolve`, `/complaints/{id}/close`, `/complaints/{id}/reopen`, `/complaints/status/{status}`, `/complaints/priority/{priority}`, `/complaints/asset/{assetId}`, `/complaints/my-complaints`, `/complaints/assigned-to-me`, `/complaints/sla-breached`, `/complaints/statistics`
+  - Complaint comments: `/complaints/{id}/comments`, `/comments/{id}`
+  - Work orders: `/work-orders/*`, `/work-orders/{id}/start`, `/work-orders/{id}/complete`, `/work-orders/{id}/cancel`, `/work-orders/complaint/{complaintId}`, `/work-orders/vendor/{vendorId}`, `/work-orders/status/{status}`
+  - Preventive maintenance: `/preventive-maintenance/*`, `/preventive-maintenance/asset/{assetId}`, `/preventive-maintenance/due`, `/preventive-maintenance/{id}/execute`
+  - Asset depreciation: `/asset-depreciation/asset/{assetId}`, `/asset-depreciation/calculate`, `/asset-depreciation/year/{year}`, `/asset-depreciation/report`
 - Expanded operations:
   - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`

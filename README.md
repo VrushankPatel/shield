@@ -23,6 +23,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Visitor Management
 - Asset
 - Complaint
+- Asset & complaint expansion:
+  - Asset categories: `/asset-categories/*`
+  - Asset advanced queries: `/assets/category/{categoryId}`, `/assets/location/{location}`, `/assets/tag/{tag}`, `/assets/verify-qr/{qrCode}`, `/assets/amc-expiring`, `/assets/warranty-expiring`, `/assets/export`
+  - Complaint lifecycle and filters: `/complaints/{id}`, `/complaints/{id}/close`, `/complaints/{id}/reopen`, `/complaints/status/{status}`, `/complaints/priority/{priority}`, `/complaints/asset/{assetId}`, `/complaints/my-complaints`, `/complaints/assigned-to-me`, `/complaints/sla-breached`, `/complaints/statistics`
+  - Complaint comments: `/complaints/{id}/comments`, `/comments/{id}`
+  - Work orders: `/work-orders/*`
+  - Preventive maintenance: `/preventive-maintenance/*`
+  - Asset depreciation: `/asset-depreciation/*`
 - Amenities + Bookings
 - Meeting + Minutes
 - Identity operations:
@@ -83,13 +91,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase11_schema.json` -> `V12__phase11_billing_expansion_generated.sql` (+ `V13__phase11_billing_payment_alterations.sql`)
   - `db/model/phase12_schema.json` -> `V14__phase12_accounting_treasury_generated.sql` (+ `V15__phase12_ledger_entry_extensions.sql`)
   - `db/model/phase13_schema.json` -> `V16__phase13_visitor_expansion_generated.sql` (+ `V17__phase13_visitor_pass_extensions.sql`)
+  - `db/model/phase14_schema.json` -> `V18__phase14_asset_complaint_expansion_generated.sql` (+ `V19__phase14_asset_complaint_extensions.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V17`)
+- Flyway migrations (`V1` to `V19`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -253,6 +262,7 @@ Required secrets:
 - `docs/generated/phase11_schema_generated.md`
 - `docs/generated/phase12_schema_generated.md`
 - `docs/generated/phase13_schema_generated.md`
+- `docs/generated/phase14_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

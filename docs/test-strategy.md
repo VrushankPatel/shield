@@ -14,6 +14,7 @@
   - billing management and payment operations behavior (billing cycles, invoices, reminders, late-fee rules, cash/cheque/refund flows)
   - accounting and treasury behavior (account heads/funds/vendors/expenses, budget-vs-actual aggregation, financial report calculations)
   - visitor management behavior (visitor registry, pass lifecycle, QR verify, entry/exit logs, domestic help mapping, blacklist checks, delivery logs)
+  - asset and complaint expansion behavior (asset categories, complaint lifecycle/state transitions, work-order transitions, preventive maintenance execution, depreciation calculations)
   - analytics service behavior (templates, dashboards, KPI calculations)
   - validation and exception paths
 
@@ -33,6 +34,7 @@
   - M3 billing lifecycle flow (cycle -> invoice -> reminder -> payment -> refund)
   - M4 accounting lifecycle flow (account head -> fund category -> vendor -> budget -> ledger/expense -> vendor payment -> budget-vs-actual/report endpoints)
   - M5 visitor lifecycle flow (visitor -> pass -> entry/exit -> currently-inside) plus domestic-help/blacklist/delivery subflows
+  - M6 asset and complaint lifecycle flow (asset category -> asset -> complaint assign/resolve/close -> work order start/complete -> preventive maintenance execute -> depreciation calculate/report)
   - observability flows (`audit-logs`, `system-logs`, `api-request-logs`)
 
 ## 3. Security Tests

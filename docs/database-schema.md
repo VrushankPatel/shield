@@ -22,6 +22,8 @@ PostgreSQL 15+
 - `V15__phase12_ledger_entry_extensions.sql`: phase-12 ledger enhancements for accounting reports
 - `V16__phase13_visitor_expansion_generated.sql`: generated phase-13 visitor management tables
 - `V17__phase13_visitor_pass_extensions.sql`: phase-13 visitor-pass table enrichments
+- `V18__phase14_asset_complaint_expansion_generated.sql`: generated phase-14 asset/complaint expansion tables
+- `V19__phase14_asset_complaint_extensions.sql`: phase-14 asset/complaint baseline table enrichments
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -33,6 +35,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase11_schema.json`
 - Generator source model: `db/model/phase12_schema.json`
 - Generator source model: `db/model/phase13_schema.json`
+- Generator source model: `db/model/phase14_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -108,6 +111,11 @@ Phase 2:
 - `domestic_help_unit_mapping`
 - `blacklist`
 - `delivery_log`
+- `asset_category`
+- `complaint_comment`
+- `work_order`
+- `preventive_maintenance_schedule`
+- `asset_depreciation`
 
 ## Common Columns
 Most domain tables include:

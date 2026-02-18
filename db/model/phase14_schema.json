@@ -1,0 +1,90 @@
+{
+  "version": "phase14-v1",
+  "tables": [
+    {
+      "name": "asset_category",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "category_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(1000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_asset_category_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_asset_category_name", "columns": ["tenant_id", "category_name"]}
+      ]
+    },
+    {
+      "name": "complaint_comment",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "complaint_id", "type": "UUID", "nullable": false, "references": "complaint(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "comment", "type": "VARCHAR(2000)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_complaint_comment_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_complaint_comment_complaint", "columns": ["tenant_id", "complaint_id"]},
+        {"name": "idx_complaint_comment_user", "columns": ["tenant_id", "user_id"]}
+      ]
+    },
+    {
+      "name": "work_order",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "work_order_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "complaint_id", "type": "UUID", "nullable": false, "references": "complaint(id)"},
+        {"name": "asset_id", "type": "UUID", "nullable": true, "references": "asset(id)"},
+        {"name": "vendor_id", "type": "UUID", "nullable": true, "references": "vendor(id)"},
+        {"name": "work_description", "type": "VARCHAR(2000)", "nullable": false},
+        {"name": "estimated_cost", "type": "NUMERIC(12,2)", "nullable": true},
+        {"name": "actual_cost", "type": "NUMERIC(12,2)", "nullable": true},
+        {"name": "scheduled_date", "type": "DATE", "nullable": true},
+        {"name": "completion_date", "type": "DATE", "nullable": true},
+        {"name": "status", "type": "VARCHAR(40)", "nullable": false},
+        {"name": "created_by", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_work_order_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_work_order_complaint", "columns": ["tenant_id", "complaint_id"]},
+        {"name": "idx_work_order_vendor", "columns": ["tenant_id", "vendor_id"]},
+        {"name": "idx_work_order_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "preventive_maintenance_schedule",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "asset_id", "type": "UUID", "nullable": false, "references": "asset(id)"},
+        {"name": "maintenance_type", "type": "VARCHAR(120)", "nullable": false},
+        {"name": "frequency", "type": "VARCHAR(40)", "nullable": false},
+        {"name": "last_maintenance_date", "type": "DATE", "nullable": true},
+        {"name": "next_maintenance_date", "type": "DATE", "nullable": false},
+        {"name": "assigned_vendor_id", "type": "UUID", "nullable": true, "references": "vendor(id)"},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_preventive_maintenance_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_preventive_maintenance_asset", "columns": ["tenant_id", "asset_id"]},
+        {"name": "idx_preventive_maintenance_due", "columns": ["tenant_id", "next_maintenance_date"]},
+        {"name": "idx_preventive_maintenance_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "asset_depreciation",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "asset_id", "type": "UUID", "nullable": false, "references": "asset(id)"},
+        {"name": "depreciation_method", "type": "VARCHAR(40)", "nullable": false},
+        {"name": "depreciation_rate", "type": "NUMERIC(6,2)", "nullable": false},
+        {"name": "depreciation_year", "type": "INTEGER", "nullable": false},
+        {"name": "depreciation_amount", "type": "NUMERIC(12,2)", "nullable": false},
+        {"name": "book_value", "type": "NUMERIC(12,2)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_asset_depreciation_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_asset_depreciation_asset", "columns": ["tenant_id", "asset_id"]},
+        {"name": "idx_asset_depreciation_year", "columns": ["tenant_id", "depreciation_year"]}
+      ]
+    }
+  ]
+}

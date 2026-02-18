@@ -58,14 +58,35 @@ class AssetServiceTest {
 
         AssetResponse response = assetService.create(new AssetCreateRequest(
                 "A1B",
+                "Lobby bulb",
+                null,
                 "ELECTRICAL",
                 "Block A",
+                "A",
+                "GROUND",
                 AssetStatus.ACTIVE,
-                LocalDate.of(2025, 1, 1)));
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2026, 1, 1),
+                true,
+                UUID.randomUUID(),
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 12, 31),
+                null,
+                null,
+                "ASSET-QR-1"));
 
         assertEquals(tenantId, response.tenantId());
         assertEquals("A1B", response.assetCode());
         assertEquals(AssetStatus.ACTIVE, response.status());
+        assertEquals("ASSET-QR-1", response.qrCodeData());
+    }
+
+    @Test
+    void getByTagShouldThrowWhenAssetMissing() {
+        when(assetRepository.findByAssetCodeAndDeletedFalse("A1B")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> assetService.getByTag("A1B"));
     }
 
     @Test
@@ -75,10 +96,23 @@ class AssetServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> assetService.update(id, new AssetUpdateRequest(
                 "A1B",
+                "Lobby bulb",
+                null,
                 "ELECTRICAL",
                 "Block A",
+                "A",
+                "GROUND",
                 AssetStatus.ACTIVE,
-                LocalDate.now())));
+                LocalDate.now(),
+                LocalDate.now(),
+                LocalDate.now().plusMonths(6),
+                true,
+                UUID.randomUUID(),
+                LocalDate.now(),
+                LocalDate.now().plusMonths(6),
+                null,
+                null,
+                "ASSET-QR-1")));
     }
 
     @Test

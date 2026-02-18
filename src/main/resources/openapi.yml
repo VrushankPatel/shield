@@ -2258,6 +2258,43 @@ paths:
       responses:
         '200': {description: Visitor pass rejected}
 
+  /asset-categories:
+    post:
+      tags: [Asset]
+      summary: Create asset category
+      responses:
+        '200': {description: Asset category created}
+    get:
+      tags: [Asset]
+      summary: List asset categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Asset categories fetched}
+  /asset-categories/{id}:
+    get:
+      tags: [Asset]
+      summary: Get asset category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset category fetched}
+    put:
+      tags: [Asset]
+      summary: Update asset category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset category updated}
+    delete:
+      tags: [Asset]
+      summary: Delete asset category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset category deleted}
+
   /assets:
     post:
       tags: [Asset]
@@ -2295,6 +2332,86 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Asset deleted}
+  /assets/category/{categoryId}:
+    get:
+      tags: [Asset]
+      summary: List assets by category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Assets by category fetched}
+  /assets/location/{location}:
+    get:
+      tags: [Asset]
+      summary: List assets by location
+      parameters:
+        - in: path
+          name: location
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Assets by location fetched}
+  /assets/tag/{tag}:
+    get:
+      tags: [Asset]
+      summary: Get asset by tag
+      parameters:
+        - in: path
+          name: tag
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Asset fetched by tag}
+  /assets/verify-qr/{qrCode}:
+    get:
+      tags: [Asset]
+      summary: Verify asset by QR code
+      parameters:
+        - in: path
+          name: qrCode
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Asset verified}
+  /assets/amc-expiring:
+    get:
+      tags: [Asset]
+      summary: List assets with AMC expiry
+      parameters:
+        - in: query
+          name: days
+          required: false
+          schema: {type: integer, default: 30}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: AMC expiring assets fetched}
+  /assets/warranty-expiring:
+    get:
+      tags: [Asset]
+      summary: List assets with warranty expiry
+      parameters:
+        - in: query
+          name: days
+          required: false
+          schema: {type: integer, default: 30}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Warranty expiring assets fetched}
+  /assets/export:
+    get:
+      tags: [Asset]
+      summary: Export assets CSV
+      responses:
+        '200': {description: Asset export generated}
 
   /complaints:
     post:
@@ -2311,10 +2428,39 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Complaints fetched}
+  /complaints/{id}:
+    get:
+      tags: [Complaint]
+      summary: Get complaint by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint fetched}
+    put:
+      tags: [Complaint]
+      summary: Update complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint updated}
+    delete:
+      tags: [Complaint]
+      summary: Delete complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint deleted}
   /complaints/{id}/assign:
     put:
       tags: [Complaint]
       summary: Assign complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint assigned}
+    post:
+      tags: [Complaint]
+      summary: Assign complaint (alias)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -2327,6 +2473,335 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Complaint resolved}
+    post:
+      tags: [Complaint]
+      summary: Resolve complaint (alias)
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint resolved}
+  /complaints/{id}/close:
+    post:
+      tags: [Complaint]
+      summary: Close complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint closed}
+  /complaints/{id}/reopen:
+    post:
+      tags: [Complaint]
+      summary: Reopen complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint reopened}
+  /complaints/status/{status}:
+    get:
+      tags: [Complaint]
+      summary: List complaints by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaints by status fetched}
+  /complaints/priority/{priority}:
+    get:
+      tags: [Complaint]
+      summary: List complaints by priority
+      parameters:
+        - in: path
+          name: priority
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaints by priority fetched}
+  /complaints/asset/{assetId}:
+    get:
+      tags: [Complaint]
+      summary: List complaints by asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaints by asset fetched}
+  /complaints/my-complaints:
+    get:
+      tags: [Complaint]
+      summary: List my complaints
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My complaints fetched}
+  /complaints/assigned-to-me:
+    get:
+      tags: [Complaint]
+      summary: List complaints assigned to current user
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Assigned complaints fetched}
+  /complaints/sla-breached:
+    get:
+      tags: [Complaint]
+      summary: List SLA breached complaints
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: SLA breached complaints fetched}
+  /complaints/statistics:
+    get:
+      tags: [Complaint]
+      summary: Complaint statistics
+      responses:
+        '200': {description: Complaint statistics fetched}
+  /complaints/{id}/comments:
+    get:
+      tags: [Complaint]
+      summary: List complaint comments
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaint comments fetched}
+    post:
+      tags: [Complaint]
+      summary: Add complaint comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint comment added}
+  /comments/{id}:
+    put:
+      tags: [Complaint]
+      summary: Update complaint comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint comment updated}
+    delete:
+      tags: [Complaint]
+      summary: Delete complaint comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint comment deleted}
+
+  /work-orders:
+    post:
+      tags: [Complaint]
+      summary: Create work order
+      responses:
+        '200': {description: Work order created}
+    get:
+      tags: [Complaint]
+      summary: List work orders
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders fetched}
+  /work-orders/{id}:
+    get:
+      tags: [Complaint]
+      summary: Get work order by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order fetched}
+    put:
+      tags: [Complaint]
+      summary: Update work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order updated}
+    delete:
+      tags: [Complaint]
+      summary: Delete work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order deleted}
+  /work-orders/{id}/start:
+    post:
+      tags: [Complaint]
+      summary: Start work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order started}
+  /work-orders/{id}/complete:
+    post:
+      tags: [Complaint]
+      summary: Complete work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order completed}
+  /work-orders/{id}/cancel:
+    post:
+      tags: [Complaint]
+      summary: Cancel work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order cancelled}
+  /work-orders/complaint/{complaintId}:
+    get:
+      tags: [Complaint]
+      summary: List work orders by complaint
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders by complaint fetched}
+  /work-orders/vendor/{vendorId}:
+    get:
+      tags: [Complaint]
+      summary: List work orders by vendor
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders by vendor fetched}
+  /work-orders/status/{status}:
+    get:
+      tags: [Complaint]
+      summary: List work orders by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders by status fetched}
+
+  /preventive-maintenance:
+    post:
+      tags: [Asset]
+      summary: Create preventive maintenance schedule
+      responses:
+        '200': {description: Preventive maintenance schedule created}
+    get:
+      tags: [Asset]
+      summary: List preventive maintenance schedules
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Preventive maintenance schedules fetched}
+  /preventive-maintenance/{id}:
+    get:
+      tags: [Asset]
+      summary: Get preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule fetched}
+    put:
+      tags: [Asset]
+      summary: Update preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule updated}
+    delete:
+      tags: [Asset]
+      summary: Delete preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule deleted}
+  /preventive-maintenance/asset/{assetId}:
+    get:
+      tags: [Asset]
+      summary: List preventive maintenance by asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Preventive maintenance by asset fetched}
+  /preventive-maintenance/due:
+    get:
+      tags: [Asset]
+      summary: List due preventive maintenance schedules
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Due preventive maintenance schedules fetched}
+  /preventive-maintenance/{id}/execute:
+    post:
+      tags: [Asset]
+      summary: Execute preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule executed}
+
+  /asset-depreciation/asset/{assetId}:
+    get:
+      tags: [Asset]
+      summary: List asset depreciation by asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Asset depreciation by asset fetched}
+  /asset-depreciation/calculate:
+    post:
+      tags: [Asset]
+      summary: Calculate asset depreciation
+      responses:
+        '200': {description: Asset depreciation calculated}
+  /asset-depreciation/year/{year}:
+    get:
+      tags: [Asset]
+      summary: List asset depreciation by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: {type: integer}
+      responses:
+        '200': {description: Asset depreciation by year fetched}
+  /asset-depreciation/report:
+    get:
+      tags: [Asset]
+      summary: Asset depreciation report
+      responses:
+        '200': {description: Asset depreciation report fetched}
 
   /amenities:
     post:

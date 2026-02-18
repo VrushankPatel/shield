@@ -11,7 +11,7 @@ This tracker is the single source of truth for implementation progress against t
   - commit + push
 
 ## Current Status Summary
-- M1 through M5 are complete with unit and integration coverage.
+- M1 through M6 are complete with unit and integration coverage.
 - Remaining work is to close full-spec gaps (modules M6+ and production-grade integrations).
 
 ## Milestone Plan
@@ -113,7 +113,7 @@ Exit Criteria:
 - Full module-5 endpoint coverage with isolation tests.
 
 ### M6. Asset & Complaint Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Asset categories, complaint comments, work orders, preventive maintenance, depreciation APIs.
