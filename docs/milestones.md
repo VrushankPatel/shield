@@ -11,7 +11,7 @@ This tracker is the single source of truth for implementation progress against t
   - commit + push
 
 ## Current Status Summary
-- M1 through M6 are complete with unit and integration coverage.
+- M1 through M7 are complete with unit and integration coverage.
 - Remaining work is to close full-spec gaps (modules M6+ and production-grade integrations).
 
 ## Milestone Plan
@@ -129,7 +129,7 @@ Exit Criteria:
 - Full module-6 parity in OpenAPI and tests.
 
 ### M7. Amenities & Meeting Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Amenities:

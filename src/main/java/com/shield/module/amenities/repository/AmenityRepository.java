@@ -12,4 +12,8 @@ public interface AmenityRepository extends JpaRepository<AmenityEntity, UUID> {
     Optional<AmenityEntity> findByIdAndDeletedFalse(UUID id);
 
     Page<AmenityEntity> findAllByDeletedFalse(Pageable pageable);
+
+    Page<AmenityEntity> findAllByAmenityTypeIgnoreCaseAndDeletedFalse(String amenityType, Pageable pageable);
+
+    Page<AmenityEntity> findAllByActiveTrueAndBookingAllowedTrueAndDeletedFalse(Pageable pageable);
 }

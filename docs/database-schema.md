@@ -24,6 +24,8 @@ PostgreSQL 15+
 - `V17__phase13_visitor_pass_extensions.sql`: phase-13 visitor-pass table enrichments
 - `V18__phase14_asset_complaint_expansion_generated.sql`: generated phase-14 asset/complaint expansion tables
 - `V19__phase14_asset_complaint_extensions.sql`: phase-14 asset/complaint baseline table enrichments
+- `V20__phase15_amenities_meeting_generated.sql`: generated phase-15 amenities/meeting governance tables
+- `V21__phase15_amenities_meeting_extensions.sql`: phase-15 amenities/meeting baseline table enrichments
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -36,6 +38,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase12_schema.json`
 - Generator source model: `db/model/phase13_schema.json`
 - Generator source model: `db/model/phase14_schema.json`
+- Generator source model: `db/model/phase15_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -116,6 +119,17 @@ Phase 2:
 - `work_order`
 - `preventive_maintenance_schedule`
 - `asset_depreciation`
+- `amenity_time_slot`
+- `amenity_pricing`
+- `amenity_booking_rule`
+- `amenity_cancellation_policy`
+- `meeting_agenda`
+- `meeting_attendee`
+- `meeting_minutes_record`
+- `meeting_resolution`
+- `meeting_vote`
+- `meeting_action_item`
+- `meeting_reminder`
 
 ## Common Columns
 Most domain tables include:

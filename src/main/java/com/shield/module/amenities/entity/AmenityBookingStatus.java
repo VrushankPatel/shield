@@ -4,5 +4,6 @@ public enum AmenityBookingStatus {
     PENDING,
     CONFIRMED,
     REJECTED,
-    CANCELLED
+    CANCELLED,
+    COMPLETED
 }

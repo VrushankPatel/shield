@@ -2818,10 +2818,282 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Amenities fetched}
+  /amenities/{id}:
+    get:
+      tags: [Amenities]
+      summary: Get amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity fetched}
+    put:
+      tags: [Amenities]
+      summary: Update amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity deleted}
+  /amenities/type/{type}:
+    get:
+      tags: [Amenities]
+      summary: List amenities by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenities by type fetched}
+  /amenities/available:
+    get:
+      tags: [Amenities]
+      summary: List available amenities
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Available amenities fetched}
+  /amenities/{id}/activate:
+    post:
+      tags: [Amenities]
+      summary: Activate amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity activated}
+  /amenities/{id}/deactivate:
+    post:
+      tags: [Amenities]
+      summary: Deactivate amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity deactivated}
+  /amenities/{id}/time-slots:
+    get:
+      tags: [Amenities]
+      summary: List amenity time slots
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slots fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot created}
+  /time-slots/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot deleted}
+  /time-slots/{id}/activate:
+    post:
+      tags: [Amenities]
+      summary: Activate amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot activated}
+  /time-slots/{id}/deactivate:
+    post:
+      tags: [Amenities]
+      summary: Deactivate amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot deactivated}
+  /amenities/{id}/pricing:
+    get:
+      tags: [Amenities]
+      summary: List amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing created}
+  /pricing/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing deleted}
+  /amenity-bookings:
+    post:
+      tags: [Amenities]
+      summary: Create amenity booking
+      parameters:
+        - in: query
+          name: amenityId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Amenity booking created}
+    get:
+      tags: [Amenities]
+      summary: List amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenity bookings fetched}
+  /amenity-bookings/{id}:
+    get:
+      tags: [Amenities]
+      summary: Get amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking fetched}
+    put:
+      tags: [Amenities]
+      summary: Update amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking deleted}
+  /amenity-bookings/{id}/approve:
+    post:
+      tags: [Amenities]
+      summary: Approve amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking approved}
+  /amenity-bookings/{id}/reject:
+    post:
+      tags: [Amenities]
+      summary: Reject amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rejected}
+  /amenity-bookings/{id}/cancel:
+    post:
+      tags: [Amenities]
+      summary: Cancel amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking cancelled}
+  /amenity-bookings/{id}/complete:
+    post:
+      tags: [Amenities]
+      summary: Complete amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking completed}
+  /amenity-bookings/amenity/{amenityId}:
+    get:
+      tags: [Amenities]
+      summary: List bookings by amenity
+      parameters:
+        - in: path
+          name: amenityId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenity bookings by amenity fetched}
+  /amenity-bookings/my-bookings:
+    get:
+      tags: [Amenities]
+      summary: List my amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My amenity bookings fetched}
+  /amenity-bookings/pending-approval:
+    get:
+      tags: [Amenities]
+      summary: List pending amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending amenity bookings fetched}
+  /amenity-bookings/date/{date}:
+    get:
+      tags: [Amenities]
+      summary: List amenity bookings by date
+      parameters:
+        - in: path
+          name: date
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenity bookings by date fetched}
+  /amenity-bookings/check-availability:
+    get:
+      tags: [Amenities]
+      summary: Check amenity booking availability
+      parameters:
+        - in: query
+          name: amenityId
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: startTime
+          required: true
+          schema: {type: string, format: date-time}
+        - in: query
+          name: endTime
+          required: true
+          schema: {type: string, format: date-time}
+      responses:
+        '200': {description: Amenity availability fetched}
   /amenities/{id}/book:
     post:
       tags: [Amenities]
-      summary: Book amenity
+      summary: Book amenity (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -2829,13 +3101,73 @@ paths:
   /amenities/bookings:
     get:
       tags: [Amenities]
-      summary: List amenity bookings
+      summary: List amenity bookings (legacy)
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Size'
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Amenity bookings fetched}
+  /amenities/{id}/rules:
+    get:
+      tags: [Amenities]
+      summary: List amenity booking rules
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rules fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity booking rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rule created}
+  /booking-rules/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity booking rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rule updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity booking rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rule deleted}
+  /amenities/{id}/cancellation-policy:
+    get:
+      tags: [Amenities]
+      summary: Get amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy created}
+  /cancellation-policy/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy deleted}
 
   /meetings:
     post:
@@ -2852,14 +3184,385 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Meetings fetched}
-  /meetings/{id}/minutes:
+  /meetings/{id}:
+    get:
+      tags: [Meeting]
+      summary: Get meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting fetched}
     put:
       tags: [Meeting]
-      summary: Update meeting minutes
+      summary: Update meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting deleted}
+  /meetings/{id}/start:
+    post:
+      tags: [Meeting]
+      summary: Start meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting started}
+  /meetings/{id}/end:
+    post:
+      tags: [Meeting]
+      summary: End meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting ended}
+  /meetings/{id}/cancel:
+    post:
+      tags: [Meeting]
+      summary: Cancel meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting cancelled}
+  /meetings/upcoming:
+    get:
+      tags: [Meeting]
+      summary: List upcoming meetings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Upcoming meetings fetched}
+  /meetings/past:
+    get:
+      tags: [Meeting]
+      summary: List past meetings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Past meetings fetched}
+  /meetings/type/{type}:
+    get:
+      tags: [Meeting]
+      summary: List meetings by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Meetings by type fetched}
+  /meetings/{id}/agenda:
+    get:
+      tags: [Meeting]
+      summary: List meeting agenda
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda item created}
+  /agenda/{id}:
+    put:
+      tags: [Meeting]
+      summary: Update meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda item updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda item deleted}
+  /agenda/{id}/order:
+    patch:
+      tags: [Meeting]
+      summary: Reorder meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda order updated}
+  /meetings/{id}/attendees:
+    get:
+      tags: [Meeting]
+      summary: List meeting attendees
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendees fetched}
+    post:
+      tags: [Meeting]
+      summary: Add meeting attendee
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendee added}
+  /meetings/{meetingId}/attendees/{userId}:
+    delete:
+      tags: [Meeting]
+      summary: Remove meeting attendee
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Meeting attendee removed}
+  /meetings/{id}/rsvp:
+    post:
+      tags: [Meeting]
+      summary: RSVP to meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting RSVP updated}
+  /meetings/{id}/mark-attendance:
+    post:
+      tags: [Meeting]
+      summary: Mark meeting attendance
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendance marked}
+  /meetings/{id}/attendance-report:
+    get:
+      tags: [Meeting]
+      summary: Get meeting attendance report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendance report fetched}
+  /meetings/{id}/minutes:
+    get:
+      tags: [Meeting]
+      summary: Get meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes created}
+    put:
+      tags: [Meeting]
+      summary: Update meeting minutes (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Meeting minutes updated}
+  /minutes/{id}:
+    put:
+      tags: [Meeting]
+      summary: Update meeting minutes record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes record updated}
+  /minutes/{id}/approve:
+    post:
+      tags: [Meeting]
+      summary: Approve meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes approved}
+  /minutes/{id}/download:
+    get:
+      tags: [Meeting]
+      summary: Download meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes download details fetched}
+  /minutes/{id}/generate-ai-summary:
+    post:
+      tags: [Meeting]
+      summary: Generate AI summary for meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting AI summary generated}
+  /meetings/{id}/resolutions:
+    get:
+      tags: [Meeting]
+      summary: List meeting resolutions
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolutions fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution created}
+  /resolutions/{id}:
+    get:
+      tags: [Meeting]
+      summary: Get meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution fetched}
+    put:
+      tags: [Meeting]
+      summary: Update meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution deleted}
+  /resolutions/status/{status}:
+    get:
+      tags: [Meeting]
+      summary: List meeting resolutions by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Meeting resolutions by status fetched}
+  /resolutions/{id}/vote:
+    post:
+      tags: [Meeting]
+      summary: Vote on meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution vote submitted}
+  /resolutions/{id}/votes:
+    get:
+      tags: [Meeting]
+      summary: List votes for meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution votes fetched}
+  /resolutions/{id}/results:
+    get:
+      tags: [Meeting]
+      summary: Get meeting resolution vote results
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution vote results fetched}
+  /resolutions/{id}/my-vote:
+    get:
+      tags: [Meeting]
+      summary: Get my vote for meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: My meeting vote fetched}
+  /meetings/{id}/action-items:
+    get:
+      tags: [Meeting]
+      summary: List meeting action items
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action items fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item created}
+  /action-items/{id}:
+    put:
+      tags: [Meeting]
+      summary: Update meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item deleted}
+  /action-items/{id}/complete:
+    post:
+      tags: [Meeting]
+      summary: Complete meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item completed}
+  /action-items/assigned-to-me:
+    get:
+      tags: [Meeting]
+      summary: List meeting action items assigned to current user
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Meeting action items assigned to me fetched}
+  /action-items/pending:
+    get:
+      tags: [Meeting]
+      summary: List pending meeting action items
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending meeting action items fetched}
+  /meetings/{id}/send-reminders:
+    post:
+      tags: [Meeting]
+      summary: Send meeting reminder
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - in: query
+          name: reminderType
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Meeting reminder sent}
+  /meetings/{id}/reminders:
+    get:
+      tags: [Meeting]
+      summary: List meeting reminders
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting reminders fetched}
 
   /announcements:
     post:

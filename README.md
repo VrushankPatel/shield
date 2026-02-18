@@ -33,6 +33,16 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - Asset depreciation: `/asset-depreciation/*`
 - Amenities + Bookings
 - Meeting + Minutes
+- Amenities expansion:
+  - Time slots: `/amenities/{id}/time-slots`, `/time-slots/{id}`, activate/deactivate
+  - Pricing: `/amenities/{id}/pricing`, `/pricing/{id}`
+  - Booking workflow: `/amenity-bookings/*`, availability check, approve/reject/cancel/complete
+  - Booking rules + cancellation policy: `/amenities/{id}/rules`, `/booking-rules/{id}`, `/amenities/{id}/cancellation-policy`, `/cancellation-policy/{id}`
+- Meeting governance expansion:
+  - Lifecycle: `/meetings/{id}/start`, `/meetings/{id}/end`, `/meetings/{id}/cancel`, `/meetings/upcoming`, `/meetings/past`
+  - Agenda + attendees + RSVP + attendance report: `/meetings/{id}/agenda`, `/agenda/{id}`, `/meetings/{id}/attendees`, `/meetings/{id}/rsvp`, `/meetings/{id}/attendance-report`
+  - Minutes + approvals + AI summary placeholder: `/meetings/{id}/minutes`, `/minutes/{id}`, `/minutes/{id}/approve`, `/minutes/{id}/generate-ai-summary`
+  - Resolutions/voting/action items/reminders: `/meetings/{id}/resolutions`, `/resolutions/{id}/vote`, `/action-items/*`, `/meetings/{id}/send-reminders`
 - Identity operations:
   - KYC (`/kyc/*`)
   - Move records (`/move-records/*`)
@@ -92,6 +102,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase12_schema.json` -> `V14__phase12_accounting_treasury_generated.sql` (+ `V15__phase12_ledger_entry_extensions.sql`)
   - `db/model/phase13_schema.json` -> `V16__phase13_visitor_expansion_generated.sql` (+ `V17__phase13_visitor_pass_extensions.sql`)
   - `db/model/phase14_schema.json` -> `V18__phase14_asset_complaint_expansion_generated.sql` (+ `V19__phase14_asset_complaint_extensions.sql`)
+  - `db/model/phase15_schema.json` -> `V20__phase15_amenities_meeting_generated.sql` (+ `V21__phase15_amenities_meeting_extensions.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
@@ -263,6 +274,7 @@ Required secrets:
 - `docs/generated/phase12_schema_generated.md`
 - `docs/generated/phase13_schema_generated.md`
 - `docs/generated/phase14_schema_generated.md`
+- `docs/generated/phase15_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

@@ -6,7 +6,13 @@ import jakarta.validation.constraints.NotNull;
 
 public record AmenityCreateRequest(
         @NotBlank String name,
+        String amenityType,
+        String description,
         @NotNull @Min(1) Integer capacity,
+        String location,
+        Boolean bookingAllowed,
+        @Min(1) Integer advanceBookingDays,
+        Boolean active,
         boolean requiresApproval
 ) {
 }

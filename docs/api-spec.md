@@ -90,6 +90,14 @@ Phase 1:
   - Work orders: `/work-orders/*`, `/work-orders/{id}/start`, `/work-orders/{id}/complete`, `/work-orders/{id}/cancel`, `/work-orders/complaint/{complaintId}`, `/work-orders/vendor/{vendorId}`, `/work-orders/status/{status}`
   - Preventive maintenance: `/preventive-maintenance/*`, `/preventive-maintenance/asset/{assetId}`, `/preventive-maintenance/due`, `/preventive-maintenance/{id}/execute`
   - Asset depreciation: `/asset-depreciation/asset/{assetId}`, `/asset-depreciation/calculate`, `/asset-depreciation/year/{year}`, `/asset-depreciation/report`
+- Amenities and meeting expansion:
+  - Amenity master + activation: `/amenities/*`, `/amenities/type/{type}`, `/amenities/available`, `/amenities/{id}/activate`, `/amenities/{id}/deactivate`
+  - Amenity slots/pricing: `/amenities/{id}/time-slots`, `/time-slots/{id}`, `/amenities/{id}/pricing`, `/pricing/{id}`
+  - Amenity booking lifecycle: `/amenity-bookings/*`, `/amenity-bookings/check-availability`, `/amenity-bookings/{id}/approve`, `/amenity-bookings/{id}/reject`, `/amenity-bookings/{id}/cancel`, `/amenity-bookings/{id}/complete`
+  - Amenity rules/policies: `/amenities/{id}/rules`, `/booking-rules/{id}`, `/amenities/{id}/cancellation-policy`, `/cancellation-policy/{id}`
+  - Meeting lifecycle: `/meetings/*`, `/meetings/{id}/start`, `/meetings/{id}/end`, `/meetings/{id}/cancel`, `/meetings/upcoming`, `/meetings/past`, `/meetings/type/{type}`
+  - Meeting agenda/attendees/minutes/resolutions/votes: `/meetings/{id}/agenda`, `/agenda/{id}`, `/meetings/{id}/attendees`, `/meetings/{id}/rsvp`, `/meetings/{id}/mark-attendance`, `/meetings/{id}/minutes`, `/minutes/{id}`, `/meetings/{id}/resolutions`, `/resolutions/{id}/vote`, `/resolutions/{id}/results`
+  - Meeting action items/reminders: `/meetings/{id}/action-items`, `/action-items/{id}`, `/action-items/assigned-to-me`, `/action-items/pending`, `/meetings/{id}/send-reminders`, `/meetings/{id}/reminders`
 - Expanded operations:
   - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`
