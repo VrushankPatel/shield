@@ -13,6 +13,11 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Auth lifecycle extensions (`/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`)
 - OTP auth flow (`/auth/login/otp/send`, `/auth/login/otp/verify`) with pluggable SMS sender (dummy logger implementation by default)
 - Tenant, Unit, User
+- IAM expansion:
+  - Role and permission APIs (`/roles/*`, `/permissions`)
+  - User role assignment and permission resolution (`/users/{id}/roles/*`, `/users/{id}/permissions`)
+  - User filters/bulk/export (`/users/unit/{unitId}`, `/users/role/{role}`, `/users/bulk-import`, `/users/export`)
+  - Unit filters and occupancy/member views (`/units/block/{block}`, `/units/available`, `/units/{id}/members`, `/units/{id}/history`)
 - Billing + Payments
 - Accounting Ledger
 - Visitor Pass
@@ -51,13 +56,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase6_schema.json` -> `V7__phase5_config_files_generated.sql`
   - `db/model/phase7_schema.json` -> `V8__phase6_payment_gateway_generated.sql`
   - `db/model/phase8_schema.json` -> `V9__phase8_identity_extensions_generated.sql`
+  - `db/model/phase10_schema.json` -> `V10__phase10_iam_rbac_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V9`)
+- Flyway migrations (`V1` to `V10`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -86,6 +92,7 @@ Cross-cutting:
 │   │   ├── tenant/
 │   │   ├── unit/
 │   │   ├── user/
+│   │   ├── role/
 │   │   ├── billing/
 │   │   ├── accounting/
 │   │   ├── visitor/
@@ -216,6 +223,7 @@ Required secrets:
 - `docs/generated/phase6_schema_generated.md`
 - `docs/generated/phase7_schema_generated.md`
 - `docs/generated/phase8_schema_generated.md`
+- `docs/generated/phase10_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

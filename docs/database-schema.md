@@ -14,6 +14,7 @@ PostgreSQL 15+
 - `V7__phase5_config_files_generated.sql`: generated phase-5 configuration and files tables
 - `V8__phase6_payment_gateway_generated.sql`: generated phase-6 payment gateway transaction tables
 - `V9__phase8_identity_extensions_generated.sql`: generated phase-8 identity extension tables
+- `V10__phase10_iam_rbac_generated.sql`: generated phase-10 IAM RBAC tables
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -21,6 +22,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase6_schema.json`
 - Generator source model: `db/model/phase7_schema.json`
 - Generator source model: `db/model/phase8_schema.json`
+- Generator source model: `db/model/phase10_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -74,6 +76,10 @@ Phase 2:
 - `move_record`
 - `parking_slot`
 - `digital_id_card`
+- `app_role`
+- `permission`
+- `role_permission`
+- `user_additional_role`
 
 ## Common Columns
 Most domain tables include:

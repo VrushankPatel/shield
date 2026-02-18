@@ -3,9 +3,11 @@ package com.shield.module.unit.controller;
 import com.shield.common.dto.ApiResponse;
 import com.shield.common.dto.PagedResponse;
 import com.shield.module.unit.dto.UnitCreateRequest;
+import com.shield.module.unit.dto.UnitHistoryResponse;
 import com.shield.module.unit.dto.UnitResponse;
 import com.shield.module.unit.dto.UnitUpdateRequest;
 import com.shield.module.unit.service.UnitService;
+import com.shield.module.user.dto.UserResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,18 @@ public class UnitController {
         return ResponseEntity.ok(ApiResponse.ok("Units fetched", unitService.list(pageable)));
     }
 
+    @GetMapping("/block/{block}")
+    public ResponseEntity<ApiResponse<PagedResponse<UnitResponse>>> listByBlock(
+            @PathVariable String block,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Units by block fetched", unitService.listByBlock(block, pageable)));
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<ApiResponse<PagedResponse<UnitResponse>>> listAvailable(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Available units fetched", unitService.listAvailable(pageable)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UnitResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok("Unit fetched", unitService.getById(id)));
@@ -53,5 +67,19 @@ public class UnitController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         unitService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Unit deleted", null));
+    }
+
+    @GetMapping("/{id}/members")
+    public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> listMembers(
+            @PathVariable UUID id,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Unit members fetched", unitService.listMembers(id, pageable)));
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<ApiResponse<PagedResponse<UnitHistoryResponse>>> listHistory(
+            @PathVariable UUID id,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Unit history fetched", unitService.listHistory(id, pageable)));
     }
 }
