@@ -11,8 +11,8 @@ This tracker is the single source of truth for implementation progress against t
   - commit + push
 
 ## Current Status Summary
-- Baseline and major phase-2/3 modules are implemented.
-- Remaining work is to close full-spec gaps (advanced endpoint sets and production-grade integrations).
+- M1 through M4 are complete with unit and integration coverage.
+- Remaining work is to close full-spec gaps (modules M5+ and production-grade integrations).
 
 ## Milestone Plan
 
@@ -79,7 +79,7 @@ Exit Criteria:
 - Full module-3 endpoint parity and integration flow coverage.
 
 ### M4. Accounting & Treasury Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - `/account-heads/*`, `/fund-categories/*`, `/ledger-entries/*`, `/expenses/*`, `/vendors/*`, `/vendor-payments/*`, `/budgets/*`

@@ -19,7 +19,7 @@ Phase 1:
 - Unit: `/units/*`
 - User: `/users/*`
 - Billing: `/billing/*`, `/payments/*`
-- Accounting: `/ledger/*`
+- Accounting (baseline): `/ledger/*`
 - Visitor: `/visitors/pass/*`
 - Asset: `/assets/*`
 - Complaint: `/complaints/*`
@@ -67,6 +67,14 @@ Phase 1:
   - Payment reminders: `/payment-reminders/*`, `/payment-reminders/send`, `/payment-reminders/schedule`, `/payment-reminders/invoice/{invoiceId}`
   - Late fee rules: `/late-fee-rules/*`, `/late-fee-rules/{id}/activate`, `/late-fee-rules/{id}/deactivate`
   - Extended payment operations: `/payments/invoice/{invoiceId}`, `/payments/unit/{unitId}`, `/payments/{id}/receipt`, `/payments/cash`, `/payments/cheque`, `/payments/{id}/refund`
+- Accounting and treasury expansion:
+  - Account heads: `/account-heads/*`, `/account-heads/type/{type}`, `/account-heads/hierarchy`
+  - Fund categories: `/fund-categories/*`, `/fund-categories/{id}/balance`, `/fund-categories/balances`
+  - Ledger entries: `/ledger-entries/*`, `/ledger-entries/account/{accountHeadId}`, `/ledger-entries/fund/{fundCategoryId}`, `/ledger-entries/date-range`, `/ledger-entries/bulk`, `/ledger-entries/export`
+  - Expenses: `/expenses/*`, `/expenses/{id}/approve`, `/expenses/{id}/reject`, `/expenses/pending-approval`, `/expenses/vendor/{vendorId}`, `/expenses/account/{accountHeadId}`, `/expenses/date-range`, `/expenses/export`
+  - Vendors: `/vendors/*`, `/vendors/type/{type}`, `/vendors/active`, `/vendors/{id}/status`
+  - Vendor payments: `/vendor-payments/*`, `/vendor-payments/vendor/{vendorId}`, `/vendor-payments/expense/{expenseId}`, `/vendor-payments/pending`
+  - Budgets and reports: `/budgets/*`, `/budgets/financial-year/{year}`, `/budgets/vs-actual`, `/reports/income-statement`, `/reports/balance-sheet`, `/reports/cash-flow`, `/reports/trial-balance`, `/reports/fund-summary`, `/reports/export/ca-format`
 - Expanded operations:
   - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`

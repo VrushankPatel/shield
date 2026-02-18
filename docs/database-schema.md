@@ -18,6 +18,8 @@ PostgreSQL 15+
 - `V11__phase9_communication_completion.sql`: communication module completion tables
 - `V12__phase11_billing_expansion_generated.sql`: generated phase-11 billing expansion tables
 - `V13__phase11_billing_payment_alterations.sql`: payment table extensions for invoice-linked flows
+- `V14__phase12_accounting_treasury_generated.sql`: generated phase-12 accounting/treasury tables
+- `V15__phase12_ledger_entry_extensions.sql`: phase-12 ledger enhancements for accounting reports
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -27,6 +29,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase8_schema.json`
 - Generator source model: `db/model/phase10_schema.json`
 - Generator source model: `db/model/phase11_schema.json`
+- Generator source model: `db/model/phase12_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -90,6 +93,12 @@ Phase 2:
 - `invoice`
 - `payment_reminder`
 - `late_fee_rule`
+- `account_head`
+- `fund_category`
+- `vendor`
+- `expense`
+- `vendor_payment`
+- `budget`
 
 ## Common Columns
 Most domain tables include:

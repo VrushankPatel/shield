@@ -12,6 +12,7 @@
   - phase-3 module service behavior (configuration/settings/files)
   - billing payment-gateway service behavior (initiation, verification, callbacks, idempotency)
   - billing management and payment operations behavior (billing cycles, invoices, reminders, late-fee rules, cash/cheque/refund flows)
+  - accounting and treasury behavior (account heads/funds/vendors/expenses, budget-vs-actual aggregation, financial report calculations)
   - analytics service behavior (templates, dashboards, KPI calculations)
   - validation and exception paths
 
@@ -29,6 +30,7 @@
   - configuration/settings governance flows and file upload/download flows
   - payment gateway initiation/verification/callback flows
   - M3 billing lifecycle flow (cycle -> invoice -> reminder -> payment -> refund)
+  - M4 accounting lifecycle flow (account head -> fund category -> vendor -> budget -> ledger/expense -> vendor payment -> budget-vs-actual/report endpoints)
   - observability flows (`audit-logs`, `system-logs`, `api-request-logs`)
 
 ## 3. Security Tests

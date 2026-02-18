@@ -1199,6 +1199,569 @@ paths:
       responses:
         '200': {description: Ledger summary fetched}
 
+  /account-heads:
+    get:
+      tags: [Accounting]
+      summary: List account heads
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Account heads fetched}
+    post:
+      tags: [Accounting]
+      summary: Create account head
+      responses:
+        '200': {description: Account head created}
+  /account-heads/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get account head by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Account head fetched}
+    put:
+      tags: [Accounting]
+      summary: Update account head
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Account head updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete account head
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Account head deleted}
+  /account-heads/type/{type}:
+    get:
+      tags: [Accounting]
+      summary: List account heads by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Account heads by type fetched}
+  /account-heads/hierarchy:
+    get:
+      tags: [Accounting]
+      summary: Get account head hierarchy
+      responses:
+        '200': {description: Account head hierarchy fetched}
+
+  /fund-categories:
+    get:
+      tags: [Accounting]
+      summary: List fund categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Fund categories fetched}
+    post:
+      tags: [Accounting]
+      summary: Create fund category
+      responses:
+        '200': {description: Fund category created}
+  /fund-categories/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get fund category by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category fetched}
+    put:
+      tags: [Accounting]
+      summary: Update fund category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete fund category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category deleted}
+  /fund-categories/{id}/balance:
+    get:
+      tags: [Accounting]
+      summary: Get fund category balance
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category balance fetched}
+  /fund-categories/balances:
+    get:
+      tags: [Accounting]
+      summary: List balances for all fund categories
+      responses:
+        '200': {description: Fund balances fetched}
+
+  /ledger-entries:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Ledger entries fetched}
+    post:
+      tags: [Accounting]
+      summary: Create ledger entry
+      responses:
+        '200': {description: Ledger entry created}
+  /ledger-entries/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get ledger entry by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Ledger entry fetched}
+    put:
+      tags: [Accounting]
+      summary: Update ledger entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Ledger entry updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete ledger entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Ledger entry deleted}
+  /ledger-entries/account/{accountHeadId}:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries by account head
+      parameters:
+        - in: path
+          name: accountHeadId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Ledger entries by account head fetched}
+  /ledger-entries/fund/{fundCategoryId}:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries by fund category
+      parameters:
+        - in: path
+          name: fundCategoryId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Ledger entries by fund category fetched}
+  /ledger-entries/date-range:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries by date range
+      parameters:
+        - in: query
+          name: fromDate
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: toDate
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Ledger entries by date range fetched}
+  /ledger-entries/bulk:
+    post:
+      tags: [Accounting]
+      summary: Bulk create ledger entries
+      responses:
+        '200': {description: Ledger entries bulk created}
+  /ledger-entries/export:
+    get:
+      tags: [Accounting]
+      summary: Export ledger entries
+      responses:
+        '200': {description: Ledger entries export generated}
+
+  /expenses:
+    get:
+      tags: [Accounting]
+      summary: List expenses
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Expenses fetched}
+    post:
+      tags: [Accounting]
+      summary: Create expense
+      responses:
+        '200': {description: Expense created}
+  /expenses/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get expense by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense fetched}
+    put:
+      tags: [Accounting]
+      summary: Update expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense deleted}
+  /expenses/{id}/approve:
+    post:
+      tags: [Accounting]
+      summary: Approve expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense approved}
+  /expenses/{id}/reject:
+    post:
+      tags: [Accounting]
+      summary: Reject expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense rejected}
+  /expenses/pending-approval:
+    get:
+      tags: [Accounting]
+      summary: List pending expenses
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending expenses fetched}
+  /expenses/vendor/{vendorId}:
+    get:
+      tags: [Accounting]
+      summary: List expenses by vendor
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Expenses by vendor fetched}
+  /expenses/account/{accountHeadId}:
+    get:
+      tags: [Accounting]
+      summary: List expenses by account head
+      parameters:
+        - in: path
+          name: accountHeadId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Expenses by account head fetched}
+  /expenses/date-range:
+    get:
+      tags: [Accounting]
+      summary: List expenses by date range
+      parameters:
+        - in: query
+          name: fromDate
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: toDate
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Expenses by date range fetched}
+  /expenses/export:
+    get:
+      tags: [Accounting]
+      summary: Export expenses
+      responses:
+        '200': {description: Expense export generated}
+
+  /vendors:
+    get:
+      tags: [Accounting]
+      summary: List vendors
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Vendors fetched}
+    post:
+      tags: [Accounting]
+      summary: Create vendor
+      responses:
+        '200': {description: Vendor created}
+  /vendors/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get vendor by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor fetched}
+    put:
+      tags: [Accounting]
+      summary: Update vendor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete vendor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor deleted}
+  /vendors/type/{type}:
+    get:
+      tags: [Accounting]
+      summary: List vendors by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Vendors by type fetched}
+  /vendors/active:
+    get:
+      tags: [Accounting]
+      summary: List active vendors
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Active vendors fetched}
+  /vendors/{id}/status:
+    patch:
+      tags: [Accounting]
+      summary: Update vendor active status
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor status updated}
+
+  /vendor-payments:
+    get:
+      tags: [Accounting]
+      summary: List vendor payments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Vendor payments fetched}
+    post:
+      tags: [Accounting]
+      summary: Create vendor payment
+      responses:
+        '200': {description: Vendor payment created}
+  /vendor-payments/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get vendor payment by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor payment fetched}
+  /vendor-payments/vendor/{vendorId}:
+    get:
+      tags: [Accounting]
+      summary: List vendor payments by vendor
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Vendor payments by vendor fetched}
+  /vendor-payments/expense/{expenseId}:
+    get:
+      tags: [Accounting]
+      summary: List vendor payments by expense
+      parameters:
+        - in: path
+          name: expenseId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Vendor payments by expense fetched}
+  /vendor-payments/pending:
+    get:
+      tags: [Accounting]
+      summary: List pending vendor payments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending vendor payments fetched}
+
+  /budgets:
+    get:
+      tags: [Accounting]
+      summary: List budgets
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Budgets fetched}
+    post:
+      tags: [Accounting]
+      summary: Create budget
+      responses:
+        '200': {description: Budget created}
+  /budgets/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get budget by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Budget fetched}
+    put:
+      tags: [Accounting]
+      summary: Update budget
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Budget updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete budget
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Budget deleted}
+  /budgets/financial-year/{year}:
+    get:
+      tags: [Accounting]
+      summary: List budgets by financial year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Budgets by year fetched}
+  /budgets/vs-actual:
+    get:
+      tags: [Accounting]
+      summary: Budget vs actual
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Budget vs actual fetched}
+
+  /reports/income-statement:
+    get:
+      tags: [Accounting]
+      summary: Income statement report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Income statement fetched}
+  /reports/balance-sheet:
+    get:
+      tags: [Accounting]
+      summary: Balance sheet report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Balance sheet fetched}
+  /reports/cash-flow:
+    get:
+      tags: [Accounting]
+      summary: Cash flow report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Cash flow fetched}
+  /reports/trial-balance:
+    get:
+      tags: [Accounting]
+      summary: Trial balance report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Trial balance fetched}
+  /reports/fund-summary:
+    get:
+      tags: [Accounting]
+      summary: Fund summary report
+      responses:
+        '200': {description: Fund summary fetched}
+  /reports/export/ca-format:
+    get:
+      tags: [Accounting]
+      summary: Export CA format report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: CA format export generated}
+
   /visitors/pass:
     post:
       tags: [Visitor]

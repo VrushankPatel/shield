@@ -19,7 +19,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - User filters/bulk/export (`/users/unit/{unitId}`, `/users/role/{role}`, `/users/bulk-import`, `/users/export`)
   - Unit filters and occupancy/member views (`/units/block/{block}`, `/units/available`, `/units/{id}/members`, `/units/{id}/history`)
 - Billing + Payments
-- Accounting Ledger
+- Accounting + Treasury
 - Visitor Pass
 - Asset
 - Complaint
@@ -56,6 +56,15 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `/payment-reminders/*`
   - `/late-fee-rules/*`
   - extended payment operations: `/payments/invoice/{invoiceId}`, `/payments/unit/{unitId}`, `/payments/{id}/receipt`, `/payments/cash`, `/payments/cheque`, `/payments/{id}/refund`
+- Accounting and treasury expansion:
+  - `/account-heads/*`
+  - `/fund-categories/*`
+  - `/ledger-entries/*`
+  - `/expenses/*`
+  - `/vendors/*`
+  - `/vendor-payments/*`
+  - `/budgets/*`
+  - financial reports: `/reports/income-statement`, `/reports/balance-sheet`, `/reports/cash-flow`, `/reports/trial-balance`, `/reports/fund-summary`, `/reports/export/ca-format`
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
@@ -66,14 +75,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase8_schema.json` -> `V9__phase8_identity_extensions_generated.sql`
   - `db/model/phase10_schema.json` -> `V10__phase10_iam_rbac_generated.sql`
   - `db/model/phase11_schema.json` -> `V12__phase11_billing_expansion_generated.sql` (+ `V13__phase11_billing_payment_alterations.sql`)
+  - `db/model/phase12_schema.json` -> `V14__phase12_accounting_treasury_generated.sql` (+ `V15__phase12_ledger_entry_extensions.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V10`)
-- Flyway migrations (`V1` to `V13`)
+- Flyway migrations (`V1` to `V15`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -235,6 +244,7 @@ Required secrets:
 - `docs/generated/phase8_schema_generated.md`
 - `docs/generated/phase10_schema_generated.md`
 - `docs/generated/phase11_schema_generated.md`
+- `docs/generated/phase12_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

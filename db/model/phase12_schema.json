@@ -1,0 +1,111 @@
+{
+  "version": "phase12-v1",
+  "tables": [
+    {
+      "name": "account_head",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "head_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "head_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "parent_head_id", "type": "UUID", "nullable": true, "references": "account_head(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_account_head_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_account_head_type", "columns": ["tenant_id", "head_type"]},
+        {"name": "idx_account_head_parent", "columns": ["tenant_id", "parent_head_id"]}
+      ]
+    },
+    {
+      "name": "fund_category",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "category_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "current_balance", "type": "NUMERIC(12, 2)", "nullable": false, "default": "0"}
+      ],
+      "indexes": [
+        {"name": "idx_fund_category_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_fund_category_name", "columns": ["tenant_id", "category_name"]}
+      ]
+    },
+    {
+      "name": "vendor",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "vendor_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "contact_person", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "phone", "type": "VARCHAR(20)", "nullable": true},
+        {"name": "email", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "address", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "gstin", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "pan", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "vendor_type", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_vendor_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_vendor_type", "columns": ["tenant_id", "vendor_type"]},
+        {"name": "idx_vendor_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "expense",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "expense_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "account_head_id", "type": "UUID", "nullable": false, "references": "account_head(id)"},
+        {"name": "fund_category_id", "type": "UUID", "nullable": true, "references": "fund_category(id)"},
+        {"name": "vendor_id", "type": "UUID", "nullable": true, "references": "vendor(id)"},
+        {"name": "expense_date", "type": "DATE", "nullable": false},
+        {"name": "amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "invoice_number", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "invoice_url", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "payment_status", "type": "VARCHAR(50)", "nullable": false, "default": "'PENDING'"},
+        {"name": "approved_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "approval_date", "type": "DATE", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_expense_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_expense_vendor", "columns": ["tenant_id", "vendor_id"]},
+        {"name": "idx_expense_account_head", "columns": ["tenant_id", "account_head_id"]},
+        {"name": "idx_expense_status", "columns": ["tenant_id", "payment_status"]},
+        {"name": "idx_expense_date", "columns": ["tenant_id", "expense_date"]}
+      ]
+    },
+    {
+      "name": "vendor_payment",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "vendor_id", "type": "UUID", "nullable": false, "references": "vendor(id)"},
+        {"name": "expense_id", "type": "UUID", "nullable": true, "references": "expense(id)"},
+        {"name": "payment_date", "type": "DATE", "nullable": false},
+        {"name": "amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "payment_method", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "transaction_reference", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "created_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false, "default": "'COMPLETED'"}
+      ],
+      "indexes": [
+        {"name": "idx_vendor_payment_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_vendor_payment_vendor", "columns": ["tenant_id", "vendor_id"]},
+        {"name": "idx_vendor_payment_expense", "columns": ["tenant_id", "expense_id"]},
+        {"name": "idx_vendor_payment_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "budget",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "financial_year", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "account_head_id", "type": "UUID", "nullable": false, "references": "account_head(id)"},
+        {"name": "budgeted_amount", "type": "NUMERIC(12, 2)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_budget_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_budget_financial_year", "columns": ["tenant_id", "financial_year"]},
+        {"name": "idx_budget_account_head", "columns": ["tenant_id", "account_head_id"]}
+      ]
+    }
+  ]
+}
