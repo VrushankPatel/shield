@@ -1,0 +1,97 @@
+{
+  "version": "phase8-v1",
+  "tables": [
+    {
+      "name": "auth_token",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "token_value", "type": "VARCHAR(128)", "nullable": false, "unique": true},
+        {"name": "token_type", "type": "VARCHAR(40)", "nullable": false},
+        {"name": "expires_at", "type": "TIMESTAMP", "nullable": false},
+        {"name": "consumed_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "metadata", "type": "VARCHAR(500)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_auth_token_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_auth_token_user_type", "columns": ["tenant_id", "user_id", "token_type"]},
+        {"name": "idx_auth_token_expires", "columns": ["tenant_id", "expires_at"]}
+      ]
+    },
+    {
+      "name": "kyc_document",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "document_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "document_number", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "document_url", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "verification_status", "type": "VARCHAR(30)", "nullable": false, "default": "'PENDING'"},
+        {"name": "rejection_reason", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "verified_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "verified_by", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_kyc_document_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_kyc_document_user", "columns": ["tenant_id", "user_id"]},
+        {"name": "idx_kyc_document_status", "columns": ["tenant_id", "verification_status"]}
+      ]
+    },
+    {
+      "name": "move_record",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "unit_id", "type": "UUID", "nullable": false, "references": "unit(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "move_type", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "effective_date", "type": "DATE", "nullable": false},
+        {"name": "security_deposit", "type": "NUMERIC(12, 2)", "nullable": true},
+        {"name": "agreement_url", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "status", "type": "VARCHAR(30)", "nullable": false, "default": "'PENDING'"},
+        {"name": "decision_notes", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "approved_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "approval_date", "type": "DATE", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_move_record_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_move_record_unit", "columns": ["tenant_id", "unit_id"]},
+        {"name": "idx_move_record_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "parking_slot",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "slot_number", "type": "VARCHAR(50)", "nullable": false, "unique": true},
+        {"name": "parking_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "vehicle_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "unit_id", "type": "UUID", "nullable": true, "references": "unit(id)"},
+        {"name": "allocated", "type": "BOOLEAN", "nullable": false, "default": "FALSE"},
+        {"name": "allocated_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_parking_slot_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_parking_slot_allocated", "columns": ["tenant_id", "allocated"]},
+        {"name": "idx_parking_slot_unit", "columns": ["tenant_id", "unit_id"]}
+      ]
+    },
+    {
+      "name": "digital_id_card",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "qr_code_data", "type": "VARCHAR(1000)", "nullable": false, "unique": true},
+        {"name": "qr_code_url", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "issue_date", "type": "DATE", "nullable": false},
+        {"name": "expiry_date", "type": "DATE", "nullable": false},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"},
+        {"name": "deactivated_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_digital_id_card_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_digital_id_card_user", "columns": ["tenant_id", "user_id"]},
+        {"name": "idx_digital_id_card_active", "columns": ["tenant_id", "active"]}
+      ]
+    }
+  ]
+}
