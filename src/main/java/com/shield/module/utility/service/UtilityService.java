@@ -2,7 +2,9 @@ package com.shield.module.utility.service;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
+import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.utility.dto.ElectricityConsumptionReportResponse;
 import com.shield.module.utility.dto.ElectricityMeterCreateRequest;
 import com.shield.module.utility.dto.ElectricityMeterResponse;
 import com.shield.module.utility.dto.ElectricityMeterUpdateRequest;
@@ -22,7 +24,11 @@ import com.shield.module.utility.repository.ElectricityReadingRepository;
 import com.shield.module.utility.repository.WaterLevelLogRepository;
 import com.shield.module.utility.repository.WaterTankRepository;
 import com.shield.security.model.ShieldPrincipal;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -159,6 +165,12 @@ public class UtilityService {
     }
 
     @Transactional(readOnly = true)
+    public PagedResponse<ElectricityMeterResponse> listElectricityMetersByType(String meterType, Pageable pageable) {
+        return PagedResponse.from(electricityMeterRepository.findAllByMeterTypeIgnoreCaseAndDeletedFalse(meterType, pageable)
+                .map(this::toElectricityMeterResponse));
+    }
+
+    @Transactional(readOnly = true)
     public ElectricityMeterResponse getElectricityMeter(UUID id) {
         ElectricityMeterEntity entity = electricityMeterRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Electricity meter not found: " + id));
@@ -221,6 +233,86 @@ public class UtilityService {
     public PagedResponse<ElectricityReadingResponse> listElectricityReadingsByMeter(UUID meterId, Pageable pageable) {
         return PagedResponse.from(electricityReadingRepository.findAllByMeterIdAndDeletedFalse(meterId, pageable)
                 .map(this::toElectricityReadingResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<WaterLevelLogResponse> listWaterLevelLogsByDateRange(Instant from, Instant to, Pageable pageable) {
+        validateInstantRange(from, to);
+        return PagedResponse.from(waterLevelLogRepository.findAllByReadingTimeBetweenAndDeletedFalse(from, to, pageable)
+                .map(this::toWaterLevelLogResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public WaterLevelLogResponse getCurrentWaterLevelLog(UUID tankId) {
+        WaterLevelLogEntity entity = tankId == null
+                ? waterLevelLogRepository.findTopByDeletedFalseOrderByReadingTimeDesc()
+                        .orElseThrow(() -> new ResourceNotFoundException("No water level logs found"))
+                : waterLevelLogRepository.findTopByTankIdAndDeletedFalseOrderByReadingTimeDesc(tankId)
+                        .orElseThrow(() -> new ResourceNotFoundException("No water level logs found for tank: " + tankId));
+        return toWaterLevelLogResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<ElectricityReadingResponse> listElectricityReadingsByDateRange(
+            LocalDate from,
+            LocalDate to,
+            UUID meterId,
+            Pageable pageable) {
+        validateLocalDateRange(from, to);
+        if (meterId != null) {
+            return PagedResponse.from(electricityReadingRepository
+                    .findAllByMeterIdAndReadingDateBetweenAndDeletedFalse(meterId, from, to, pageable)
+                    .map(this::toElectricityReadingResponse));
+        }
+        return PagedResponse.from(electricityReadingRepository.findAllByReadingDateBetweenAndDeletedFalse(from, to, pageable)
+                .map(this::toElectricityReadingResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public ElectricityConsumptionReportResponse getElectricityConsumptionReport(LocalDate from, LocalDate to, UUID meterId) {
+        validateLocalDateRange(from, to);
+
+        List<ElectricityReadingEntity> rows = meterId == null
+                ? electricityReadingRepository.findAllByReadingDateBetweenAndDeletedFalse(from, to)
+                : electricityReadingRepository.findAllByMeterIdAndReadingDateBetweenAndDeletedFalse(meterId, from, to);
+
+        BigDecimal totalUnits = rows.stream()
+                .map(ElectricityReadingEntity::getUnitsConsumed)
+                .filter(value -> value != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal totalCost = rows.stream()
+                .map(ElectricityReadingEntity::getCost)
+                .filter(value -> value != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        return new ElectricityConsumptionReportResponse(
+                meterId,
+                from,
+                to,
+                rows.size(),
+                totalUnits,
+                totalCost);
+    }
+
+    private void validateInstantRange(Instant from, Instant to) {
+        if (from == null || to == null) {
+            throw new BadRequestException("Both from and to date-time values are required");
+        }
+        if (to.isBefore(from)) {
+            throw new BadRequestException("to date-time cannot be before from date-time");
+        }
+    }
+
+    private void validateLocalDateRange(LocalDate from, LocalDate to) {
+        if (from == null || to == null) {
+            throw new BadRequestException("Both from and to dates are required");
+        }
+        if (to.isBefore(from)) {
+            throw new BadRequestException("to date cannot be before from date");
+        }
     }
 
     private WaterTankResponse toWaterTankResponse(WaterTankEntity entity) {

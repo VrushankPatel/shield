@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
+import com.shield.common.dto.PagedResponse;
 import com.shield.module.marketplace.dto.MarketplaceInquiryCreateRequest;
 import com.shield.module.marketplace.dto.MarketplaceInquiryResponse;
 import com.shield.module.marketplace.dto.MarketplaceListingCreateRequest;
@@ -22,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class MarketplaceServiceTest {
@@ -96,5 +99,21 @@ class MarketplaceServiceTest {
 
         assertEquals(principal.userId(), response.inquiredBy());
         assertEquals(listingId, response.listingId());
+    }
+
+    @Test
+    void searchListingsShouldReturnMatchingResults() {
+        MarketplaceListingEntity listing = new MarketplaceListingEntity();
+        listing.setId(UUID.randomUUID());
+        listing.setListingType("SELL");
+        listing.setTitle("Dining Table");
+
+        when(marketplaceListingRepository.searchByText("table", Pageable.ofSize(10)))
+                .thenReturn(new PageImpl<>(java.util.List.of(listing)));
+
+        PagedResponse<MarketplaceListingResponse> page = marketplaceService.searchListings("table", Pageable.ofSize(10));
+
+        assertEquals(1, page.content().size());
+        assertEquals("Dining Table", page.content().get(0).title());
     }
 }

@@ -14,4 +14,6 @@ public interface ElectricityMeterRepository extends JpaRepository<ElectricityMet
     Optional<ElectricityMeterEntity> findByIdAndDeletedFalse(UUID id);
 
     Page<ElectricityMeterEntity> findAllByUnitIdAndDeletedFalse(UUID unitId, Pageable pageable);
+
+    Page<ElectricityMeterEntity> findAllByMeterTypeIgnoreCaseAndDeletedFalse(String meterType, Pageable pageable);
 }

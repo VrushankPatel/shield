@@ -146,6 +146,17 @@ public class MarketplaceService {
                 .map(this::toListingResponse));
     }
 
+    @Transactional(readOnly = true)
+    public PagedResponse<MarketplaceListingResponse> listListingsByType(String listingType, Pageable pageable) {
+        return PagedResponse.from(marketplaceListingRepository.findAllByListingTypeIgnoreCaseAndDeletedFalse(listingType, pageable)
+                .map(this::toListingResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<MarketplaceListingResponse> searchListings(String query, Pageable pageable) {
+        return PagedResponse.from(marketplaceListingRepository.searchByText(query, pageable).map(this::toListingResponse));
+    }
+
     public MarketplaceListingResponse updateListing(UUID id, MarketplaceListingUpdateRequest request, ShieldPrincipal principal) {
         MarketplaceListingEntity entity = marketplaceListingRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + id));

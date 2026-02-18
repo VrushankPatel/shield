@@ -42,6 +42,15 @@ public class StaffController {
         return ResponseEntity.ok(ApiResponse.ok("Active staff list fetched", staffService.listActive(pageable)));
     }
 
+    @GetMapping("/designation/{designation}")
+    public ResponseEntity<ApiResponse<PagedResponse<StaffResponse>>> listByDesignation(
+            @PathVariable String designation,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Designation staff list fetched",
+                staffService.listByDesignation(designation, pageable)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<StaffResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok("Staff fetched", staffService.getById(id)));

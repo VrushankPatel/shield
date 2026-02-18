@@ -787,6 +787,21 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Active staff fetched}
+  /staff/designation/{designation}:
+    get:
+      tags: [Staff]
+      summary: List staff by designation
+      parameters:
+        - in: path
+          name: designation
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Designation staff fetched}
   /staff/{id}:
     get:
       tags: [Staff]
@@ -830,6 +845,31 @@ paths:
       summary: Staff check-out
       responses:
         '200': {description: Staff check-out recorded}
+  /staff-attendance:
+    get:
+      tags: [Staff]
+      summary: List staff attendance
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Staff attendance fetched}
+  /staff-attendance/{id}:
+    get:
+      tags: [Staff]
+      summary: Get staff attendance
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff attendance fetched}
+    put:
+      tags: [Staff]
+      summary: Update staff attendance
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff attendance updated}
   /staff-attendance/staff/{staffId}:
     get:
       tags: [Staff]
@@ -845,6 +885,61 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Staff attendance fetched}
+  /staff-attendance/date/{date}:
+    get:
+      tags: [Staff]
+      summary: List staff attendance by date
+      parameters:
+        - in: path
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Staff attendance by date fetched}
+  /staff-attendance/date-range:
+    get:
+      tags: [Staff]
+      summary: List staff attendance by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Staff attendance by date range fetched}
+  /staff-attendance/summary:
+    get:
+      tags: [Staff]
+      summary: Get staff attendance summary
+      parameters:
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200': {description: Staff attendance summary fetched}
 
   /payroll:
     get:
@@ -870,6 +965,71 @@ paths:
       summary: Generate payroll
       responses:
         '200': {description: Payroll generated}
+  /payroll/process:
+    post:
+      tags: [Payroll]
+      summary: Process payroll
+      responses:
+        '200': {description: Payroll processed}
+  /payroll/{id}/approve:
+    post:
+      tags: [Payroll]
+      summary: Approve payroll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll approved}
+  /payroll/month/{month}/year/{year}:
+    get:
+      tags: [Payroll]
+      summary: List payroll by period
+      parameters:
+        - in: path
+          name: month
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: year
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Payroll by period fetched}
+  /payroll/staff/{staffId}:
+    get:
+      tags: [Payroll]
+      summary: List payroll by staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Payroll by staff fetched}
+  /payroll/summary:
+    get:
+      tags: [Payroll]
+      summary: Payroll summary
+      parameters:
+        - in: query
+          name: month
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: year
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200': {description: Payroll summary fetched}
 
   /water-tanks:
     get:
@@ -947,6 +1107,40 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Tank water level logs fetched}
+  /water-level-logs/current:
+    get:
+      tags: [Utility]
+      summary: Get current water level log
+      parameters:
+        - in: query
+          name: tankId
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Current water level log fetched}
+  /water-level-logs/date-range:
+    get:
+      tags: [Utility]
+      summary: List water level logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Water level logs by date range fetched}
 
   /electricity-meters:
     get:
@@ -1000,6 +1194,20 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Unit electricity meters fetched}
+  /electricity-meters/type/{type}:
+    get:
+      tags: [Utility]
+      summary: List electricity meters by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Type electricity meters fetched}
 
   /electricity-readings:
     get:
@@ -1039,6 +1247,58 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Meter electricity readings fetched}
+  /electricity-readings/date-range:
+    get:
+      tags: [Utility]
+      summary: List electricity readings by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: meterId
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Electricity readings by date range fetched}
+  /electricity-readings/consumption-report:
+    get:
+      tags: [Utility]
+      summary: Electricity consumption report
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: meterId
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Electricity consumption report fetched}
 
   /marketplace-categories:
     get:
@@ -1144,6 +1404,34 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Status marketplace listings fetched}
+  /marketplace-listings/type/{type}:
+    get:
+      tags: [Marketplace]
+      summary: List marketplace listings by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Type marketplace listings fetched}
+  /marketplace-listings/search:
+    get:
+      tags: [Marketplace]
+      summary: Search marketplace listings
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Marketplace listings search fetched}
   /marketplace-listings/my-listings:
     get:
       tags: [Marketplace]

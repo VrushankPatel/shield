@@ -1,13 +1,17 @@
 package com.shield.module.payroll.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
+import com.shield.common.exception.BadRequestException;
 import com.shield.module.payroll.dto.PayrollGenerateRequest;
+import com.shield.module.payroll.dto.PayrollProcessRequest;
 import com.shield.module.payroll.dto.PayrollResponse;
 import com.shield.module.payroll.entity.PayrollEntity;
+import com.shield.module.payroll.entity.PayrollStatus;
 import com.shield.module.payroll.repository.PayrollRepository;
 import com.shield.module.staff.entity.StaffAttendanceEntity;
 import com.shield.module.staff.entity.StaffAttendanceStatus;
@@ -107,6 +111,49 @@ class PayrollServiceTest {
         assertEquals(20, response.presentDays());
         assertEquals(BigDecimal.valueOf(20000).setScale(2), response.grossSalary());
         assertEquals(BigDecimal.valueOf(19000).setScale(2), response.netSalary());
+    }
+
+    @Test
+    void processShouldMovePayrollToProcessedWithPaymentDetails() {
+        UUID payrollId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        PayrollEntity entity = new PayrollEntity();
+        entity.setId(payrollId);
+        entity.setTenantId(tenantId);
+        entity.setStatus(PayrollStatus.DRAFT);
+
+        when(payrollRepository.findByIdAndDeletedFalse(payrollId)).thenReturn(Optional.of(entity));
+        when(payrollRepository.save(any(PayrollEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PayrollProcessRequest request = new PayrollProcessRequest(
+                payrollId,
+                "BANK_TRANSFER",
+                "PAY-123",
+                LocalDate.of(2026, 2, 28),
+                "https://files.example/payslip.pdf");
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN");
+
+        PayrollResponse response = payrollService.process(request, principal);
+
+        assertEquals(PayrollStatus.PROCESSED, response.status());
+        assertEquals("BANK_TRANSFER", response.paymentMethod());
+        assertEquals("PAY-123", response.paymentReference());
+    }
+
+    @Test
+    void approveShouldRejectDraftPayroll() {
+        UUID payrollId = UUID.randomUUID();
+
+        PayrollEntity entity = new PayrollEntity();
+        entity.setId(payrollId);
+        entity.setStatus(PayrollStatus.DRAFT);
+
+        when(payrollRepository.findByIdAndDeletedFalse(payrollId)).thenReturn(Optional.of(entity));
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+
+        assertThrows(BadRequestException.class, () -> payrollService.approve(payrollId, principal));
     }
 
     private StaffAttendanceEntity attendance(UUID staffId, LocalDate date) {

@@ -4,7 +4,9 @@ import com.shield.common.dto.ApiResponse;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.util.SecurityUtils;
 import com.shield.module.payroll.dto.PayrollGenerateRequest;
+import com.shield.module.payroll.dto.PayrollProcessRequest;
 import com.shield.module.payroll.dto.PayrollResponse;
+import com.shield.module.payroll.dto.PayrollSummaryResponse;
 import com.shield.module.payroll.service.PayrollService;
 import com.shield.security.model.ShieldPrincipal;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -44,5 +47,44 @@ public class PayrollController {
     public ResponseEntity<ApiResponse<PayrollResponse>> generate(@Valid @RequestBody PayrollGenerateRequest request) {
         ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
         return ResponseEntity.ok(ApiResponse.ok("Payroll generated", payrollService.generate(request, principal)));
+    }
+
+    @PostMapping("/process")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PayrollResponse>> process(@Valid @RequestBody PayrollProcessRequest request) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Payroll processed", payrollService.process(request, principal)));
+    }
+
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PayrollResponse>> approve(@PathVariable UUID id) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Payroll approved", payrollService.approve(id, principal)));
+    }
+
+    @GetMapping("/month/{month}/year/{year}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PagedResponse<PayrollResponse>>> listByPeriod(
+            @PathVariable int month,
+            @PathVariable int year,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Payroll by period fetched", payrollService.listByPeriod(month, year, pageable)));
+    }
+
+    @GetMapping("/staff/{staffId}")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PagedResponse<PayrollResponse>>> listByStaff(
+            @PathVariable UUID staffId,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Payroll by staff fetched", payrollService.listByStaff(staffId, pageable)));
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PayrollSummaryResponse>> summary(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+        return ResponseEntity.ok(ApiResponse.ok("Payroll summary fetched", payrollService.summarize(month, year)));
     }
 }

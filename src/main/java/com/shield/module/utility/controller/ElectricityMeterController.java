@@ -47,6 +47,13 @@ public class ElectricityMeterController {
         return ResponseEntity.ok(ApiResponse.ok("Unit electricity meters fetched", utilityService.listElectricityMetersByUnit(unitId, pageable)));
     }
 
+    @GetMapping("/type/{type}")
+    public ResponseEntity<ApiResponse<PagedResponse<ElectricityMeterResponse>>> listByType(
+            @PathVariable String type,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Type electricity meters fetched", utilityService.listElectricityMetersByType(type, pageable)));
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
     public ResponseEntity<ApiResponse<ElectricityMeterResponse>> create(@Valid @RequestBody ElectricityMeterCreateRequest request) {

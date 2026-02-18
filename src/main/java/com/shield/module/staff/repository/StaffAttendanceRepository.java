@@ -15,6 +15,19 @@ public interface StaffAttendanceRepository extends JpaRepository<StaffAttendance
 
     Page<StaffAttendanceEntity> findAllByStaffIdAndDeletedFalse(UUID staffId, Pageable pageable);
 
+    Page<StaffAttendanceEntity> findAllByDeletedFalse(Pageable pageable);
+
+    Optional<StaffAttendanceEntity> findByIdAndDeletedFalse(UUID id);
+
+    Page<StaffAttendanceEntity> findAllByAttendanceDateAndDeletedFalse(LocalDate attendanceDate, Pageable pageable);
+
+    Page<StaffAttendanceEntity> findAllByAttendanceDateBetweenAndDeletedFalse(
+            LocalDate fromDate,
+            LocalDate toDate,
+            Pageable pageable);
+
+    List<StaffAttendanceEntity> findAllByAttendanceDateBetweenAndDeletedFalse(LocalDate fromDate, LocalDate toDate);
+
     List<StaffAttendanceEntity> findAllByStaffIdAndAttendanceDateBetweenAndDeletedFalse(
             UUID staffId,
             LocalDate fromDate,

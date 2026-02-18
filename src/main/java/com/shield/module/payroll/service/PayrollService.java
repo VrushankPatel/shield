@@ -2,9 +2,12 @@ package com.shield.module.payroll.service;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
+import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
 import com.shield.module.payroll.dto.PayrollGenerateRequest;
+import com.shield.module.payroll.dto.PayrollProcessRequest;
 import com.shield.module.payroll.dto.PayrollResponse;
+import com.shield.module.payroll.dto.PayrollSummaryResponse;
 import com.shield.module.payroll.entity.PayrollEntity;
 import com.shield.module.payroll.entity.PayrollStatus;
 import com.shield.module.payroll.repository.PayrollRepository;
@@ -109,6 +112,68 @@ public class PayrollService {
         return toResponse(entity);
     }
 
+    public PayrollResponse process(PayrollProcessRequest request, ShieldPrincipal principal) {
+        PayrollEntity entity = payrollRepository.findByIdAndDeletedFalse(request.payrollId())
+                .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + request.payrollId()));
+
+        if (entity.getStatus() == PayrollStatus.PAID) {
+            throw new BadRequestException("Paid payroll cannot be processed again");
+        }
+
+        entity.setPaymentMethod(request.paymentMethod());
+        entity.setPaymentReference(request.paymentReference());
+        entity.setPaymentDate(request.paymentDate() != null ? request.paymentDate() : LocalDate.now());
+        entity.setPayslipUrl(request.payslipUrl());
+        entity.setStatus(PayrollStatus.PROCESSED);
+
+        PayrollEntity saved = payrollRepository.save(entity);
+        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_PROCESSED", "payroll", saved.getId(), null);
+        return toResponse(saved);
+    }
+
+    public PayrollResponse approve(UUID id, ShieldPrincipal principal) {
+        PayrollEntity entity = payrollRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + id));
+
+        if (entity.getStatus() != PayrollStatus.PROCESSED) {
+            throw new BadRequestException("Only processed payroll can be approved");
+        }
+
+        entity.setStatus(PayrollStatus.PAID);
+        if (entity.getPaymentDate() == null) {
+            entity.setPaymentDate(LocalDate.now());
+        }
+
+        PayrollEntity saved = payrollRepository.save(entity);
+        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_APPROVED", "payroll", saved.getId(), null);
+        return toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<PayrollResponse> listByPeriod(int month, int year, Pageable pageable) {
+        return PagedResponse.from(payrollRepository.findAllByYearAndMonthAndDeletedFalse(year, month, pageable)
+                .map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<PayrollResponse> listByStaff(UUID staffId, Pageable pageable) {
+        return PagedResponse.from(payrollRepository.findAllByStaffIdAndDeletedFalse(staffId, pageable).map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PayrollSummaryResponse summarize(Integer month, Integer year) {
+        List<Object[]> rows = payrollRepository.summarize(year, month);
+        Object[] row = rows.isEmpty() ? new Object[] {0L, ZERO, ZERO, ZERO} : rows.get(0);
+
+        return new PayrollSummaryResponse(
+                year,
+                month,
+                toLong(row[0]),
+                toMoney(row[1]),
+                toMoney(row[2]),
+                toMoney(row[3]));
+    }
+
     private BigDecimal sanitizeMoney(BigDecimal value) {
         if (value == null || value.signum() < 0) {
             return ZERO;
@@ -122,6 +187,26 @@ public class PayrollService {
         }
         BigDecimal perDay = monthlySalary.divide(BigDecimal.valueOf(workingDays), 8, RoundingMode.HALF_UP);
         return perDay.multiply(BigDecimal.valueOf(Math.max(0, presentDays))).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private long toLong(Object value) {
+        if (value == null) {
+            return 0L;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return Long.parseLong(value.toString());
+    }
+
+    private BigDecimal toMoney(Object value) {
+        if (value == null) {
+            return ZERO;
+        }
+        if (value instanceof BigDecimal decimal) {
+            return decimal.setScale(2, RoundingMode.HALF_UP);
+        }
+        return new BigDecimal(value.toString()).setScale(2, RoundingMode.HALF_UP);
     }
 
     private PayrollResponse toResponse(PayrollEntity entity) {

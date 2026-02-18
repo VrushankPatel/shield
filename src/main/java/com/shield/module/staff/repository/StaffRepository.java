@@ -13,5 +13,7 @@ public interface StaffRepository extends JpaRepository<StaffEntity, UUID> {
 
     Page<StaffEntity> findAllByActiveTrueAndDeletedFalse(Pageable pageable);
 
+    Page<StaffEntity> findAllByDesignationIgnoreCaseAndDeletedFalse(String designation, Pageable pageable);
+
     Optional<StaffEntity> findByIdAndDeletedFalse(UUID id);
 }

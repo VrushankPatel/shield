@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -56,6 +57,22 @@ public class MarketplaceListingController {
             Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok("Status marketplace listings fetched",
                 marketplaceService.listListingsByStatus(status, pageable)));
+    }
+
+    @GetMapping("/type/{type}")
+    public ResponseEntity<ApiResponse<PagedResponse<MarketplaceListingResponse>>> listByType(
+            @PathVariable String type,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Type marketplace listings fetched",
+                marketplaceService.listListingsByType(type, pageable)));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<MarketplaceListingResponse>>> search(
+            @RequestParam("q") String query,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Marketplace listings search fetched",
+                marketplaceService.searchListings(query, pageable)));
     }
 
     @GetMapping("/my-listings")

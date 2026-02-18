@@ -94,6 +94,27 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .body("data.checkOutTime", notNullValue());
 
         given()
+                .header("Authorization", "Bearer " + adminToken)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/staff-attendance/date/{date}", "2026-02-10")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .queryParam("from", "2026-02-01")
+                .queryParam("to", "2026-02-28")
+                .when()
+                .get("/staff-attendance/summary")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalRecords", equalTo(1))
+                .body("data.presentCount", equalTo(1));
+
+        String payrollId = given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + adminToken)
                 .body(Map.of(
@@ -108,7 +129,56 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.staffId", equalTo(staffId))
                 .body("data.presentDays", equalTo(1))
-                .body("data.status", equalTo("DRAFT"));
+                .body("data.status", equalTo("DRAFT"))
+                .extract()
+                .path("data.id");
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of(
+                        "payrollId", payrollId,
+                        "paymentMethod", "BANK_TRANSFER",
+                        "paymentReference", "PAY-001",
+                        "paymentDate", "2026-02-28",
+                        "payslipUrl", "https://files.example/payslip/STF-001-Feb.pdf"))
+                .when()
+                .post("/payroll/process")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.id", equalTo(payrollId))
+                .body("data.status", equalTo("PROCESSED"));
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .post("/payroll/{id}/approve", payrollId)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.status", equalTo("PAID"));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/payroll/staff/{staffId}", staffId)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1))
+                .body("data.content[0].status", equalTo("PAID"));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .queryParam("month", 2)
+                .queryParam("year", 2026)
+                .when()
+                .get("/payroll/summary")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalPayrolls", equalTo(1))
+                .body("data.netAmount", notNullValue());
 
         given()
                 .header("Authorization", "Bearer " + adminToken)
@@ -173,6 +243,27 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.content.size()", equalTo(1));
 
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("tankId", tankId)
+                .when()
+                .get("/water-level-logs/current")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.tankId", equalTo(tankId));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("from", "2026-02-17T09:00:00Z")
+                .queryParam("to", "2026-02-17T12:00:00Z")
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/water-level-logs/date-range")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1));
+
         String meterId = given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + tokenOne)
@@ -212,6 +303,41 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.content.size()", equalTo(1));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/electricity-meters/type/{type}", "MAIN")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("from", "2026-02-01")
+                .queryParam("to", "2026-02-28")
+                .queryParam("meterId", meterId)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/electricity-readings/date-range")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("from", "2026-02-01")
+                .queryParam("to", "2026-02-28")
+                .queryParam("meterId", meterId)
+                .when()
+                .get("/electricity-readings/consumption-report")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalReadings", equalTo(1))
+                .body("data.totalUnitsConsumed", equalTo(220.0f));
 
         given()
                 .header("Authorization", "Bearer " + tokenTwo)
@@ -265,6 +391,29 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .body("data.status", equalTo("ACTIVE"))
                 .extract()
                 .path("data.id");
+
+        given()
+                .header("Authorization", "Bearer " + buyerToken)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/marketplace-listings/type/{type}", "SELL")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1))
+                .body("data.content[0].id", equalTo(listingId));
+
+        given()
+                .header("Authorization", "Bearer " + buyerToken)
+                .queryParam("q", "Dining")
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/marketplace-listings/search")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1))
+                .body("data.content[0].id", equalTo(listingId));
 
         given()
                 .contentType("application/json")
