@@ -20,6 +20,8 @@
 - Focus:
   - Flyway migrations applied on fresh database
   - full auth -> JWT -> secured endpoint lifecycle
+  - identity lifecycle flows (register, verify-email, forgot/reset/change password)
+  - KYC + move-record + parking + digital ID operational lifecycle
   - tenant isolation behavior
   - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)
   - expanded phase-2 flow coverage for new staff/payroll/utility/marketplace endpoints

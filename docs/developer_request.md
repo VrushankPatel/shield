@@ -9,6 +9,9 @@ Provide these for every environment:
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 
+Recommended for production URLs in auth emails:
+- `SHIELD_APP_BASE_URL` (example: `https://api.your-domain.com`)
+
 ## B. First-Run Bootstrap Inputs (recommended)
 Set only during first startup to create initial tenant + admin:
 - `BOOTSTRAP_ENABLED=true`
@@ -77,6 +80,10 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 - SMS/OTP provider credentials
 - WhatsApp provider credentials
 - External object storage credentials (optional future switch from local disk storage)
+
+## K. Auth Token Lifecycle Tuning (Optional)
+- `PASSWORD_RESET_TOKEN_TTL_MINUTES` (default: `30`)
+- `EMAIL_VERIFICATION_TOKEN_TTL_HOURS` (default: `24`)
 
 ## I. File Storage Mode (Current)
 - Current implementation uses local disk storage only.

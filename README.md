@@ -10,6 +10,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 ## Current Scope
 ### Phase 1
 - JWT auth (`/auth/login`, `/auth/refresh`, `/auth/logout`)
+- Auth lifecycle extensions (`/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`)
 - Tenant, Unit, User
 - Billing + Payments
 - Accounting Ledger
@@ -18,6 +19,11 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Complaint
 - Amenities + Bookings
 - Meeting + Minutes
+- Identity operations:
+  - KYC (`/kyc/*`)
+  - Move records (`/move-records/*`)
+  - Parking slots (`/parking-slots/*`)
+  - Digital ID cards (`/digital-id-cards/*`)
 
 ### Phase 2 (started)
 - Announcements module (`/announcements`)
@@ -42,13 +48,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase5_schema.json` -> `V6__phase4_log_observability_generated.sql`
   - `db/model/phase6_schema.json` -> `V7__phase5_config_files_generated.sql`
   - `db/model/phase7_schema.json` -> `V8__phase6_payment_gateway_generated.sql`
+  - `db/model/phase8_schema.json` -> `V9__phase8_identity_extensions_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V8`)
+- Flyway migrations (`V1` to `V9`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -135,6 +142,7 @@ export SPRING_MAIL_HOST="smtp.gmail.com"
 export SPRING_MAIL_PORT="587"
 export SPRING_MAIL_USERNAME="your@gmail.com"
 export SPRING_MAIL_PASSWORD="your-16-char-app-password"
+export SHIELD_APP_BASE_URL="http://localhost:8080"
 ```
 Detailed Gmail setup is documented in `docs/developer_request.md`.
 
@@ -202,6 +210,7 @@ Required secrets:
 - `docs/generated/phase5_schema_generated.md`
 - `docs/generated/phase6_schema_generated.md`
 - `docs/generated/phase7_schema_generated.md`
+- `docs/generated/phase8_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

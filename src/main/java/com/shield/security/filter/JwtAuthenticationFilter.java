@@ -31,8 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getRequestURI();
-        if (path.startsWith("/api/v1/auth") || path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")) {
+        if (isPublicEndpoint(request)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -64,5 +63,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicEndpoint(HttpServletRequest request) {
+        String method = request.getMethod();
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")) {
+            return true;
+        }
+
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/v1/auth/verify-email/")) {
+            return true;
+        }
+
+        if (!"POST".equalsIgnoreCase(method)) {
+            return false;
+        }
+
+        return "/api/v1/auth/register".equals(path)
+                || "/api/v1/auth/login".equals(path)
+                || "/api/v1/auth/refresh".equals(path)
+                || "/api/v1/auth/refresh-token".equals(path)
+                || "/api/v1/auth/forgot-password".equals(path)
+                || "/api/v1/auth/reset-password".equals(path)
+                || "/api/v1/auth/logout".equals(path);
     }
 }

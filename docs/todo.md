@@ -31,3 +31,10 @@
 - [x] Payroll lifecycle API expansion (`/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`)
 - [x] Utility query API expansion (`/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`)
 - [x] Marketplace query API expansion (`/marketplace-listings/type/{type}`, `/marketplace-listings/search`)
+
+## Phase-6 Identity Extension
+- [x] Auth lifecycle expansion (`register`, `verify-email`, `forgot/reset/change password`)
+- [x] KYC module baseline (`/kyc/*`)
+- [x] Move record workflow module (`/move-records/*`)
+- [x] Parking slot management module (`/parking-slots/*`)
+- [x] Digital ID card module (`/digital-id-cards/*`)

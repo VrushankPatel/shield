@@ -1,13 +1,22 @@
 package com.shield.module.auth.controller;
 
 import com.shield.common.dto.ApiResponse;
+import com.shield.common.util.SecurityUtils;
 import com.shield.module.auth.dto.AuthResponse;
+import com.shield.module.auth.dto.ChangePasswordRequest;
+import com.shield.module.auth.dto.ForgotPasswordRequest;
 import com.shield.module.auth.dto.LoginRequest;
 import com.shield.module.auth.dto.RefreshRequest;
+import com.shield.module.auth.dto.RegisterRequest;
+import com.shield.module.auth.dto.RegisterResponse;
+import com.shield.module.auth.dto.ResetPasswordRequest;
 import com.shield.module.auth.service.AuthService;
+import com.shield.security.model.ShieldPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -21,14 +30,44 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Registration successful", authService.register(request)));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Login successful", authService.login(request)));
     }
 
-    @PostMapping("/refresh")
+    @PostMapping({"/refresh", "/refresh-token"})
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Token refreshed", authService.refresh(request)));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok("If the email is registered, reset instructions were sent", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok("Password reset successful", null));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        authService.changePassword(principal, request);
+        return ResponseEntity.ok(ApiResponse.ok("Password changed successfully", null));
+    }
+
+    @GetMapping("/verify-email/{token}")
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@PathVariable String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.ok("Email verified successfully", null));
     }
 
     @PostMapping("/logout")

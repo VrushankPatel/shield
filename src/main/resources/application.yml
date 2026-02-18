@@ -51,12 +51,16 @@ springdoc:
     path: /swagger-ui.html
 
 shield:
+  app:
+    base-url: ${SHIELD_APP_BASE_URL:http://localhost:8080}
   security:
     jwt:
       secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
       access-token-ttl-minutes: ${JWT_ACCESS_TOKEN_TTL_MINUTES:30}
       refresh-token-ttl-minutes: ${JWT_REFRESH_TOKEN_TTL_MINUTES:4320}
   auth:
+    password-reset-ttl-minutes: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:30}
+    email-verification-ttl-hours: ${EMAIL_VERIFICATION_TOKEN_TTL_HOURS:24}
     login-rate-limit:
       requests: ${LOGIN_RATE_LIMIT_REQUESTS:10}
       window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}

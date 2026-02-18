@@ -22,6 +22,14 @@ paths:
       responses:
         '200':
           description: Login successful
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register user
+      security: []
+      responses:
+        '200':
+          description: Registration successful
   /auth/refresh:
     post:
       tags: [Auth]
@@ -30,6 +38,51 @@ paths:
       responses:
         '200':
           description: Token refreshed
+  /auth/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Refresh token (alias)
+      security: []
+      responses:
+        '200':
+          description: Token refreshed
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Forgot password
+      security: []
+      responses:
+        '200':
+          description: Password reset instructions initiated
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password
+      security: []
+      responses:
+        '200':
+          description: Password reset successful
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change password
+      responses:
+        '200':
+          description: Password changed
+  /auth/verify-email/{token}:
+    get:
+      tags: [Auth]
+      summary: Verify email
+      security: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email verified
   /auth/logout:
     post:
       tags: [Auth]
@@ -37,6 +90,272 @@ paths:
       responses:
         '200':
           description: Logout successful
+
+  /kyc/upload:
+    post:
+      tags: [KYC]
+      summary: Upload KYC document
+      responses:
+        '200': {description: KYC uploaded}
+  /kyc/user/{userId}:
+    get:
+      tags: [KYC]
+      summary: List KYC documents by user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: KYC list fetched}
+  /kyc/{id}:
+    get:
+      tags: [KYC]
+      summary: Get KYC document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: KYC document fetched}
+    put:
+      tags: [KYC]
+      summary: Update KYC document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: KYC document updated}
+    delete:
+      tags: [KYC]
+      summary: Delete KYC document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: KYC document deleted}
+  /kyc/{id}/verify:
+    post:
+      tags: [KYC]
+      summary: Verify KYC document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: KYC verified}
+  /kyc/{id}/reject:
+    post:
+      tags: [KYC]
+      summary: Reject KYC document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: KYC rejected}
+  /kyc/pending:
+    get:
+      tags: [KYC]
+      summary: List pending KYC documents
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending KYC documents fetched}
+
+  /move-records:
+    get:
+      tags: [MoveRecords]
+      summary: List move records
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Move records fetched}
+  /move-records/{id}:
+    get:
+      tags: [MoveRecords]
+      summary: Get move record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Move record fetched}
+  /move-records/move-in:
+    post:
+      tags: [MoveRecords]
+      summary: Create move-in request
+      responses:
+        '200': {description: Move-in request created}
+  /move-records/move-out:
+    post:
+      tags: [MoveRecords]
+      summary: Create move-out request
+      responses:
+        '200': {description: Move-out request created}
+  /move-records/{id}/approve:
+    post:
+      tags: [MoveRecords]
+      summary: Approve move record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Move record approved}
+  /move-records/{id}/reject:
+    post:
+      tags: [MoveRecords]
+      summary: Reject move record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Move record rejected}
+  /move-records/unit/{unitId}:
+    get:
+      tags: [MoveRecords]
+      summary: List move records by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Move records by unit fetched}
+  /move-records/pending-approvals:
+    get:
+      tags: [MoveRecords]
+      summary: List pending move approvals
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending move approvals fetched}
+
+  /parking-slots:
+    get:
+      tags: [Parking]
+      summary: List parking slots
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Parking slots fetched}
+    post:
+      tags: [Parking]
+      summary: Create parking slot
+      responses:
+        '200': {description: Parking slot created}
+  /parking-slots/{id}:
+    get:
+      tags: [Parking]
+      summary: Get parking slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Parking slot fetched}
+    put:
+      tags: [Parking]
+      summary: Update parking slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Parking slot updated}
+    delete:
+      tags: [Parking]
+      summary: Delete parking slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Parking slot deleted}
+  /parking-slots/available:
+    get:
+      tags: [Parking]
+      summary: List available parking slots
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Available parking slots fetched}
+  /parking-slots/{id}/allocate:
+    post:
+      tags: [Parking]
+      summary: Allocate parking slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Parking slot allocated}
+  /parking-slots/{id}/deallocate:
+    post:
+      tags: [Parking]
+      summary: Deallocate parking slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Parking slot deallocated}
+  /parking-slots/unit/{unitId}:
+    get:
+      tags: [Parking]
+      summary: List parking slots by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Parking slots by unit fetched}
+
+  /digital-id-cards/user/{userId}:
+    get:
+      tags: [DigitalId]
+      summary: List digital ID cards by user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Digital ID cards fetched}
+  /digital-id-cards/generate:
+    post:
+      tags: [DigitalId]
+      summary: Generate digital ID card
+      responses:
+        '200': {description: Digital ID card generated}
+  /digital-id-cards/verify/{qrCode}:
+    get:
+      tags: [DigitalId]
+      summary: Verify digital ID by QR code
+      parameters:
+        - in: path
+          name: qrCode
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: Digital ID verification completed}
+  /digital-id-cards/{id}:
+    get:
+      tags: [DigitalId]
+      summary: Get digital ID card
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Digital ID card fetched}
+  /digital-id-cards/{id}/renew:
+    post:
+      tags: [DigitalId]
+      summary: Renew digital ID card
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Digital ID card renewed}
+  /digital-id-cards/{id}/deactivate:
+    post:
+      tags: [DigitalId]
+      summary: Deactivate digital ID card
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Digital ID card deactivated}
 
   /tenants:
     post:

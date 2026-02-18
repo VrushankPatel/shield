@@ -25,6 +25,12 @@ Phase 1:
 - Complaint: `/complaints/*`
 - Amenities: `/amenities/*`
 - Meeting: `/meetings/*`
+- Identity extension:
+  - Auth lifecycle: `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`
+  - KYC: `/kyc/*`
+  - Move records: `/move-records/*`
+  - Parking: `/parking-slots/*`
+  - Digital IDs: `/digital-id-cards/*`
 
 Phase 2:
 - Announcements: `/announcements/*`

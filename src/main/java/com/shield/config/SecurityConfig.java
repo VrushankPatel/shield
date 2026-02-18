@@ -45,13 +45,22 @@ public class SecurityConfig {
                         .accessDeniedHandler(restAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/actuator/health",
                                 "/actuator/prometheus")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/refresh-token",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/logout")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/verify-email/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/tenants").hasRole("ADMIN")
                         .anyRequest()
                         .authenticated())
