@@ -46,6 +46,10 @@ Phase 2:
 - Configuration: `/config/*`, `/settings/*`
 - File management: `/files/*`
 - Payment gateway scaffold: `/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/transaction/{transactionRef}`
+- Expanded operations:
+  - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
+  - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`
+  - Marketplace: `/marketplace-listings/type/{type}`, `/marketplace-listings/search`
 
 ## Common Error Envelope
 ```json

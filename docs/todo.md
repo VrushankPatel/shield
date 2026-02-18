@@ -25,3 +25,9 @@
 - [ ] Production payment provider integration (webhook signature verification + SDK adapter)
 - [ ] OTP/SMS login flow
 - [ ] WhatsApp notification integration
+
+## Phase-5 In Progress
+- [x] Staff attendance API expansion (`/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`)
+- [x] Payroll lifecycle API expansion (`/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`)
+- [x] Utility query API expansion (`/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`)
+- [x] Marketplace query API expansion (`/marketplace-listings/type/{type}`, `/marketplace-listings/search`)
