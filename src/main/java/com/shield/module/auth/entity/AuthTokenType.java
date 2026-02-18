@@ -2,5 +2,6 @@ package com.shield.module.auth.entity;
 
 public enum AuthTokenType {
     PASSWORD_RESET,
-    EMAIL_VERIFICATION
+    EMAIL_VERIFICATION,
+    LOGIN_OTP
 }

@@ -23,8 +23,10 @@
 
 ## Phase-4 Continuation
 - [x] Production payment provider integration (webhook signature verification + SDK adapter)
-- [ ] OTP/SMS login flow
-- [ ] WhatsApp notification integration
+- [x] OTP/SMS login flow (dummy SMS sender baseline + pluggable interface)
+- [x] WhatsApp notification placeholder (interface + dummy logging implementation)
+- [ ] Production SMS provider integration
+- [ ] Production WhatsApp provider integration
 
 ## Phase-5 In Progress
 - [x] Staff attendance API expansion (`/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`)

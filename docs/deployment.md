@@ -39,6 +39,14 @@ Email notifications (phase-2 optional):
 Payment webhooks (phase-4 optional but recommended for production):
 - `PAYMENT_WEBHOOK_PROVIDER_SECRETS` (example: `STRIPE=whsec_abc,RAZORPAY=rzp_secret`)
 
+OTP/SMS and WhatsApp placeholders:
+- `LOGIN_OTP_TTL_MINUTES`
+- `LOGIN_OTP_MAX_ATTEMPTS`
+- `NOTIFICATION_SMS_ENABLED`
+- `NOTIFICATION_SMS_PROVIDER`
+- `NOTIFICATION_WHATSAPP_ENABLED`
+- `NOTIFICATION_WHATSAPP_PROVIDER`
+
 For bootstrap and full integration input list, see `docs/developer_request.md`.
 
 ## 5. CI/CD Pipeline

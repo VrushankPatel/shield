@@ -76,8 +76,8 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 ```
 
 ## G. Inputs Still Pending for Future Modules
-- SMS/OTP provider credentials
-- WhatsApp provider credentials
+- SMS/OTP provider credentials (production switch; dummy logger currently active)
+- WhatsApp provider credentials (production switch; dummy logger currently active)
 - External object storage credentials (optional future switch from local disk storage)
 
 ## K. Auth Token Lifecycle Tuning (Optional)
@@ -101,3 +101,16 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 ## H. Security Notes
 - Never commit credentials in source control.
 - Keep credentials in secret manager / CI secrets / runtime env vars only.
+
+## L. OTP/SMS and WhatsApp Placeholder Inputs
+Current baseline includes interface-driven placeholders:
+- OTP send: `SmsOtpSender` with `LoggingSmsOtpSender` default implementation
+- WhatsApp send: `WhatsappNotificationSender` with `LoggingWhatsappNotificationSender` default implementation
+
+Optional tuning variables:
+- `LOGIN_OTP_TTL_MINUTES` (default `5`)
+- `LOGIN_OTP_MAX_ATTEMPTS` (default `5`)
+- `NOTIFICATION_SMS_ENABLED` (default `false`)
+- `NOTIFICATION_SMS_PROVIDER` (default `DUMMY`)
+- `NOTIFICATION_WHATSAPP_ENABLED` (default `false`)
+- `NOTIFICATION_WHATSAPP_PROVIDER` (default `DUMMY`)

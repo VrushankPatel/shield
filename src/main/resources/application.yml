@@ -61,6 +61,8 @@ shield:
   auth:
     password-reset-ttl-minutes: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:30}
     email-verification-ttl-hours: ${EMAIL_VERIFICATION_TOKEN_TTL_HOURS:24}
+    login-otp-ttl-minutes: ${LOGIN_OTP_TTL_MINUTES:5}
+    login-otp-max-attempts: ${LOGIN_OTP_MAX_ATTEMPTS:5}
     login-rate-limit:
       requests: ${LOGIN_RATE_LIMIT_REQUESTS:10}
       window-seconds: ${LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
@@ -75,6 +77,12 @@ shield:
     email:
       enabled: ${NOTIFICATION_EMAIL_ENABLED:false}
       from: ${NOTIFICATION_EMAIL_FROM:no-reply@shield.local}
+    sms:
+      enabled: ${NOTIFICATION_SMS_ENABLED:false}
+      provider: ${NOTIFICATION_SMS_PROVIDER:DUMMY}
+    whatsapp:
+      enabled: ${NOTIFICATION_WHATSAPP_ENABLED:false}
+      provider: ${NOTIFICATION_WHATSAPP_PROVIDER:DUMMY}
   files:
     storage-path: ${SHIELD_FILES_STORAGE_PATH:./storage/files}
   payment:

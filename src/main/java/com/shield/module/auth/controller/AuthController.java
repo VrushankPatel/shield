@@ -6,6 +6,9 @@ import com.shield.module.auth.dto.AuthResponse;
 import com.shield.module.auth.dto.ChangePasswordRequest;
 import com.shield.module.auth.dto.ForgotPasswordRequest;
 import com.shield.module.auth.dto.LoginRequest;
+import com.shield.module.auth.dto.LoginOtpSendRequest;
+import com.shield.module.auth.dto.LoginOtpSendResponse;
+import com.shield.module.auth.dto.LoginOtpVerifyRequest;
 import com.shield.module.auth.dto.RefreshRequest;
 import com.shield.module.auth.dto.RegisterRequest;
 import com.shield.module.auth.dto.RegisterResponse;
@@ -38,6 +41,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Login successful", authService.login(request)));
+    }
+
+    @PostMapping("/login/otp/send")
+    public ResponseEntity<ApiResponse<LoginOtpSendResponse>> sendLoginOtp(@Valid @RequestBody LoginOtpSendRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("OTP dispatched", authService.sendLoginOtp(request)));
+    }
+
+    @PostMapping("/login/otp/verify")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyLoginOtp(@Valid @RequestBody LoginOtpVerifyRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("OTP login successful", authService.verifyLoginOtp(request)));
     }
 
     @PostMapping({"/refresh", "/refresh-token"})

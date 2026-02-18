@@ -7,6 +7,9 @@ import com.shield.module.auth.dto.AuthResponse;
 import com.shield.module.auth.dto.ChangePasswordRequest;
 import com.shield.module.auth.dto.ForgotPasswordRequest;
 import com.shield.module.auth.dto.LoginRequest;
+import com.shield.module.auth.dto.LoginOtpSendRequest;
+import com.shield.module.auth.dto.LoginOtpSendResponse;
+import com.shield.module.auth.dto.LoginOtpVerifyRequest;
 import com.shield.module.auth.dto.RefreshRequest;
 import com.shield.module.auth.dto.RegisterRequest;
 import com.shield.module.auth.dto.RegisterResponse;
@@ -18,6 +21,7 @@ import com.shield.module.tenant.entity.TenantEntity;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.unit.entity.UnitEntity;
 import com.shield.module.unit.repository.UnitRepository;
+import com.shield.module.notification.service.SmsOtpSender;
 import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
@@ -26,7 +30,10 @@ import com.shield.security.model.ShieldPrincipal;
 import io.jsonwebtoken.Claims;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +54,7 @@ public class AuthService {
     private final AuthTokenRepository authTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
+    private final SmsOtpSender smsOtpSender;
     private final JwtService jwtService;
     private final AuditLogService auditLogService;
 
@@ -58,6 +66,12 @@ public class AuthService {
 
     @Value("${shield.auth.email-verification-ttl-hours:24}")
     private long emailVerificationTtlHours;
+
+    @Value("${shield.auth.login-otp-ttl-minutes:5}")
+    private long loginOtpTtlMinutes;
+
+    @Value("${shield.auth.login-otp-max-attempts:5}")
+    private int loginOtpMaxAttempts;
 
     @Value("${shield.notification.email.enabled:false}")
     private boolean emailEnabled;
@@ -122,6 +136,65 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
 
         auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN", "users", user.getId(), null);
+        return new AuthResponse(accessToken, refreshToken, "Bearer", accessTokenTtlMinutes * 60);
+    }
+
+    @Transactional
+    public LoginOtpSendResponse sendLoginOtp(LoginOtpSendRequest request) {
+        UserEntity user = userRepository.findByEmailIgnoreCaseAndDeletedFalse(request.email())
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new UnauthorizedException("Invalid credentials");
+        }
+
+        if (user.getPhone() == null || user.getPhone().isBlank()) {
+            throw new BadRequestException("Phone number is not configured for OTP login");
+        }
+
+        String otpCode = generateOtpCode();
+        String metadata = encodeOtpMetadata(passwordEncoder.encode(otpCode), 0, loginOtpMaxAttempts);
+        Instant expiresAt = Instant.now().plus(loginOtpTtlMinutes, ChronoUnit.MINUTES);
+        String challengeToken = createToken(user, AuthTokenType.LOGIN_OTP, expiresAt, metadata);
+
+        smsOtpSender.sendLoginOtp(user.getPhone(), otpCode, expiresAt);
+        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_SENT", "users", user.getId(), null);
+
+        return new LoginOtpSendResponse(challengeToken, maskPhone(user.getPhone()), expiresAt);
+    }
+
+    @Transactional
+    public AuthResponse verifyLoginOtp(LoginOtpVerifyRequest request) {
+        AuthTokenEntity token = resolveValidToken(request.challengeToken(), AuthTokenType.LOGIN_OTP);
+        UserEntity user = userRepository.findByIdAndDeletedFalse(token.getUserId())
+                .orElseThrow(() -> new UnauthorizedException("Invalid OTP challenge"));
+
+        Map<String, String> metadata = parseOtpMetadata(token.getMetadata());
+        String otpHash = metadata.get("otpHash");
+        int attempts = parsePositiveInt(metadata.getOrDefault("attempts", "0"), 0);
+        int maxAttempts = parsePositiveInt(metadata.getOrDefault("maxAttempts", String.valueOf(loginOtpMaxAttempts)), loginOtpMaxAttempts);
+
+        if (otpHash == null || otpHash.isBlank()) {
+            throw new BadRequestException("Invalid OTP challenge metadata");
+        }
+
+        if (!passwordEncoder.matches(request.otpCode(), otpHash)) {
+            int updatedAttempts = attempts + 1;
+            token.setMetadata(encodeOtpMetadata(otpHash, updatedAttempts, maxAttempts));
+            if (updatedAttempts >= maxAttempts) {
+                token.setConsumedAt(Instant.now());
+            }
+            authTokenRepository.save(token);
+            throw new UnauthorizedException("Invalid OTP");
+        }
+
+        token.setConsumedAt(Instant.now());
+        authTokenRepository.save(token);
+
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
+
+        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_VERIFIED", "users", user.getId(), null);
         return new AuthResponse(accessToken, refreshToken, "Bearer", accessTokenTtlMinutes * 60);
     }
 
@@ -316,6 +389,47 @@ public class AuthService {
             return value.substring(0, value.length() - 1);
         }
         return value;
+    }
+
+    private String generateOtpCode() {
+        int value = ThreadLocalRandom.current().nextInt(100000, 1000000);
+        return String.valueOf(value);
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null || phone.length() < 4) {
+            return "****";
+        }
+        return "*".repeat(Math.max(0, phone.length() - 4)) + phone.substring(phone.length() - 4);
+    }
+
+    private String encodeOtpMetadata(String otpHash, int attempts, int maxAttempts) {
+        return "otpHash=" + otpHash + ";attempts=" + attempts + ";maxAttempts=" + maxAttempts;
+    }
+
+    private Map<String, String> parseOtpMetadata(String metadata) {
+        Map<String, String> parsed = new HashMap<>();
+        if (metadata == null || metadata.isBlank()) {
+            return parsed;
+        }
+
+        String[] parts = metadata.split(";");
+        for (String part : parts) {
+            String[] pair = part.split("=", 2);
+            if (pair.length == 2) {
+                parsed.put(pair[0], pair[1]);
+            }
+        }
+        return parsed;
+    }
+
+    private int parsePositiveInt(String value, int fallback) {
+        try {
+            int parsed = Integer.parseInt(value);
+            return parsed < 0 ? fallback : parsed;
+        } catch (Exception ignored) {
+            return fallback;
+        }
     }
 
     private String generateTokenValue() {

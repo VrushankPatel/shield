@@ -9,6 +9,7 @@ import com.shield.integration.support.IntegrationTestBase;
 import com.shield.module.auth.entity.AuthTokenEntity;
 import com.shield.module.auth.entity.AuthTokenType;
 import com.shield.module.auth.repository.AuthTokenRepository;
+import com.shield.module.notification.service.LoggingSmsOtpSender;
 import com.shield.module.tenant.entity.TenantEntity;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.unit.entity.UnitEntity;
@@ -46,6 +47,9 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private LoggingSmsOtpSender loggingSmsOtpSender;
 
     @Test
     void identityLifecycleShouldSupportRegistrationVerificationAndResidentOperations() {
@@ -107,7 +111,37 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
                 .then()
                 .statusCode(HttpStatus.OK.value());
 
-        String residentToken = login(residentEmail, residentInitialPassword);
+        String otpChallenge = given()
+                .contentType("application/json")
+                .body(Map.of("email", residentEmail))
+                .when()
+                .post("/auth/login/otp/send")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.challengeToken", notNullValue())
+                .extract()
+                .path("data.challengeToken");
+
+        String latestOtpCode = loggingSmsOtpSender.getLastOtp("9999999998").orElseThrow();
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("challengeToken", otpChallenge, "otpCode", "000000"))
+                .when()
+                .post("/auth/login/otp/verify")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        String residentToken = given()
+                .contentType("application/json")
+                .body(Map.of("challengeToken", otpChallenge, "otpCode", latestOtpCode))
+                .when()
+                .post("/auth/login/otp/verify")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.accessToken", notNullValue())
+                .extract()
+                .path("data.accessToken");
 
         given()
                 .contentType("application/json")

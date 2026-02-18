@@ -73,7 +73,10 @@ public class LoginRateLimiterFilter extends OncePerRequestFilter {
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {
-        return "POST".equalsIgnoreCase(request.getMethod())
-                && "/api/v1/auth/login".equals(request.getRequestURI());
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            return false;
+        }
+        String uri = request.getRequestURI();
+        return "/api/v1/auth/login".equals(uri) || "/api/v1/auth/login/otp/send".equals(uri);
     }
 }

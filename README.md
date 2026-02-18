@@ -11,6 +11,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 ### Phase 1
 - JWT auth (`/auth/login`, `/auth/refresh`, `/auth/logout`)
 - Auth lifecycle extensions (`/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`)
+- OTP auth flow (`/auth/login/otp/send`, `/auth/login/otp/verify`) with pluggable SMS sender (dummy logger implementation by default)
 - Tenant, Unit, User
 - Billing + Payments
 - Accounting Ledger
@@ -29,6 +30,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Announcements module (`/announcements`)
 - Email notifications module (`/notifications/send`, `/notifications`, `/notifications/{id}`)
 - Notification preferences (`/notification-preferences`)
+- WhatsApp sender placeholder interface + dummy logger implementation
 - Announcement publish -> tenant audience filtered email dispatch
 - Helpdesk module (`/helpdesk-categories`, `/helpdesk-tickets`)
 - Emergency module (`/emergency-contacts`, `/sos-alerts`)
@@ -144,6 +146,8 @@ export SPRING_MAIL_USERNAME="your@gmail.com"
 export SPRING_MAIL_PASSWORD="your-16-char-app-password"
 export SHIELD_APP_BASE_URL="http://localhost:8080"
 export PAYMENT_WEBHOOK_PROVIDER_SECRETS="STRIPE=whsec_xxx,RAZORPAY=rzp_webhook_secret"
+export LOGIN_OTP_TTL_MINUTES="5"
+export LOGIN_OTP_MAX_ATTEMPTS="5"
 ```
 Detailed Gmail setup is documented in `docs/developer_request.md`.
 

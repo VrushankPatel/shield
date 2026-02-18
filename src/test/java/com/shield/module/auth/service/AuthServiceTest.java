@@ -1,6 +1,7 @@
 package com.shield.module.auth.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -9,11 +10,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
+import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.UnauthorizedException;
 import com.shield.module.auth.dto.AuthResponse;
 import com.shield.module.auth.dto.ChangePasswordRequest;
 import com.shield.module.auth.dto.ForgotPasswordRequest;
 import com.shield.module.auth.dto.LoginRequest;
+import com.shield.module.auth.dto.LoginOtpSendRequest;
+import com.shield.module.auth.dto.LoginOtpSendResponse;
+import com.shield.module.auth.dto.LoginOtpVerifyRequest;
 import com.shield.module.auth.dto.RefreshRequest;
 import com.shield.module.auth.dto.RegisterRequest;
 import com.shield.module.auth.dto.RegisterResponse;
@@ -25,6 +30,7 @@ import com.shield.module.tenant.entity.TenantEntity;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.unit.entity.UnitEntity;
 import com.shield.module.unit.repository.UnitRepository;
+import com.shield.module.notification.service.SmsOtpSender;
 import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
@@ -68,6 +74,9 @@ class AuthServiceTest {
     private JavaMailSender mailSender;
 
     @Mock
+    private SmsOtpSender smsOtpSender;
+
+    @Mock
     private JwtService jwtService;
 
     @Mock
@@ -87,12 +96,15 @@ class AuthServiceTest {
                 authTokenRepository,
                 passwordEncoder,
                 mailSender,
+                smsOtpSender,
                 jwtService,
                 auditLogService);
 
         ReflectionTestUtils.setField(authService, "accessTokenTtlMinutes", 30L);
         ReflectionTestUtils.setField(authService, "passwordResetTtlMinutes", 30L);
         ReflectionTestUtils.setField(authService, "emailVerificationTtlHours", 24L);
+        ReflectionTestUtils.setField(authService, "loginOtpTtlMinutes", 5L);
+        ReflectionTestUtils.setField(authService, "loginOtpMaxAttempts", 5);
         ReflectionTestUtils.setField(authService, "emailEnabled", false);
         ReflectionTestUtils.setField(authService, "appBaseUrl", "http://localhost:8080");
         ReflectionTestUtils.setField(authService, "emailFrom", "no-reply@shield.local");
@@ -136,6 +148,113 @@ class AuthServiceTest {
         when(passwordEncoder.matches("bad", "hash")).thenReturn(false);
 
         assertThrows(UnauthorizedException.class, () -> authService.login(new LoginRequest("admin@shield.dev", "bad")));
+    }
+
+    @Test
+    void sendLoginOtpShouldCreateChallengeAndDispatchSms() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setEmail("admin@shield.dev");
+        user.setPhone("9999999999");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+
+        when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("admin@shield.dev")).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(any())).thenReturn("otp-hash");
+        when(authTokenRepository.findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
+                tenantId, userId, AuthTokenType.LOGIN_OTP)).thenReturn(List.of());
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> {
+            AuthTokenEntity token = invocation.getArgument(0);
+            token.setId(UUID.randomUUID());
+            token.setTokenValue("challenge-token");
+            return token;
+        });
+
+        LoginOtpSendResponse response = authService.sendLoginOtp(new LoginOtpSendRequest("admin@shield.dev"));
+
+        assertEquals("challenge-token", response.challengeToken());
+        assertEquals("******9999", response.destination());
+        verify(smsOtpSender).sendLoginOtp(eq("9999999999"), any(), any());
+        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGIN_OTP_SENT"), eq("users"), eq(userId), any());
+    }
+
+    @Test
+    void sendLoginOtpShouldFailWhenPhoneMissing() {
+        UserEntity user = new UserEntity();
+        user.setEmail("admin@shield.dev");
+        user.setStatus(UserStatus.ACTIVE);
+        user.setPhone(null);
+
+        when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("admin@shield.dev")).thenReturn(Optional.of(user));
+        assertThrows(BadRequestException.class, () -> authService.sendLoginOtp(new LoginOtpSendRequest("admin@shield.dev")));
+    }
+
+    @Test
+    void verifyLoginOtpShouldIssueTokensWhenCodeMatches() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        AuthTokenEntity token = new AuthTokenEntity();
+        token.setId(UUID.randomUUID());
+        token.setTenantId(tenantId);
+        token.setUserId(userId);
+        token.setTokenType(AuthTokenType.LOGIN_OTP);
+        token.setTokenValue("challenge-token");
+        token.setMetadata("otpHash=otp-hash;attempts=0;maxAttempts=5");
+        token.setExpiresAt(Instant.now().plusSeconds(300));
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setEmail("admin@shield.dev");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+
+        when(authTokenRepository.findByTokenValueAndDeletedFalse("challenge-token")).thenReturn(Optional.of(token));
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("123456", "otp-hash")).thenReturn(true);
+        when(jwtService.generateAccessToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("access-otp");
+        when(jwtService.generateRefreshToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("refresh-otp");
+
+        AuthResponse response = authService.verifyLoginOtp(new LoginOtpVerifyRequest("challenge-token", "123456"));
+
+        assertEquals("access-otp", response.accessToken());
+        assertEquals("refresh-otp", response.refreshToken());
+        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGIN_OTP_VERIFIED"), eq("users"), eq(userId), any());
+    }
+
+    @Test
+    void verifyLoginOtpShouldConsumeTokenWhenMaxAttemptsReached() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        AuthTokenEntity token = new AuthTokenEntity();
+        token.setId(UUID.randomUUID());
+        token.setTenantId(tenantId);
+        token.setUserId(userId);
+        token.setTokenType(AuthTokenType.LOGIN_OTP);
+        token.setTokenValue("challenge-token");
+        token.setMetadata("otpHash=otp-hash;attempts=4;maxAttempts=5");
+        token.setExpiresAt(Instant.now().plusSeconds(300));
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setStatus(UserStatus.ACTIVE);
+
+        when(authTokenRepository.findByTokenValueAndDeletedFalse("challenge-token")).thenReturn(Optional.of(token));
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("000000", "otp-hash")).thenReturn(false);
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThrows(UnauthorizedException.class, () -> authService.verifyLoginOtp(new LoginOtpVerifyRequest("challenge-token", "000000")));
+
+        assertNotNull(token.getConsumedAt());
+        verify(authTokenRepository).save(token);
     }
 
     @Test

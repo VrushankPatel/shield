@@ -26,7 +26,8 @@ Phase 1:
 - Amenities: `/amenities/*`
 - Meeting: `/meetings/*`
 - Identity extension:
-  - Auth lifecycle: `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`
+- Auth lifecycle: `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`
+- OTP auth: `/auth/login/otp/send`, `/auth/login/otp/verify`
   - KYC: `/kyc/*`
   - Move records: `/move-records/*`
   - Parking: `/parking-slots/*`
@@ -36,6 +37,7 @@ Phase 2:
 - Announcements: `/announcements/*`
 - Notifications: `/notifications/*`
 - Notification preferences: `/notification-preferences/*`
+- WhatsApp sender placeholder is available in code (`WhatsappNotificationSender`) with a logging dummy implementation.
 - Helpdesk: `/helpdesk-categories/*`, `/helpdesk-tickets/*`
 - Emergency: `/emergency-contacts/*`, `/sos-alerts/*`
 - Documents: `/document-categories/*`, `/documents/*`

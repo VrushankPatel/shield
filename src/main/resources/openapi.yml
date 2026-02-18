@@ -22,6 +22,22 @@ paths:
       responses:
         '200':
           description: Login successful
+  /auth/login/otp/send:
+    post:
+      tags: [Auth]
+      summary: Send OTP for login
+      security: []
+      responses:
+        '200':
+          description: OTP dispatched
+  /auth/login/otp/verify:
+    post:
+      tags: [Auth]
+      summary: Verify OTP and issue tokens
+      security: []
+      responses:
+        '200':
+          description: OTP login successful
   /auth/register:
     post:
       tags: [Auth]
