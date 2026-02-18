@@ -76,7 +76,6 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 ```
 
 ## G. Inputs Still Pending for Future Modules
-- Payments provider production credentials and webhook secret
 - SMS/OTP provider credentials
 - WhatsApp provider credentials
 - External object storage credentials (optional future switch from local disk storage)
@@ -90,13 +89,13 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 - Configure storage root with `SHIELD_FILES_STORAGE_PATH` (default `./storage/files`).
 - No cloud storage API keys are required for the current baseline.
 
-## J. Payment Gateway Scaffold Inputs (Current Baseline)
-- Current payment-gateway integration is scaffolded with a manual simulator flow.
-- Production switch requires provider-specific values:
-- `PAYMENT_PROVIDER_NAME` (example: `RAZORPAY`, `STRIPE`)
-- `PAYMENT_PROVIDER_KEY_ID`
-- `PAYMENT_PROVIDER_KEY_SECRET`
-- `PAYMENT_WEBHOOK_SECRET`
+## J. Payment Gateway Webhook Inputs (Phase-4 Active)
+- Webhook signature verification and callback adapter routing are now active for `/payments/webhook/{provider}`.
+- Configure provider secrets via:
+- `PAYMENT_WEBHOOK_PROVIDER_SECRETS`
+  - Format: `PROVIDER=secret,PROVIDER2=secret2`
+  - Example: `STRIPE=whsec_abc123,RAZORPAY=rzp_webhook_secret`
+- If a provider is missing from this map, signature verification is skipped for that provider.
 - Keep these only in CI/runtime secrets; do not commit.
 
 ## H. Security Notes

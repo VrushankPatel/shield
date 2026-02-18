@@ -13,6 +13,9 @@ import com.shield.module.billing.entity.MaintenanceBillEntity;
 import com.shield.module.billing.entity.PaymentEntity;
 import com.shield.module.billing.entity.PaymentGatewayTransactionEntity;
 import com.shield.module.billing.entity.PaymentGatewayTransactionStatus;
+import com.shield.module.billing.gateway.PaymentGatewayAdapterRegistry;
+import com.shield.module.billing.gateway.PaymentGatewayCallbackAdapter;
+import com.shield.module.billing.gateway.PaymentWebhookSignatureVerifier;
 import com.shield.module.billing.repository.MaintenanceBillRepository;
 import com.shield.module.billing.repository.PaymentGatewayTransactionRepository;
 import com.shield.module.billing.repository.PaymentRepository;
@@ -32,20 +35,27 @@ public class PaymentGatewayService {
 
     private static final String DEFAULT_PROVIDER = "MANUAL_SIMULATOR";
     private static final String DEFAULT_CURRENCY = "INR";
+    private static final String WEBHOOK_SYSTEM_EMAIL = "gateway-webhook@shield.local";
 
     private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
     private final MaintenanceBillRepository maintenanceBillRepository;
     private final PaymentRepository paymentRepository;
+    private final PaymentGatewayAdapterRegistry paymentGatewayAdapterRegistry;
+    private final PaymentWebhookSignatureVerifier paymentWebhookSignatureVerifier;
     private final AuditLogService auditLogService;
 
     public PaymentGatewayService(
             PaymentGatewayTransactionRepository paymentGatewayTransactionRepository,
             MaintenanceBillRepository maintenanceBillRepository,
             PaymentRepository paymentRepository,
+            PaymentGatewayAdapterRegistry paymentGatewayAdapterRegistry,
+            PaymentWebhookSignatureVerifier paymentWebhookSignatureVerifier,
             AuditLogService auditLogService) {
         this.paymentGatewayTransactionRepository = paymentGatewayTransactionRepository;
         this.maintenanceBillRepository = maintenanceBillRepository;
         this.paymentRepository = paymentRepository;
+        this.paymentGatewayAdapterRegistry = paymentGatewayAdapterRegistry;
+        this.paymentWebhookSignatureVerifier = paymentWebhookSignatureVerifier;
         this.auditLogService = auditLogService;
     }
 
@@ -151,7 +161,42 @@ public class PaymentGatewayService {
     }
 
     public PaymentGatewayTransactionResponse callback(PaymentCallbackRequest request, ShieldPrincipal principal) {
+        return callbackInternal(request, principal, null);
+    }
+
+    public PaymentGatewayTransactionResponse callbackWebhook(
+            String provider,
+            PaymentCallbackRequest request,
+            String signatureHeader) {
+        PaymentCallbackRequest effectiveRequest = request;
+        if ((effectiveRequest.signature() == null || effectiveRequest.signature().isBlank())
+                && signatureHeader != null
+                && !signatureHeader.isBlank()) {
+            effectiveRequest = new PaymentCallbackRequest(
+                    request.transactionRef(),
+                    request.gatewayOrderId(),
+                    request.gatewayPaymentId(),
+                    request.status(),
+                    request.payload(),
+                    signatureHeader);
+        }
+        return callbackInternal(effectiveRequest, null, provider);
+    }
+
+    private PaymentGatewayTransactionResponse callbackInternal(
+            PaymentCallbackRequest request,
+            ShieldPrincipal principal,
+            String providerFromPath) {
         PaymentGatewayTransactionEntity transaction = findByTransactionRef(request.transactionRef());
+        if (providerFromPath != null
+                && !providerFromPath.isBlank()
+                && !providerFromPath.trim().equalsIgnoreCase(transaction.getProvider())) {
+            throw new BadRequestException("Provider mismatch for transaction: " + request.transactionRef());
+        }
+
+        ShieldPrincipal actor = principal != null
+                ? principal
+                : new ShieldPrincipal(null, transaction.getTenantId(), WEBHOOK_SYSTEM_EMAIL, "SYSTEM");
 
         if (request.gatewayOrderId() != null && !request.gatewayOrderId().isBlank()) {
             transaction.setGatewayOrderId(request.gatewayOrderId().trim());
@@ -160,9 +205,13 @@ public class PaymentGatewayService {
             transaction.setCallbackPayload(request.payload());
         }
 
+        PaymentGatewayCallbackAdapter adapter = paymentGatewayAdapterRegistry.resolve(transaction.getProvider());
+        String signaturePayload = adapter.buildSignaturePayload(request, transaction);
+        paymentWebhookSignatureVerifier.assertValidSignature(transaction.getProvider(), signaturePayload, request.signature());
+
         paymentGatewayTransactionRepository.save(transaction);
 
-        boolean success = "SUCCESS".equalsIgnoreCase(request.status()) || "PAID".equalsIgnoreCase(request.status());
+        boolean success = adapter.isSuccessStatus(request.status());
         String failureReason = success ? null : "Callback status: " + request.status();
 
         PaymentVerifyRequest verifyRequest = new PaymentVerifyRequest(
@@ -171,7 +220,7 @@ public class PaymentGatewayService {
                 success,
                 failureReason);
 
-        return verify(verifyRequest, principal);
+        return verify(verifyRequest, actor);
     }
 
     @Transactional(readOnly = true)

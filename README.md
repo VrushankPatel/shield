@@ -40,7 +40,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Observability log APIs (`/audit-logs`, `/system-logs`, `/api-request-logs`)
 - Configuration/settings APIs (`/config/*`, `/settings/*`)
 - File management APIs (`/files/*`)
-- Payment gateway scaffolding APIs (`/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/transaction/{transactionRef}`)
+- Payment gateway APIs with webhook signature validation + provider adapters (`/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/webhook/{provider}`, `/payments/transaction/{transactionRef}`)
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
@@ -143,6 +143,7 @@ export SPRING_MAIL_PORT="587"
 export SPRING_MAIL_USERNAME="your@gmail.com"
 export SPRING_MAIL_PASSWORD="your-16-char-app-password"
 export SHIELD_APP_BASE_URL="http://localhost:8080"
+export PAYMENT_WEBHOOK_PROVIDER_SECRETS="STRIPE=whsec_xxx,RAZORPAY=rzp_webhook_secret"
 ```
 Detailed Gmail setup is documented in `docs/developer_request.md`.
 

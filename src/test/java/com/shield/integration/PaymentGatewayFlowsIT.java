@@ -16,9 +16,12 @@ import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 class PaymentGatewayFlowsIT extends IntegrationTestBase {
 
     private static final String PASSWORD = "password123";
+    private static final String STRIPE_WEBHOOK_SECRET = "stripe_test_secret";
 
     @Autowired
     private TenantRepository tenantRepository;
@@ -184,18 +188,20 @@ class PaymentGatewayFlowsIT extends IntegrationTestBase {
                 .extract()
                 .path("data.transactionRef");
 
+        String callbackPayload = "{\"reason\":\"card_declined\"}";
+        String signature = signWebhook(callbackPayload);
+
         given()
                 .contentType("application/json")
-                .header("Authorization", "Bearer " + token)
+                .header("X-SHIELD-SIGNATURE", signature)
                 .body(Map.of(
                         "transactionRef", transactionRef,
                         "gatewayOrderId", "ord_cb_01",
                         "gatewayPaymentId", "pay_cb_01",
                         "status", "FAILED",
-                        "payload", "{\"reason\":\"card_declined\"}",
-                        "signature", "sig-sample"))
+                        "payload", callbackPayload))
                 .when()
-                .post("/payments/callback")
+                .post("/payments/webhook/{provider}", "stripe")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.status", equalTo("FAILED"))
@@ -208,6 +214,21 @@ class PaymentGatewayFlowsIT extends IntegrationTestBase {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.status", equalTo("FAILED"));
+    }
+
+    private String signWebhook(String payload) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(STRIPE_WEBHOOK_SECRET.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] digest = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder(digest.length * 2);
+            for (byte value : digest) {
+                builder.append(String.format("%02x", value));
+            }
+            return builder.toString();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Unable to sign webhook payload", ex);
+        }
     }
 
     private TenantEntity createTenant(String name) {

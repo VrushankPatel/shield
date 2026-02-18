@@ -2,11 +2,16 @@ package com.shield.module.billing.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
+import com.shield.common.exception.BadRequestException;
+import com.shield.module.billing.dto.PaymentCallbackRequest;
 import com.shield.module.billing.dto.PaymentInitiateRequest;
 import com.shield.module.billing.dto.PaymentInitiateResponse;
 import com.shield.module.billing.dto.PaymentVerifyRequest;
@@ -15,6 +20,9 @@ import com.shield.module.billing.entity.MaintenanceBillEntity;
 import com.shield.module.billing.entity.PaymentEntity;
 import com.shield.module.billing.entity.PaymentGatewayTransactionEntity;
 import com.shield.module.billing.entity.PaymentGatewayTransactionStatus;
+import com.shield.module.billing.gateway.PaymentGatewayAdapterRegistry;
+import com.shield.module.billing.gateway.PaymentGatewayCallbackAdapter;
+import com.shield.module.billing.gateway.PaymentWebhookSignatureVerifier;
 import com.shield.module.billing.repository.MaintenanceBillRepository;
 import com.shield.module.billing.repository.PaymentGatewayTransactionRepository;
 import com.shield.module.billing.repository.PaymentRepository;
@@ -43,6 +51,15 @@ class PaymentGatewayServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
+    @Mock
+    private PaymentGatewayAdapterRegistry paymentGatewayAdapterRegistry;
+
+    @Mock
+    private PaymentGatewayCallbackAdapter paymentGatewayCallbackAdapter;
+
+    @Mock
+    private PaymentWebhookSignatureVerifier paymentWebhookSignatureVerifier;
+
     private PaymentGatewayService paymentGatewayService;
 
     @BeforeEach
@@ -51,6 +68,8 @@ class PaymentGatewayServiceTest {
                 paymentGatewayTransactionRepository,
                 maintenanceBillRepository,
                 paymentRepository,
+                paymentGatewayAdapterRegistry,
+                paymentWebhookSignatureVerifier,
                 auditLogService);
     }
 
@@ -152,5 +171,117 @@ class PaymentGatewayServiceTest {
 
         assertEquals(PaymentGatewayTransactionStatus.FAILED, response.status());
         assertEquals("Gateway declined", response.failureReason());
+    }
+
+    @Test
+    void callbackShouldValidateSignatureAndMarkFailed() {
+        UUID tenantId = UUID.randomUUID();
+        String transactionRef = "PGTXN-CALLBACK1";
+
+        PaymentGatewayTransactionEntity transaction = new PaymentGatewayTransactionEntity();
+        transaction.setId(UUID.randomUUID());
+        transaction.setTenantId(tenantId);
+        transaction.setBillId(UUID.randomUUID());
+        transaction.setTransactionRef(transactionRef);
+        transaction.setProvider("STRIPE");
+        transaction.setAmount(BigDecimal.valueOf(1200));
+        transaction.setMode("CARD");
+        transaction.setCurrency("INR");
+        transaction.setStatus(PaymentGatewayTransactionStatus.CREATED);
+
+        when(paymentGatewayTransactionRepository.findByTransactionRefAndDeletedFalse(transactionRef))
+                .thenReturn(Optional.of(transaction));
+        when(paymentGatewayTransactionRepository.save(any(PaymentGatewayTransactionEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentGatewayAdapterRegistry.resolve("STRIPE")).thenReturn(paymentGatewayCallbackAdapter);
+        when(paymentGatewayCallbackAdapter.buildSignaturePayload(any(PaymentCallbackRequest.class), any(PaymentGatewayTransactionEntity.class)))
+                .thenReturn("{\"event\":\"payment_failed\"}");
+        when(paymentGatewayCallbackAdapter.isSuccessStatus("FAILED")).thenReturn(false);
+        when(paymentRepository.findByTransactionRefAndDeletedFalse(transactionRef)).thenReturn(Optional.empty());
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN");
+        var response = paymentGatewayService.callback(
+                new PaymentCallbackRequest(
+                        transactionRef,
+                        "ord_cb_01",
+                        "pay_cb_01",
+                        "FAILED",
+                        "{\"event\":\"payment_failed\"}",
+                        "sig_test"),
+                principal);
+
+        assertEquals(PaymentGatewayTransactionStatus.FAILED, response.status());
+        verify(paymentWebhookSignatureVerifier).assertValidSignature(
+                eq("STRIPE"),
+                eq("{\"event\":\"payment_failed\"}"),
+                eq("sig_test"));
+    }
+
+    @Test
+    void callbackWebhookShouldUseHeaderSignatureWhenBodySignatureMissing() {
+        UUID tenantId = UUID.randomUUID();
+        String transactionRef = "PGTXN-CALLBACK2";
+
+        PaymentGatewayTransactionEntity transaction = new PaymentGatewayTransactionEntity();
+        transaction.setId(UUID.randomUUID());
+        transaction.setTenantId(tenantId);
+        transaction.setBillId(UUID.randomUUID());
+        transaction.setTransactionRef(transactionRef);
+        transaction.setProvider("STRIPE");
+        transaction.setAmount(BigDecimal.valueOf(1200));
+        transaction.setMode("CARD");
+        transaction.setCurrency("INR");
+        transaction.setStatus(PaymentGatewayTransactionStatus.CREATED);
+
+        when(paymentGatewayTransactionRepository.findByTransactionRefAndDeletedFalse(transactionRef))
+                .thenReturn(Optional.of(transaction));
+        when(paymentGatewayTransactionRepository.save(any(PaymentGatewayTransactionEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentGatewayAdapterRegistry.resolve("STRIPE")).thenReturn(paymentGatewayCallbackAdapter);
+        when(paymentGatewayCallbackAdapter.buildSignaturePayload(any(PaymentCallbackRequest.class), any(PaymentGatewayTransactionEntity.class)))
+                .thenReturn("{\"event\":\"payment_failed\"}");
+        when(paymentGatewayCallbackAdapter.isSuccessStatus("FAILED")).thenReturn(false);
+        when(paymentRepository.findByTransactionRefAndDeletedFalse(transactionRef)).thenReturn(Optional.empty());
+
+        var response = paymentGatewayService.callbackWebhook(
+                "stripe",
+                new PaymentCallbackRequest(
+                        transactionRef,
+                        "ord_cb_02",
+                        "pay_cb_02",
+                        "FAILED",
+                        "{\"event\":\"payment_failed\"}",
+                        null),
+                "sig_from_header");
+
+        assertEquals(PaymentGatewayTransactionStatus.FAILED, response.status());
+        verify(paymentWebhookSignatureVerifier).assertValidSignature(
+                eq("STRIPE"),
+                eq("{\"event\":\"payment_failed\"}"),
+                eq("sig_from_header"));
+    }
+
+    @Test
+    void callbackWebhookShouldRejectProviderMismatch() {
+        PaymentGatewayTransactionEntity transaction = new PaymentGatewayTransactionEntity();
+        transaction.setId(UUID.randomUUID());
+        transaction.setTenantId(UUID.randomUUID());
+        transaction.setTransactionRef("PGTXN-MISMATCH");
+        transaction.setProvider("RAZORPAY");
+        transaction.setStatus(PaymentGatewayTransactionStatus.CREATED);
+
+        when(paymentGatewayTransactionRepository.findByTransactionRefAndDeletedFalse("PGTXN-MISMATCH"))
+                .thenReturn(Optional.of(transaction));
+
+        assertThrows(BadRequestException.class, () -> paymentGatewayService.callbackWebhook(
+                "stripe",
+                new PaymentCallbackRequest(
+                        "PGTXN-MISMATCH",
+                        null,
+                        null,
+                        "FAILED",
+                        "{}",
+                        null),
+                "sig"));
     }
 }

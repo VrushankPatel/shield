@@ -22,7 +22,7 @@
 - [x] Payment gateway scaffold module baseline (`/payments/initiate`, `/payments/verify`, `/payments/callback`)
 
 ## Phase-4 Continuation
-- [ ] Production payment provider integration (webhook signature verification + SDK adapter)
+- [x] Production payment provider integration (webhook signature verification + SDK adapter)
 - [ ] OTP/SMS login flow
 - [ ] WhatsApp notification integration
 

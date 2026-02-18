@@ -77,6 +77,9 @@ shield:
       from: ${NOTIFICATION_EMAIL_FROM:no-reply@shield.local}
   files:
     storage-path: ${SHIELD_FILES_STORAGE_PATH:./storage/files}
+  payment:
+    webhook:
+      provider-secrets: ${PAYMENT_WEBHOOK_PROVIDER_SECRETS:}
 
 logging:
   pattern:

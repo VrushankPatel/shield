@@ -36,6 +36,9 @@ Email notifications (phase-2 optional):
 - `SPRING_MAIL_USERNAME`
 - `SPRING_MAIL_PASSWORD`
 
+Payment webhooks (phase-4 optional but recommended for production):
+- `PAYMENT_WEBHOOK_PROVIDER_SECRETS` (example: `STRIPE=whsec_abc,RAZORPAY=rzp_secret`)
+
 For bootstrap and full integration input list, see `docs/developer_request.md`.
 
 ## 5. CI/CD Pipeline

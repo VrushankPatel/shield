@@ -51,7 +51,7 @@ Phase 2:
 - API request logs: `/api-request-logs/*`
 - Configuration: `/config/*`, `/settings/*`
 - File management: `/files/*`
-- Payment gateway scaffold: `/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/transaction/{transactionRef}`
+- Payment gateway lifecycle: `/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/webhook/{provider}`, `/payments/transaction/{transactionRef}`
 - Expanded operations:
   - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`

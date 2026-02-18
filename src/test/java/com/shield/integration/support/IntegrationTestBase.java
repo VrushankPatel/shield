@@ -40,6 +40,7 @@ public abstract class IntegrationTestBase {
         registry.add("shield.auth.login-rate-limit.requests", () -> 1000);
         registry.add("shield.auth.login-rate-limit.window-seconds", () -> 1);
         registry.add("shield.files.storage-path", () -> System.getProperty("java.io.tmpdir") + "/shield-it-files");
+        registry.add("shield.payment.webhook.provider-secrets", () -> "STRIPE=stripe_test_secret");
     }
 
     @BeforeEach
