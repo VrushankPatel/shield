@@ -43,6 +43,8 @@ Phase 2:
 - Audit logs: `/audit-logs/*`
 - System logs: `/system-logs/*`
 - API request logs: `/api-request-logs/*`
+- Configuration: `/config/*`, `/settings/*`
+- File management: `/files/*`
 
 ## Common Error Envelope
 ```json

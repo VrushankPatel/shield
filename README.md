@@ -28,18 +28,21 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Marketplace module (`/marketplace-categories`, `/marketplace-listings`, `/marketplace-inquiries`)
 - Analytics module (`/report-templates`, `/scheduled-reports`, `/analytics-dashboards`, `/analytics/*`)
 - Observability log APIs (`/audit-logs`, `/system-logs`, `/api-request-logs`)
+- Configuration/settings APIs (`/config/*`, `/settings/*`)
+- File management APIs (`/files/*`)
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
   - `db/model/phase4_schema.json` -> `V5__phase3_analytics_generated.sql`
   - `db/model/phase5_schema.json` -> `V6__phase4_log_observability_generated.sql`
+  - `db/model/phase6_schema.json` -> `V7__phase5_config_files_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V6`)
+- Flyway migrations (`V1` to `V7`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -84,7 +87,9 @@ Cross-cutting:
 │   │   ├── payroll/
 │   │   ├── utility/
 │   │   ├── marketplace/
-│   │   └── analytics/
+│   │   ├── analytics/
+│   │   ├── config/
+│   │   └── file/
 │   └── audit/
 ├── src/main/resources/
 │   ├── db/migration/
@@ -183,6 +188,7 @@ Required secrets for publish job:
 - `docs/generated/phase3_schema_generated.md`
 - `docs/generated/phase4_schema_generated.md`
 - `docs/generated/phase5_schema_generated.md`
+- `docs/generated/phase6_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

@@ -39,6 +39,7 @@ public abstract class IntegrationTestBase {
         registry.add("shield.security.jwt.secret", () -> "integration-test-secret-key-minimum-32-bytes");
         registry.add("shield.auth.login-rate-limit.requests", () -> 1000);
         registry.add("shield.auth.login-rate-limit.window-seconds", () -> 1);
+        registry.add("shield.files.storage-path", () -> System.getProperty("java.io.tmpdir") + "/shield-it-files");
     }
 
     @BeforeEach
