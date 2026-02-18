@@ -221,4 +221,5 @@ Required secrets:
 - `docs/test-strategy.md`
 - `docs/development-rules.md`
 - `docs/developer_request.md`
+- `docs/milestones.md`
 - `docs/todo.md`

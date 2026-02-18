@@ -1,5 +1,8 @@
 # TODO
 
+Primary milestone tracker:
+- `docs/milestones.md`
+
 ## Pending Integrations
 - [ ] Configure Gmail SMTP app password and set runtime secrets.
   - Status: On hold by request.
