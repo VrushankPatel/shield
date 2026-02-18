@@ -3,6 +3,7 @@ package com.shield.module.notification.service;
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.notification.dto.NotificationBulkSendRequest;
 import com.shield.module.notification.dto.NotificationDispatchResponse;
 import com.shield.module.notification.dto.NotificationLogResponse;
 import com.shield.module.notification.dto.NotificationPreferenceResponse;
@@ -18,7 +19,6 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.model.ShieldPrincipal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +60,7 @@ public class NotificationService {
     public NotificationDispatchResponse sendManual(NotificationSendRequest request, ShieldPrincipal principal) {
         List<DispatchTarget> targets = request.recipients().stream()
                 .distinct()
-                .map(email -> new DispatchTarget(null, email))
+                .map(email -> resolveDispatchTarget(principal.tenantId(), email))
                 .toList();
 
         NotificationDispatchResponse response = dispatch(
@@ -112,14 +112,19 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public PagedResponse<NotificationLogResponse> list(Pageable pageable) {
-        return PagedResponse.from(notificationEmailLogRepository.findAllByDeletedFalse(pageable).map(this::toLogResponse));
+    public PagedResponse<NotificationLogResponse> list(Pageable pageable, ShieldPrincipal principal) {
+        if (isPrivileged(principal)) {
+            return PagedResponse
+                    .from(notificationEmailLogRepository.findAllByDeletedFalse(pageable).map(this::toLogResponse));
+        }
+        return PagedResponse.from(
+                notificationEmailLogRepository.findAllByUserIdAndDeletedFalse(principal.userId(), pageable)
+                        .map(this::toLogResponse));
     }
 
     @Transactional(readOnly = true)
-    public NotificationLogResponse getById(UUID id) {
-        NotificationEmailLogEntity entity = notificationEmailLogRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Notification log not found: " + id));
+    public NotificationLogResponse getById(UUID id, ShieldPrincipal principal) {
+        NotificationEmailLogEntity entity = findAccessibleNotification(id, principal);
         return toLogResponse(entity);
     }
 
@@ -264,5 +269,63 @@ public class NotificationService {
     }
 
     private record DispatchTarget(UUID userId, String email) {
+    }
+
+    private DispatchTarget resolveDispatchTarget(UUID tenantId, String recipientEmail) {
+        return userRepository.findByTenantIdAndEmailIgnoreCaseAndDeletedFalse(tenantId, recipientEmail)
+                .map(user -> new DispatchTarget(user.getId(), user.getEmail()))
+                .orElse(new DispatchTarget(null, recipientEmail));
+    }
+
+    private boolean isPrivileged(ShieldPrincipal principal) {
+        return "ADMIN".equals(principal.role()) || "COMMITTEE".equals(principal.role());
+    }
+
+    private NotificationEmailLogEntity findAccessibleNotification(UUID notificationId, ShieldPrincipal principal) {
+        if (isPrivileged(principal)) {
+            return notificationEmailLogRepository.findByIdAndDeletedFalse(notificationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
+        }
+        return notificationEmailLogRepository.findByIdAndUserIdAndDeletedFalse(notificationId, principal.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
+    }
+
+    public void sendBulk(NotificationBulkSendRequest request, ShieldPrincipal principal) {
+        request.notifications().forEach(req -> sendManual(req, principal));
+    }
+
+    public void markRead(UUID notificationId, ShieldPrincipal principal) {
+        NotificationEmailLogEntity entity = findAccessibleNotification(notificationId, principal);
+
+        if (entity.getReadAt() == null) {
+            entity.setReadAt(Instant.now());
+            notificationEmailLogRepository.save(entity);
+        }
+    }
+
+    public void markAllRead(ShieldPrincipal principal) {
+        List<NotificationEmailLogEntity> unread = notificationEmailLogRepository
+                .findAllByUserIdAndDeletedFalse(principal.userId())
+                .stream()
+                .filter(n -> n.getReadAt() == null)
+                .toList();
+
+        Instant now = Instant.now();
+        unread.forEach(n -> n.setReadAt(now));
+        notificationEmailLogRepository.saveAll(unread);
+    }
+
+    public long getUnreadCount(ShieldPrincipal principal) {
+        if (isPrivileged(principal)) {
+            return 0L;
+        }
+        return notificationEmailLogRepository.countByUserIdAndReadAtIsNullAndDeletedFalse(principal.userId());
+    }
+
+    public void delete(UUID notificationId, ShieldPrincipal principal) {
+        NotificationEmailLogEntity entity = findAccessibleNotification(notificationId, principal);
+
+        entity.setDeleted(true);
+        notificationEmailLogRepository.save(entity);
     }
 }

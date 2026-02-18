@@ -36,11 +36,13 @@ Phase 1:
   - Parking: `/parking-slots/*`
   - Digital IDs: `/digital-id-cards/*`
 
-Phase 2:
-- Announcements: `/announcements/*`
-- Notifications: `/notifications/*`
-- Notification preferences: `/notification-preferences/*`
-- WhatsApp sender placeholder is available in code (`WhatsappNotificationSender`) with a logging dummy implementation.
+- Phase 2:
+  - Announcements: `/announcements/*` (with attachments `/announcements/{id}/attachments`)
+  - Polls: `/polls/*`, `/polls/{id}/vote`, `/polls/{id}/results`
+  - Newsletters: `/newsletters/*`, `/newsletters/year/{year}`, `/newsletters/{id}/publish`
+  - Notifications: `/notifications/*` (send, bulk-send, mark-read/all, unread-count, delete)
+  - Notification preferences: `/notification-preferences/*`
+  - WhatsApp sender placeholder is available in code (`WhatsappNotificationSender`) with a logging dummy implementation.
 - Helpdesk: `/helpdesk-categories/*`, `/helpdesk-tickets/*`
 - Emergency: `/emergency-contacts/*`, `/sos-alerts/*`
 - Documents: `/document-categories/*`, `/documents/*`

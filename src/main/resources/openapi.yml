@@ -954,6 +954,191 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Announcement published}
+  /announcements/{id}/attachments:
+    get:
+      tags: [Announcements]
+      summary: List announcement attachments
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Announcement attachments fetched}
+    post:
+      tags: [Announcements]
+      summary: Add announcement attachment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Announcement attachment added}
+  /announcements/attachments/{attachmentId}:
+    delete:
+      tags: [Announcements]
+      summary: Delete announcement attachment
+      parameters:
+        - in: path
+          name: attachmentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Announcement attachment deleted}
+
+  /polls:
+    get:
+      tags: [Polls]
+      summary: List polls
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Polls fetched}
+    post:
+      tags: [Polls]
+      summary: Create poll
+      responses:
+        '200': {description: Poll created}
+  /polls/active:
+    get:
+      tags: [Polls]
+      summary: List active polls
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Active polls fetched}
+  /polls/{id}:
+    get:
+      tags: [Polls]
+      summary: Get poll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll fetched}
+    put:
+      tags: [Polls]
+      summary: Update poll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll updated}
+    delete:
+      tags: [Polls]
+      summary: Delete poll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll deleted}
+  /polls/{id}/activate:
+    post:
+      tags: [Polls]
+      summary: Activate poll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll activated}
+  /polls/{id}/deactivate:
+    post:
+      tags: [Polls]
+      summary: Deactivate poll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll deactivated}
+  /polls/{id}/vote:
+    post:
+      tags: [Polls]
+      summary: Vote in poll
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vote recorded}
+  /polls/{id}/results:
+    get:
+      tags: [Polls]
+      summary: Get poll results
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll results fetched}
+  /polls/{id}/my-vote:
+    get:
+      tags: [Polls]
+      summary: Get my poll vote
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Poll vote fetched}
+
+  /newsletters:
+    get:
+      tags: [Newsletters]
+      summary: List newsletters
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Newsletters fetched}
+    post:
+      tags: [Newsletters]
+      summary: Create newsletter
+      responses:
+        '200': {description: Newsletter created}
+  /newsletters/{id}:
+    get:
+      tags: [Newsletters]
+      summary: Get newsletter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Newsletter fetched}
+    put:
+      tags: [Newsletters]
+      summary: Update newsletter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Newsletter updated}
+    delete:
+      tags: [Newsletters]
+      summary: Delete newsletter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Newsletter deleted}
+  /newsletters/{id}/publish:
+    post:
+      tags: [Newsletters]
+      summary: Publish newsletter
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Newsletter published}
+  /newsletters/year/{year}:
+    get:
+      tags: [Newsletters]
+      summary: List newsletters by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Newsletters by year fetched}
+  /newsletters/{id}/download:
+    get:
+      tags: [Newsletters]
+      summary: Get newsletter download info
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Newsletter download info fetched}
 
   /notifications:
     get:
@@ -973,13 +1158,45 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Notification log fetched}
+    delete:
+      tags: [Notifications]
+      summary: Delete notification
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Notification deleted}
   /notifications/send:
     post:
       tags: [Notifications]
       summary: Send manual email notification
       responses:
         '200': {description: Notification dispatch completed}
-
+  /notifications/send-bulk:
+    post:
+      tags: [Notifications]
+      summary: Send bulk notifications
+      responses:
+        '200': {description: Bulk notifications sent}
+  /notifications/{id}/mark-read:
+    post:
+      tags: [Notifications]
+      summary: Mark notification as read
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Notification marked as read}
+  /notifications/mark-all-read:
+    post:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      responses:
+        '200': {description: All notifications marked as read}
+  /notifications/unread-count:
+    get:
+      tags: [Notifications]
+      summary: Get unread notification count
+      responses:
+        '200': {description: Unread count fetched}
   /notification-preferences:
     get:
       tags: [Notifications]

@@ -9,10 +9,10 @@ Primary milestone tracker:
   - Reference: `docs/developer_request.md` (section `Detailed Steps: Generate Gmail App Password`).
 
 ## Phase-2 Continuation
-- [x] Announcements and notification email dispatch
-- [x] Helpdesk module baseline
-- [x] Emergency module baseline
-- [x] Document repository baseline
+- [x] **M2**: Announcement attachments (Phase 2)
+- [x] **M2**: Polls module (Phase 2)
+- [x] **M2**: Newsletters module (Phase 2)
+- [x] **M2**: Complete Notification API (read tracking, bulk send)
 - [x] Staff & Payroll module
 - [x] Utility monitoring module
 - [x] Marketplace module
