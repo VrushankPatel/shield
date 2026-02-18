@@ -21,18 +21,10 @@ Set only during first startup to create initial tenant + admin:
 After first successful bootstrap:
 - `BOOTSTRAP_ENABLED=false`
 
-## C. GitHub Actions -> GitLab Artifactory Publish Inputs
-Add these as GitHub repository secrets:
-- `GITLAB_MAVEN_REPOSITORY_URL`
-- `GITLAB_MAVEN_USERNAME`
-- `GITLAB_MAVEN_TOKEN`
-
-Set with GitHub CLI:
-```bash
-gh secret set GITLAB_MAVEN_REPOSITORY_URL --repo VrushankPatel/shield
-gh secret set GITLAB_MAVEN_USERNAME --repo VrushankPatel/shield
-gh secret set GITLAB_MAVEN_TOKEN --repo VrushankPatel/shield
-```
+## C. GitHub Actions -> GHCR Publish Inputs
+- No extra secrets are required for baseline GHCR publish.
+- Workflow uses GitHub Actions `GITHUB_TOKEN` with `packages:write` permission.
+- Published image repository: `ghcr.io/<github-owner>/shield`
 
 ## C2. Coverage / Quality CI Inputs
 - `CODECOV_TOKEN` (required for Codecov upload in CI)

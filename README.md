@@ -180,12 +180,14 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 1. Maven build + tests + coverage report
 2. Coverage upload to Codecov (when `CODECOV_TOKEN` is configured)
 3. Docker image build
-4. Maven artifact publish to GitLab Artifactory (when secrets are configured)
+4. GHCR image publish on `main` pushes
 
-Required secrets for publish job:
-- `GITLAB_MAVEN_REPOSITORY_URL`
-- `GITLAB_MAVEN_USERNAME`
-- `GITLAB_MAVEN_TOKEN`
+Published image tags:
+- `ghcr.io/<github-owner>/shield:<project.version>`
+- `ghcr.io/<github-owner>/shield:<git-sha>`
+- `ghcr.io/<github-owner>/shield:latest`
+
+Required secrets:
 - `CODECOV_TOKEN` (for coverage upload)
 
 ## Documentation

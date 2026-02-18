@@ -5,7 +5,7 @@
 mvn clean package
 ```
 Output:
-- `target/society-management-api-1.0.0.jar`
+- `target/shield-1.0.0.jar`
 
 ## 2. Docker Image
 ```bash
@@ -43,12 +43,12 @@ GitHub Actions workflow in `.github/workflows/ci.yml`:
 - Build + tests (unit + integration)
 - Coverage artifact upload
 - Docker image build
-- Maven deploy to GitLab Artifactory (if secrets set)
+- Docker image publish to GitHub Container Registry (GHCR) on `main` pushes
 
-## 6. Artifact Publishing to GitLab Artifactory
-Configure repository secrets:
-- `GITLAB_MAVEN_REPOSITORY_URL`
-- `GITLAB_MAVEN_USERNAME`
-- `GITLAB_MAVEN_TOKEN`
+## 6. GHCR Image Publishing
+The pipeline publishes:
+- `ghcr.io/<github-owner>/shield:<project.version>`
+- `ghcr.io/<github-owner>/shield:<git-sha>`
+- `ghcr.io/<github-owner>/shield:latest`
 
-Pipeline deploys with Maven `deploy` to server id `gitlab-maven`.
+Authentication uses GitHub Actions `GITHUB_TOKEN` with `packages:write` permission.
