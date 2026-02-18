@@ -28,6 +28,9 @@ Phase 1:
 - Identity extension:
 - Auth lifecycle: `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`, `/auth/verify-email/{token}`
 - OTP auth: `/auth/login/otp/send`, `/auth/login/otp/verify`
+  - Role/permission management: `/roles/*`, `/permissions`, `/users/{id}/roles/*`, `/users/{id}/permissions`
+  - User filters and bulk operations: `/users/unit/{unitId}`, `/users/role/{role}`, `/users/bulk-import`, `/users/export`
+  - Unit extended queries: `/units/block/{block}`, `/units/available`, `/units/{id}/members`, `/units/{id}/history`
   - KYC: `/kyc/*`
   - Move records: `/move-records/*`
   - Parking: `/parking-slots/*`

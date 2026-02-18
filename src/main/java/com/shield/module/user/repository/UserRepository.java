@@ -1,6 +1,7 @@
 package com.shield.module.user.repository;
 
 import com.shield.module.user.entity.UserEntity;
+import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,12 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     Page<UserEntity> findAllByDeletedFalse(Pageable pageable);
 
     boolean existsByTenantIdAndEmailIgnoreCaseAndDeletedFalse(UUID tenantId, String email);
+
+    Page<UserEntity> findAllByUnitIdAndDeletedFalse(UUID unitId, Pageable pageable);
+
+    Page<UserEntity> findAllByRoleAndDeletedFalse(UserRole role, Pageable pageable);
+
+    List<UserEntity> findAllByDeletedFalseOrderByCreatedAtDesc();
 
     List<UserEntity> findAllByTenantIdAndStatusAndDeletedFalse(UUID tenantId, UserStatus status);
 }

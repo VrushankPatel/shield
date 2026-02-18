@@ -2,6 +2,8 @@ package com.shield.integration;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 
@@ -54,13 +56,14 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
     @Test
     void identityLifecycleShouldSupportRegistrationVerificationAndResidentOperations() {
         TenantEntity tenantOne = createTenant("Identity Society One");
-        UnitEntity unitOne = createUnit(tenantOne.getId(), "A-101");
+        UnitEntity unitOne = createUnit(tenantOne.getId(), "A-101", UnitStatus.ACTIVE);
+        UnitEntity vacantUnit = createUnit(tenantOne.getId(), "A-102", UnitStatus.VACANT);
 
         UserEntity admin = createUser(tenantOne.getId(), unitOne.getId(), "Admin One", "admin.identity@shield.dev", UserRole.ADMIN, ADMIN_PASSWORD);
         UserEntity security = createUser(tenantOne.getId(), unitOne.getId(), "Security One", "security.identity@shield.dev", UserRole.SECURITY, ADMIN_PASSWORD);
 
         TenantEntity tenantTwo = createTenant("Identity Society Two");
-        UnitEntity unitTwo = createUnit(tenantTwo.getId(), "B-201");
+        UnitEntity unitTwo = createUnit(tenantTwo.getId(), "B-201", UnitStatus.ACTIVE);
         UserEntity outsider = createUser(tenantTwo.getId(), unitTwo.getId(), "Outsider", "outsider.identity@shield.dev", UserRole.TENANT, ADMIN_PASSWORD);
 
         String adminToken = login(admin.getEmail(), ADMIN_PASSWORD);
@@ -204,6 +207,116 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
 
         residentToken = login(residentEmail, "Resident#789");
 
+        String permissionId = given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/permissions")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", greaterThanOrEqualTo(1))
+                .extract()
+                .path("data.content[0].id");
+
+        String customRoleId = given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of(
+                        "code", "HELPDESK_AGENT",
+                        "name", "Helpdesk Agent",
+                        "description", "Handles resident escalations",
+                        "systemRole", false))
+                .when()
+                .post("/roles")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.code", equalTo("HELPDESK_AGENT"))
+                .extract()
+                .path("data.id");
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of("permissionIds", List.of(UUID.fromString(permissionId))))
+                .when()
+                .post("/roles/{id}/permissions", customRoleId)
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of("roleId", UUID.fromString(customRoleId)))
+                .when()
+                .post("/users/{id}/roles", residentUuid)
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/users/{id}/permissions", residentUuid)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.roles", hasItem("TENANT"))
+                .body("data.roles", hasItem("HELPDESK_AGENT"));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/users/unit/{unitId}", unitOne.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", greaterThanOrEqualTo(3));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/users/role/{role}", "TENANT")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.email", hasItem(residentEmail));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/users/export")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of(
+                        "users", List.of(
+                                Map.of(
+                                        "unitId", unitOne.getId(),
+                                        "name", "Imported Resident",
+                                        "email", "imported.identity@shield.dev",
+                                        "phone", "9999999997",
+                                        "password", "Imported#123",
+                                        "role", "TENANT"))))
+                .when()
+                .post("/users/bulk-import")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.createdCount", equalTo(1));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/units/block/{block}", "A")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", greaterThanOrEqualTo(2));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/units/available")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.unitNumber", hasItem(vacantUnit.getUnitNumber()));
+
         String kycId = given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + residentToken)
@@ -258,6 +371,22 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.status", equalTo("APPROVED"))
                 .body("data.approvedBy", equalTo(admin.getId().toString()));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/units/{id}/members", unitOne.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.email", hasItem(residentEmail));
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .get("/units/{id}/history", unitOne.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", greaterThanOrEqualTo(1));
 
         String parkingSlotId = given()
                 .contentType("application/json")
@@ -338,7 +467,28 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.valid", equalTo(false));
 
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .delete("/users/{id}/roles/{roleId}", residentUuid, customRoleId)
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when()
+                .delete("/roles/{id}", customRoleId)
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
         String outsiderToken = login(outsider.getEmail(), ADMIN_PASSWORD);
+
+        given()
+                .header("Authorization", "Bearer " + outsiderToken)
+                .when()
+                .get("/users/{id}/permissions", residentUuid)
+                .then()
+                .statusCode(HttpStatus.FORBIDDEN.value());
 
         given()
                 .header("Authorization", "Bearer " + outsiderToken)
@@ -355,14 +505,14 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
         return tenantRepository.save(entity);
     }
 
-    private UnitEntity createUnit(UUID tenantId, String unitNumber) {
+    private UnitEntity createUnit(UUID tenantId, String unitNumber, UnitStatus status) {
         UnitEntity unit = new UnitEntity();
         unit.setTenantId(tenantId);
         unit.setUnitNumber(unitNumber);
         unit.setBlock("A");
         unit.setType("FLAT");
         unit.setSquareFeet(BigDecimal.valueOf(1000));
-        unit.setStatus(UnitStatus.ACTIVE);
+        unit.setStatus(status);
         return unitRepository.save(unit);
     }
 

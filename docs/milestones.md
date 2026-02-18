@@ -17,7 +17,7 @@ This tracker is the single source of truth for implementation progress against t
 ## Milestone Plan
 
 ### M1. Identity & Access Completion
-Status: `IN_PROGRESS`
+Status: `COMPLETED`
 
 Deliverables:
 - Complete IAM endpoint parity:

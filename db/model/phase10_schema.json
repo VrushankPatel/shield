@@ -1,0 +1,60 @@
+{
+  "version": "phase10-v1",
+  "tables": [
+    {
+      "name": "app_role",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "code", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "system_role", "type": "BOOLEAN", "nullable": false, "default": "FALSE"}
+      ],
+      "indexes": [
+        {"name": "idx_app_role_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_app_role_code", "columns": ["tenant_id", "code"]}
+      ]
+    },
+    {
+      "name": "permission",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "code", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "module_name", "type": "VARCHAR(60)", "nullable": true},
+        {"name": "description", "type": "VARCHAR(500)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_permission_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_permission_code", "columns": ["tenant_id", "code"]}
+      ]
+    },
+    {
+      "name": "role_permission",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "role_id", "type": "UUID", "nullable": false, "references": "app_role(id)"},
+        {"name": "permission_id", "type": "UUID", "nullable": false, "references": "permission(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_role_permission_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_role_permission_role", "columns": ["tenant_id", "role_id"]},
+        {"name": "idx_role_permission_permission", "columns": ["tenant_id", "permission_id"]}
+      ]
+    },
+    {
+      "name": "user_additional_role",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "role_id", "type": "UUID", "nullable": false, "references": "app_role(id)"},
+        {"name": "granted_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "granted_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"}
+      ],
+      "indexes": [
+        {"name": "idx_user_additional_role_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_user_additional_role_user", "columns": ["tenant_id", "user_id"]},
+        {"name": "idx_user_additional_role_role", "columns": ["tenant_id", "role_id"]}
+      ]
+    }
+  ]
+}

@@ -432,6 +432,53 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Unit deleted}
+  /units/block/{block}:
+    get:
+      tags: [Unit]
+      summary: List units by block
+      parameters:
+        - in: path
+          name: block
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Units by block fetched}
+  /units/available:
+    get:
+      tags: [Unit]
+      summary: List available units
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Available units fetched}
+  /units/{id}/members:
+    get:
+      tags: [Unit]
+      summary: List members in a unit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Unit members fetched}
+  /units/{id}/history:
+    get:
+      tags: [Unit]
+      summary: List unit move history
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Unit history fetched}
 
   /users:
     post:
@@ -470,6 +517,150 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: User deleted}
+  /users/unit/{unitId}:
+    get:
+      tags: [User]
+      summary: List users by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Users by unit fetched}
+  /users/role/{role}:
+    get:
+      tags: [User]
+      summary: List users by role
+      parameters:
+        - in: path
+          name: role
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Users by role fetched}
+  /users/{id}/roles:
+    post:
+      tags: [User]
+      summary: Assign additional role to user
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: User role assigned}
+  /users/{id}/roles/{roleId}:
+    delete:
+      tags: [User]
+      summary: Remove additional role from user
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - in: path
+          name: roleId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: User role removed}
+  /users/{id}/permissions:
+    get:
+      tags: [User]
+      summary: Get user effective permissions
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: User permissions fetched}
+  /users/bulk-import:
+    post:
+      tags: [User]
+      summary: Bulk import users
+      responses:
+        '200': {description: Users bulk import processed}
+  /users/export:
+    get:
+      tags: [User]
+      summary: Export users as CSV
+      responses:
+        '200': {description: Users exported}
+
+  /roles:
+    get:
+      tags: [Role]
+      summary: List roles
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Roles fetched}
+    post:
+      tags: [Role]
+      summary: Create role
+      responses:
+        '200': {description: Role created}
+  /roles/{id}:
+    get:
+      tags: [Role]
+      summary: Get role by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Role fetched}
+    put:
+      tags: [Role]
+      summary: Update role
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Role updated}
+    delete:
+      tags: [Role]
+      summary: Delete role
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Role deleted}
+  /roles/{id}/permissions:
+    post:
+      tags: [Role]
+      summary: Assign permissions to role
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Role permissions assigned}
+  /roles/{id}/permissions/{permissionId}:
+    delete:
+      tags: [Role]
+      summary: Remove permission from role
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - in: path
+          name: permissionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Role permission removed}
+
+  /permissions:
+    get:
+      tags: [Role]
+      summary: List permissions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Permissions fetched}
 
   /billing/generate:
     post:

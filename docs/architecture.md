@@ -63,4 +63,4 @@ Cross-cutting modules:
 - Optimistic locking via `version` column
 - Audit log for critical operations
 - Pagination/sorting on list endpoints
-- Database schema source models under `db/model/phase2_schema.json`, `db/model/phase3_schema.json`, `db/model/phase4_schema.json`, `db/model/phase5_schema.json`, `db/model/phase6_schema.json`, `db/model/phase7_schema.json`
+- Database schema source models under `db/model/phase2_schema.json`, `db/model/phase3_schema.json`, `db/model/phase4_schema.json`, `db/model/phase5_schema.json`, `db/model/phase6_schema.json`, `db/model/phase7_schema.json`, `db/model/phase8_schema.json`, `db/model/phase10_schema.json`

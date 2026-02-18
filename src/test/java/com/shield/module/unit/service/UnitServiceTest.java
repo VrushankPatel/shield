@@ -10,6 +10,10 @@ import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.move.entity.MoveRecordEntity;
+import com.shield.module.move.entity.MoveStatus;
+import com.shield.module.move.entity.MoveType;
+import com.shield.module.move.repository.MoveRecordRepository;
 import com.shield.module.unit.dto.UnitCreateRequest;
 import com.shield.module.unit.dto.UnitResponse;
 import com.shield.module.unit.dto.UnitUpdateRequest;
@@ -17,9 +21,15 @@ import com.shield.module.unit.entity.UnitEntity;
 import com.shield.module.unit.entity.UnitStatus;
 import com.shield.module.unit.mapper.UnitMapper;
 import com.shield.module.unit.repository.UnitRepository;
+import com.shield.module.user.dto.UserResponse;
+import com.shield.module.user.entity.UserRole;
+import com.shield.module.user.entity.UserStatus;
+import com.shield.module.user.mapper.UserMapper;
+import com.shield.module.user.repository.UserRepository;
 import com.shield.tenant.context.TenantContext;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,13 +52,22 @@ class UnitServiceTest {
     private UnitMapper unitMapper;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private UserMapper userMapper;
+
+    @Mock
+    private MoveRecordRepository moveRecordRepository;
+
+    @Mock
     private AuditLogService auditLogService;
 
     private UnitService unitService;
 
     @BeforeEach
     void setUp() {
-        unitService = new UnitService(unitRepository, unitMapper, auditLogService);
+        unitService = new UnitService(unitRepository, unitMapper, userRepository, userMapper, moveRecordRepository, auditLogService);
     }
 
     @AfterEach
@@ -124,6 +143,52 @@ class UnitServiceTest {
                 Instant.now()));
 
         assertEquals(1, unitService.list(Pageable.ofSize(10)).content().size());
+    }
+
+    @Test
+    void listByBlockShouldReturnMappedPage() {
+        UnitEntity unit = new UnitEntity();
+        unit.setId(UUID.randomUUID());
+        unit.setTenantId(UUID.randomUUID());
+        unit.setBlock("C");
+
+        when(unitRepository.findAllByBlockIgnoreCaseAndDeletedFalse(eq("C"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(unit)));
+        when(unitMapper.toResponse(unit)).thenReturn(new UnitResponse(
+                unit.getId(),
+                unit.getTenantId(),
+                "C-301",
+                "C",
+                "VILLA",
+                BigDecimal.valueOf(1600),
+                UnitStatus.ACTIVE,
+                Instant.now(),
+                Instant.now()));
+
+        assertEquals(1, unitService.listByBlock("C", Pageable.ofSize(5)).content().size());
+    }
+
+    @Test
+    void listAvailableShouldReturnVacantUnits() {
+        UnitEntity unit = new UnitEntity();
+        unit.setId(UUID.randomUUID());
+        unit.setTenantId(UUID.randomUUID());
+        unit.setStatus(UnitStatus.VACANT);
+
+        when(unitRepository.findAllByStatusAndDeletedFalse(eq(UnitStatus.VACANT), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(unit)));
+        when(unitMapper.toResponse(unit)).thenReturn(new UnitResponse(
+                unit.getId(),
+                unit.getTenantId(),
+                "D-401",
+                "D",
+                "FLAT",
+                BigDecimal.valueOf(1200),
+                UnitStatus.VACANT,
+                Instant.now(),
+                Instant.now()));
+
+        assertEquals(1, unitService.listAvailable(Pageable.ofSize(5)).content().size());
     }
 
     @Test
@@ -204,5 +269,80 @@ class UnitServiceTest {
         unitService.delete(unitId);
 
         assertTrue(unit.isDeleted());
+    }
+
+    @Test
+    void listMembersShouldReturnUsersForUnit() {
+        UUID unitId = UUID.randomUUID();
+        UnitEntity unit = new UnitEntity();
+        unit.setId(unitId);
+
+        UserEntityStub user = new UserEntityStub(UUID.randomUUID(), UUID.randomUUID(), unitId, "Member");
+
+        when(unitRepository.findByIdAndDeletedFalse(unitId)).thenReturn(Optional.of(unit));
+        when(userRepository.findAllByUnitIdAndDeletedFalse(eq(unitId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user.toUserEntity())));
+        when(userMapper.toResponse(any())).thenReturn(new UserResponse(
+                user.id,
+                user.tenantId,
+                unitId,
+                user.name,
+                "member@shield.dev",
+                "9999999999",
+                UserRole.TENANT,
+                UserStatus.ACTIVE,
+                Instant.now(),
+                Instant.now()));
+
+        assertEquals(1, unitService.listMembers(unitId, Pageable.ofSize(10)).content().size());
+    }
+
+    @Test
+    void listHistoryShouldReturnMoveRecords() {
+        UUID unitId = UUID.randomUUID();
+        UnitEntity unit = new UnitEntity();
+        unit.setId(unitId);
+
+        MoveRecordEntity moveRecord = new MoveRecordEntity();
+        moveRecord.setId(UUID.randomUUID());
+        moveRecord.setTenantId(UUID.randomUUID());
+        moveRecord.setUnitId(unitId);
+        moveRecord.setUserId(UUID.randomUUID());
+        moveRecord.setMoveType(MoveType.MOVE_IN);
+        moveRecord.setStatus(MoveStatus.APPROVED);
+        moveRecord.setEffectiveDate(LocalDate.now());
+        moveRecord.setApprovalDate(LocalDate.now());
+        moveRecord.setDecisionNotes("Approved");
+
+        when(unitRepository.findByIdAndDeletedFalse(unitId)).thenReturn(Optional.of(unit));
+        when(moveRecordRepository.findAllByUnitIdAndDeletedFalse(eq(unitId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(moveRecord)));
+
+        assertEquals(1, unitService.listHistory(unitId, Pageable.ofSize(10)).content().size());
+    }
+
+    private static final class UserEntityStub {
+        private final UUID id;
+        private final UUID tenantId;
+        private final UUID unitId;
+        private final String name;
+
+        private UserEntityStub(UUID id, UUID tenantId, UUID unitId, String name) {
+            this.id = id;
+            this.tenantId = tenantId;
+            this.unitId = unitId;
+            this.name = name;
+        }
+
+        private com.shield.module.user.entity.UserEntity toUserEntity() {
+            com.shield.module.user.entity.UserEntity entity = new com.shield.module.user.entity.UserEntity();
+            entity.setId(id);
+            entity.setTenantId(tenantId);
+            entity.setUnitId(unitId);
+            entity.setName(name);
+            entity.setRole(UserRole.TENANT);
+            entity.setStatus(UserStatus.ACTIVE);
+            return entity;
+        }
     }
 }
