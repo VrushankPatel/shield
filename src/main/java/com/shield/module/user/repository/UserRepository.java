@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     Optional<UserEntity> findByEmailIgnoreCaseAndDeletedFalse(String email);
 
+    Optional<UserEntity> findByTenantIdAndEmailIgnoreCaseAndDeletedFalse(UUID tenantId, String email);
+
     Optional<UserEntity> findByIdAndDeletedFalse(UUID id);
 
     Page<UserEntity> findAllByDeletedFalse(Pageable pageable);

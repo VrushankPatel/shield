@@ -41,12 +41,14 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<NotificationLogResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Notification logs fetched", notificationService.list(pageable)));
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Notification logs fetched", notificationService.list(pageable, principal)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<NotificationLogResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok("Notification log fetched", notificationService.getById(id)));
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Notification log fetched", notificationService.getById(id, principal)));
     }
 
     @PostMapping("/send-bulk")

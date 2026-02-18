@@ -184,6 +184,30 @@ public class CommunicationModuleIT extends IntegrationTestBase {
                                 .when().post("/notifications/send-bulk")
                                 .then().statusCode(200);
 
+                String notificationId = given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().get("/notifications")
+                                .then().statusCode(200)
+                                .body("data.content", hasSize(1))
+                                .extract().path("data.content[0].id");
+
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().get("/notifications/unread-count")
+                                .then().statusCode(200)
+                                .body("data", equalTo(1));
+
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().post("/notifications/" + notificationId + "/mark-read")
+                                .then().statusCode(200);
+
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().get("/notifications/unread-count")
+                                .then().statusCode(200)
+                                .body("data", equalTo(0));
+
                 // 14. Mark all read (Resident)
                 given()
                                 .header("Authorization", "Bearer " + residentToken)

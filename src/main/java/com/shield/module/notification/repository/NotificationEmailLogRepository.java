@@ -12,7 +12,11 @@ public interface NotificationEmailLogRepository extends JpaRepository<Notificati
 
     Page<NotificationEmailLogEntity> findAllByDeletedFalse(Pageable pageable);
 
+    Page<NotificationEmailLogEntity> findAllByUserIdAndDeletedFalse(UUID userId, Pageable pageable);
+
     Optional<NotificationEmailLogEntity> findByIdAndDeletedFalse(UUID id);
+
+    Optional<NotificationEmailLogEntity> findByIdAndUserIdAndDeletedFalse(UUID id, UUID userId);
 
     long countByUserIdAndReadAtIsNullAndDeletedFalse(UUID userId);
 
