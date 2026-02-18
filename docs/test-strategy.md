@@ -11,6 +11,7 @@
   - expanded utility and marketplace query/report behavior (consumption report, current logs, listing search/type)
   - phase-3 module service behavior (configuration/settings/files)
   - billing payment-gateway service behavior (initiation, verification, callbacks, idempotency)
+  - billing management and payment operations behavior (billing cycles, invoices, reminders, late-fee rules, cash/cheque/refund flows)
   - analytics service behavior (templates, dashboards, KPI calculations)
   - validation and exception paths
 
@@ -27,6 +28,7 @@
   - expanded phase-2 flow coverage for new staff/payroll/utility/marketplace endpoints
   - configuration/settings governance flows and file upload/download flows
   - payment gateway initiation/verification/callback flows
+  - M3 billing lifecycle flow (cycle -> invoice -> reminder -> payment -> refund)
   - observability flows (`audit-logs`, `system-logs`, `api-request-logs`)
 
 ## 3. Security Tests

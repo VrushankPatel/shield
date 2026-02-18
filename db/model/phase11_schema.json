@@ -1,0 +1,114 @@
+{
+  "version": "phase11-v1",
+  "tables": [
+    {
+      "name": "billing_cycle",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "cycle_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "month", "type": "INTEGER", "nullable": false},
+        {"name": "year", "type": "INTEGER", "nullable": false},
+        {"name": "due_date", "type": "DATE", "nullable": false},
+        {"name": "late_fee_applicable_date", "type": "DATE", "nullable": true},
+        {"name": "status", "type": "VARCHAR(30)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_billing_cycle_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_billing_cycle_year_month", "columns": ["tenant_id", "year", "month"]},
+        {"name": "idx_billing_cycle_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "maintenance_charge",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "unit_id", "type": "UUID", "nullable": false, "references": "unit(id)"},
+        {"name": "billing_cycle_id", "type": "UUID", "nullable": false, "references": "billing_cycle(id)"},
+        {"name": "base_amount", "type": "NUMERIC(12, 2)", "nullable": true},
+        {"name": "calculation_method", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "area_based_amount", "type": "NUMERIC(12, 2)", "nullable": true},
+        {"name": "fixed_amount", "type": "NUMERIC(12, 2)", "nullable": true},
+        {"name": "total_amount", "type": "NUMERIC(12, 2)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_maintenance_charge_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_maintenance_charge_cycle", "columns": ["tenant_id", "billing_cycle_id"]},
+        {"name": "idx_maintenance_charge_unit", "columns": ["tenant_id", "unit_id"]}
+      ]
+    },
+    {
+      "name": "special_assessment",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "assessment_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "total_amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "per_unit_amount", "type": "NUMERIC(12, 2)", "nullable": true},
+        {"name": "assessment_date", "type": "DATE", "nullable": true},
+        {"name": "due_date", "type": "DATE", "nullable": false},
+        {"name": "created_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "status", "type": "VARCHAR(30)", "nullable": false, "default": "'ACTIVE'"}
+      ],
+      "indexes": [
+        {"name": "idx_special_assessment_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_special_assessment_due", "columns": ["tenant_id", "due_date"]},
+        {"name": "idx_special_assessment_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "invoice",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "invoice_number", "type": "VARCHAR(100)", "nullable": false, "unique": true},
+        {"name": "unit_id", "type": "UUID", "nullable": false, "references": "unit(id)"},
+        {"name": "billing_cycle_id", "type": "UUID", "nullable": true, "references": "billing_cycle(id)"},
+        {"name": "invoice_date", "type": "DATE", "nullable": false},
+        {"name": "due_date", "type": "DATE", "nullable": false},
+        {"name": "subtotal", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "late_fee", "type": "NUMERIC(12, 2)", "nullable": false, "default": "0"},
+        {"name": "gst_amount", "type": "NUMERIC(12, 2)", "nullable": false, "default": "0"},
+        {"name": "other_charges", "type": "NUMERIC(12, 2)", "nullable": false, "default": "0"},
+        {"name": "total_amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "outstanding_amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "status", "type": "VARCHAR(30)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_invoice_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_invoice_unit", "columns": ["tenant_id", "unit_id"]},
+        {"name": "idx_invoice_cycle", "columns": ["tenant_id", "billing_cycle_id"]},
+        {"name": "idx_invoice_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "payment_reminder",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "invoice_id", "type": "UUID", "nullable": false, "references": "invoice(id)"},
+        {"name": "reminder_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "sent_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "channel", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "status", "type": "VARCHAR(30)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_payment_reminder_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_payment_reminder_invoice", "columns": ["tenant_id", "invoice_id"]},
+        {"name": "idx_payment_reminder_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "late_fee_rule",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "rule_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "days_after_due", "type": "INTEGER", "nullable": false},
+        {"name": "fee_type", "type": "VARCHAR(30)", "nullable": false},
+        {"name": "fee_amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_late_fee_rule_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_late_fee_rule_active", "columns": ["tenant_id", "active"]}
+      ]
+    }
+  ]
+}

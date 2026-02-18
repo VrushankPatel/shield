@@ -48,6 +48,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Configuration/settings APIs (`/config/*`, `/settings/*`)
 - File management APIs (`/files/*`)
 - Payment gateway APIs with webhook signature validation + provider adapters (`/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/webhook/{provider}`, `/payments/transaction/{transactionRef}`)
+- Billing and payments expansion:
+  - `/billing-cycles/*`
+  - `/maintenance-charges/*`
+  - `/special-assessments/*`
+  - `/invoices/*`
+  - `/payment-reminders/*`
+  - `/late-fee-rules/*`
+  - extended payment operations: `/payments/invoice/{invoiceId}`, `/payments/unit/{unitId}`, `/payments/{id}/receipt`, `/payments/cash`, `/payments/cheque`, `/payments/{id}/refund`
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
@@ -57,6 +65,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase7_schema.json` -> `V8__phase6_payment_gateway_generated.sql`
   - `db/model/phase8_schema.json` -> `V9__phase8_identity_extensions_generated.sql`
   - `db/model/phase10_schema.json` -> `V10__phase10_iam_rbac_generated.sql`
+  - `db/model/phase11_schema.json` -> `V12__phase11_billing_expansion_generated.sql` (+ `V13__phase11_billing_payment_alterations.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
@@ -64,6 +73,7 @@ Cross-cutting:
 - Login rate limiting
 - Global error handler
 - Flyway migrations (`V1` to `V10`)
+- Flyway migrations (`V1` to `V13`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -224,6 +234,7 @@ Required secrets:
 - `docs/generated/phase7_schema_generated.md`
 - `docs/generated/phase8_schema_generated.md`
 - `docs/generated/phase10_schema_generated.md`
+- `docs/generated/phase11_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

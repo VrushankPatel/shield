@@ -61,7 +61,7 @@ Exit Criteria:
 - Full module-2 endpoint coverage in OpenAPI and tests.
 
 ### M3. Billing & Payments Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Billing cycles, maintenance charges, special assessments, invoices, reminders, late-fee rules.

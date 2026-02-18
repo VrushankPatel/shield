@@ -59,6 +59,14 @@ Phase 1:
 - Configuration: `/config/*`, `/settings/*`
 - File management: `/files/*`
 - Payment gateway lifecycle: `/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/webhook/{provider}`, `/payments/transaction/{transactionRef}`
+- Billing and payments expansion:
+  - Billing cycles: `/billing-cycles/*`, `/billing-cycles/{id}/publish`, `/billing-cycles/{id}/close`, `/billing-cycles/current`, `/billing-cycles/year/{year}`
+  - Maintenance charges: `/maintenance-charges/*`, `/maintenance-charges/generate`, `/maintenance-charges/cycle/{cycleId}`, `/maintenance-charges/unit/{unitId}`
+  - Special assessments: `/special-assessments/*`, `/special-assessments/active`
+  - Invoices: `/invoices/*`, `/invoices/generate`, `/invoices/bulk-generate`, `/invoices/unit/{unitId}`, `/invoices/cycle/{cycleId}`, `/invoices/status/{status}`, `/invoices/{id}/download`, `/invoices/defaulters`, `/invoices/outstanding`
+  - Payment reminders: `/payment-reminders/*`, `/payment-reminders/send`, `/payment-reminders/schedule`, `/payment-reminders/invoice/{invoiceId}`
+  - Late fee rules: `/late-fee-rules/*`, `/late-fee-rules/{id}/activate`, `/late-fee-rules/{id}/deactivate`
+  - Extended payment operations: `/payments/invoice/{invoiceId}`, `/payments/unit/{unitId}`, `/payments/{id}/receipt`, `/payments/cash`, `/payments/cheque`, `/payments/{id}/refund`
 - Expanded operations:
   - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`

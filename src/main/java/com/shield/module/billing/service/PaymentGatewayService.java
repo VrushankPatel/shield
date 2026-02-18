@@ -242,6 +242,8 @@ public class PaymentGatewayService {
         payment.setMode(transaction.getMode());
         payment.setTransactionRef(transaction.getTransactionRef());
         payment.setPaidAt(Instant.now());
+        payment.setPaymentStatus("SUCCESS");
+        payment.setPaymentGateway(transaction.getProvider());
 
         PaymentEntity savedPayment = paymentRepository.save(payment);
 

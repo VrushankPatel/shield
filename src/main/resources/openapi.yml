@@ -680,7 +680,392 @@ paths:
       responses:
         '200': {description: Bills fetched}
 
+  /billing-cycles:
+    get:
+      tags: [Billing]
+      summary: List billing cycles
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Billing cycles fetched}
+    post:
+      tags: [Billing]
+      summary: Create billing cycle
+      responses:
+        '200': {description: Billing cycle created}
+  /billing-cycles/{id}:
+    get:
+      tags: [Billing]
+      summary: Get billing cycle by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle fetched}
+    put:
+      tags: [Billing]
+      summary: Update billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle updated}
+    delete:
+      tags: [Billing]
+      summary: Delete billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle deleted}
+  /billing-cycles/{id}/publish:
+    post:
+      tags: [Billing]
+      summary: Publish billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle published}
+  /billing-cycles/{id}/close:
+    post:
+      tags: [Billing]
+      summary: Close billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle closed}
+  /billing-cycles/current:
+    get:
+      tags: [Billing]
+      summary: Get current billing cycle
+      responses:
+        '200': {description: Current billing cycle fetched}
+  /billing-cycles/year/{year}:
+    get:
+      tags: [Billing]
+      summary: List billing cycles by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: {type: integer}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Billing cycles by year fetched}
+
+  /maintenance-charges:
+    get:
+      tags: [Billing]
+      summary: List maintenance charges
+      responses:
+        '200': {description: Maintenance charges fetched}
+  /maintenance-charges/{id}:
+    get:
+      tags: [Billing]
+      summary: Get maintenance charge by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Maintenance charge fetched}
+    put:
+      tags: [Billing]
+      summary: Update maintenance charge
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Maintenance charge updated}
+    delete:
+      tags: [Billing]
+      summary: Delete maintenance charge
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Maintenance charge deleted}
+  /maintenance-charges/generate:
+    post:
+      tags: [Billing]
+      summary: Generate maintenance charge
+      responses:
+        '200': {description: Maintenance charge generated}
+  /maintenance-charges/cycle/{cycleId}:
+    get:
+      tags: [Billing]
+      summary: List maintenance charges by billing cycle
+      parameters:
+        - in: path
+          name: cycleId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Maintenance charges by cycle fetched}
+  /maintenance-charges/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: List maintenance charges by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Maintenance charges by unit fetched}
+
+  /special-assessments:
+    get:
+      tags: [Billing]
+      summary: List special assessments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Special assessments fetched}
+    post:
+      tags: [Billing]
+      summary: Create special assessment
+      responses:
+        '200': {description: Special assessment created}
+  /special-assessments/{id}:
+    get:
+      tags: [Billing]
+      summary: Get special assessment by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Special assessment fetched}
+    put:
+      tags: [Billing]
+      summary: Update special assessment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Special assessment updated}
+    delete:
+      tags: [Billing]
+      summary: Delete special assessment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Special assessment deleted}
+  /special-assessments/active:
+    get:
+      tags: [Billing]
+      summary: List active special assessments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Active special assessments fetched}
+
+  /invoices:
+    get:
+      tags: [Billing]
+      summary: List invoices
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Invoices fetched}
+  /invoices/{id}:
+    get:
+      tags: [Billing]
+      summary: Get invoice by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice fetched}
+    put:
+      tags: [Billing]
+      summary: Update invoice
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice updated}
+    delete:
+      tags: [Billing]
+      summary: Delete invoice
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice deleted}
+  /invoices/generate:
+    post:
+      tags: [Billing]
+      summary: Generate invoice
+      responses:
+        '200': {description: Invoice generated}
+  /invoices/bulk-generate:
+    post:
+      tags: [Billing]
+      summary: Bulk generate invoices
+      responses:
+        '200': {description: Invoices generated}
+  /invoices/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: List invoices by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Invoices by unit fetched}
+  /invoices/cycle/{cycleId}:
+    get:
+      tags: [Billing]
+      summary: List invoices by cycle
+      parameters:
+        - in: path
+          name: cycleId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Invoices by cycle fetched}
+  /invoices/status/{status}:
+    get:
+      tags: [Billing]
+      summary: List invoices by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Invoices by status fetched}
+  /invoices/{id}/download:
+    get:
+      tags: [Billing]
+      summary: Get invoice download metadata
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice download metadata fetched}
+  /invoices/defaulters:
+    get:
+      tags: [Billing]
+      summary: List invoice defaulters
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Invoice defaulters fetched}
+  /invoices/outstanding:
+    get:
+      tags: [Billing]
+      summary: List outstanding invoices
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Outstanding invoices fetched}
+
+  /payment-reminders:
+    get:
+      tags: [Billing]
+      summary: List payment reminders
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payment reminders fetched}
+  /payment-reminders/send:
+    post:
+      tags: [Billing]
+      summary: Send payment reminder
+      responses:
+        '200': {description: Payment reminder sent}
+  /payment-reminders/schedule:
+    post:
+      tags: [Billing]
+      summary: Schedule payment reminder
+      responses:
+        '200': {description: Payment reminder scheduled}
+  /payment-reminders/invoice/{invoiceId}:
+    get:
+      tags: [Billing]
+      summary: List payment reminders by invoice
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Payment reminders by invoice fetched}
+
+  /late-fee-rules:
+    get:
+      tags: [Billing]
+      summary: List late fee rules
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Late fee rules fetched}
+    post:
+      tags: [Billing]
+      summary: Create late fee rule
+      responses:
+        '200': {description: Late fee rule created}
+  /late-fee-rules/{id}:
+    get:
+      tags: [Billing]
+      summary: Get late fee rule by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule fetched}
+    put:
+      tags: [Billing]
+      summary: Update late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule updated}
+    delete:
+      tags: [Billing]
+      summary: Delete late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule deleted}
+  /late-fee-rules/{id}/activate:
+    post:
+      tags: [Billing]
+      summary: Activate late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule activated}
+  /late-fee-rules/{id}/deactivate:
+    post:
+      tags: [Billing]
+      summary: Deactivate late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule deactivated}
+
   /payments:
+    get:
+      tags: [Billing]
+      summary: List payments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payments fetched}
     post:
       tags: [Billing]
       summary: Create payment
@@ -694,6 +1079,56 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Payment fetched}
+  /payments/invoice/{invoiceId}:
+    get:
+      tags: [Billing]
+      summary: List payments by invoice
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Payments by invoice fetched}
+  /payments/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: List payments by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Payments by unit fetched}
+  /payments/{id}/receipt:
+    get:
+      tags: [Billing]
+      summary: Get payment receipt
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payment receipt fetched}
+  /payments/cash:
+    post:
+      tags: [Billing]
+      summary: Create cash payment
+      responses:
+        '200': {description: Cash payment created}
+  /payments/cheque:
+    post:
+      tags: [Billing]
+      summary: Create cheque payment
+      responses:
+        '200': {description: Cheque payment created}
+  /payments/{id}/refund:
+    post:
+      tags: [Billing]
+      summary: Refund payment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payment refunded}
   /payments/initiate:
     post:
       tags: [Billing]

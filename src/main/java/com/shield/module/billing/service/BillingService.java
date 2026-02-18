@@ -70,10 +70,12 @@ public class BillingService {
         PaymentEntity payment = new PaymentEntity();
         payment.setTenantId(tenantId);
         payment.setBillId(request.billId());
+        payment.setUnitId(bill.getUnitId());
         payment.setAmount(request.amount());
         payment.setMode(request.mode());
         payment.setTransactionRef(request.transactionRef() != null ? request.transactionRef().trim() : null);
         payment.setPaidAt(Instant.now());
+        payment.setPaymentStatus("SUCCESS");
 
         PaymentEntity savedPayment = paymentRepository.save(payment);
         bill.setStatus(BillStatus.PAID);
@@ -108,9 +110,14 @@ public class BillingService {
                 payment.getId(),
                 payment.getTenantId(),
                 payment.getBillId(),
+                payment.getInvoiceId(),
+                payment.getUnitId(),
                 payment.getAmount(),
                 payment.getMode(),
+                payment.getPaymentStatus(),
                 payment.getTransactionRef(),
-                payment.getPaidAt());
+                payment.getReceiptUrl(),
+                payment.getPaidAt(),
+                payment.getRefundedAt());
     }
 }
