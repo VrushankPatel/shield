@@ -19,3 +19,9 @@
 - [x] Observability module (`audit-logs`, `system-logs`, `api-request-logs`)
 - [x] Configuration/settings module baseline
 - [x] File upload/management module baseline
+- [x] Payment gateway scaffold module baseline (`/payments/initiate`, `/payments/verify`, `/payments/callback`)
+
+## Phase-4 Continuation
+- [ ] Production payment provider integration (webhook signature verification + SDK adapter)
+- [ ] OTP/SMS login flow
+- [ ] WhatsApp notification integration

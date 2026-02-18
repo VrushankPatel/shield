@@ -45,6 +45,7 @@ Phase 2:
 - API request logs: `/api-request-logs/*`
 - Configuration: `/config/*`, `/settings/*`
 - File management: `/files/*`
+- Payment gateway scaffold: `/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/transaction/{transactionRef}`
 
 ## Common Error Envelope
 ```json

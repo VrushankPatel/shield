@@ -8,6 +8,7 @@
   - announcement publish audience filtering
   - phase-2 module service behavior (helpdesk/emergency/document/staff/payroll/utility/marketplace)
   - phase-3 module service behavior (configuration/settings/files)
+  - billing payment-gateway service behavior (initiation, verification, callbacks, idempotency)
   - analytics service behavior (templates, dashboards, KPI calculations)
   - validation and exception paths
 
@@ -20,6 +21,7 @@
   - tenant isolation behavior
   - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)
   - configuration/settings governance flows and file upload/download flows
+  - payment gateway initiation/verification/callback flows
   - observability flows (`audit-logs`, `system-logs`, `api-request-logs`)
 
 ## 3. Security Tests
@@ -39,4 +41,5 @@
 
 ## 5. Coverage
 - JaCoCo report generated during `verify`
+- Coverage reports published to Codecov from CI (when `CODECOV_TOKEN` is configured)
 - Target trend: 80%+ coverage over incremental milestones

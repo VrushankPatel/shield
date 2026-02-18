@@ -34,6 +34,10 @@ gh secret set GITLAB_MAVEN_USERNAME --repo VrushankPatel/shield
 gh secret set GITLAB_MAVEN_TOKEN --repo VrushankPatel/shield
 ```
 
+## C2. Coverage / Quality CI Inputs
+- `CODECOV_TOKEN` (required for Codecov upload in CI)
+- `SONAR_TOKEN` (if SonarCloud analysis workflow is enabled)
+
 ## D. Email Integration Inputs (Phase-2 Active)
 For SMTP email notifications (announcements + manual notification dispatch), provide:
 - `NOTIFICATION_EMAIL_ENABLED=true`
@@ -77,7 +81,7 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 ```
 
 ## G. Inputs Still Pending for Future Modules
-- Payments provider + API/webhook credentials
+- Payments provider production credentials and webhook secret
 - SMS/OTP provider credentials
 - WhatsApp provider credentials
 - External object storage credentials (optional future switch from local disk storage)
@@ -86,6 +90,15 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 - Current implementation uses local disk storage only.
 - Configure storage root with `SHIELD_FILES_STORAGE_PATH` (default `./storage/files`).
 - No cloud storage API keys are required for the current baseline.
+
+## J. Payment Gateway Scaffold Inputs (Current Baseline)
+- Current payment-gateway integration is scaffolded with a manual simulator flow.
+- Production switch requires provider-specific values:
+- `PAYMENT_PROVIDER_NAME` (example: `RAZORPAY`, `STRIPE`)
+- `PAYMENT_PROVIDER_KEY_ID`
+- `PAYMENT_PROVIDER_KEY_SECRET`
+- `PAYMENT_WEBHOOK_SECRET`
+- Keep these only in CI/runtime secrets; do not commit.
 
 ## H. Security Notes
 - Never commit credentials in source control.

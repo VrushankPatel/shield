@@ -1,4 +1,7 @@
 # SHIELD Backend
+[![CI](https://github.com/VrushankPatel/shield/actions/workflows/ci.yml/badge.svg)](https://github.com/VrushankPatel/shield/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/VrushankPatel/shield/graph/badge.svg)](https://codecov.io/gh/VrushankPatel/shield)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VrushankPatel_shield&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VrushankPatel_shield)
 
 SHIELD stands for **Smart Housing Infrastructure and Entry Log Digitalization**.
 This repository contains a **multi-tenant modular monolith** backend built with Spring Boot.
@@ -30,19 +33,21 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Observability log APIs (`/audit-logs`, `/system-logs`, `/api-request-logs`)
 - Configuration/settings APIs (`/config/*`, `/settings/*`)
 - File management APIs (`/files/*`)
+- Payment gateway scaffolding APIs (`/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/transaction/{transactionRef}`)
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
   - `db/model/phase4_schema.json` -> `V5__phase3_analytics_generated.sql`
   - `db/model/phase5_schema.json` -> `V6__phase4_log_observability_generated.sql`
   - `db/model/phase6_schema.json` -> `V7__phase5_config_files_generated.sql`
+  - `db/model/phase7_schema.json` -> `V8__phase6_payment_gateway_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V7`)
+- Flyway migrations (`V1` to `V8`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -173,13 +178,15 @@ docker compose up -d
 ## CI/CD
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 1. Maven build + tests + coverage report
-2. Docker image build
-3. Maven artifact publish to GitLab Artifactory (when secrets are configured)
+2. Coverage upload to Codecov (when `CODECOV_TOKEN` is configured)
+3. Docker image build
+4. Maven artifact publish to GitLab Artifactory (when secrets are configured)
 
 Required secrets for publish job:
 - `GITLAB_MAVEN_REPOSITORY_URL`
 - `GITLAB_MAVEN_USERNAME`
 - `GITLAB_MAVEN_TOKEN`
+- `CODECOV_TOKEN` (for coverage upload)
 
 ## Documentation
 - `docs/architecture.md`
@@ -189,6 +196,7 @@ Required secrets for publish job:
 - `docs/generated/phase4_schema_generated.md`
 - `docs/generated/phase5_schema_generated.md`
 - `docs/generated/phase6_schema_generated.md`
+- `docs/generated/phase7_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

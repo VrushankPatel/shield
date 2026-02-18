@@ -12,11 +12,13 @@ PostgreSQL 15+
 - `V5__phase3_analytics_generated.sql`: generated phase-3 analytics tables
 - `V6__phase4_log_observability_generated.sql`: generated phase-4 observability log tables
 - `V7__phase5_config_files_generated.sql`: generated phase-5 configuration and files tables
+- `V8__phase6_payment_gateway_generated.sql`: generated phase-6 payment gateway transaction tables
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
 - Generator source model: `db/model/phase5_schema.json`
 - Generator source model: `db/model/phase6_schema.json`
+- Generator source model: `db/model/phase7_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -64,6 +66,7 @@ Phase 2:
 - `tenant_config`
 - `system_setting`
 - `stored_file`
+- `payment_gateway_txn`
 
 ## Common Columns
 Most domain tables include:

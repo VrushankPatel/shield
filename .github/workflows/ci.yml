@@ -30,7 +30,22 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: target/site/jacoco/
+          path: |
+            target/site/jacoco/
+            target/site/jacoco-it/
+
+      - name: Upload coverage to Codecov
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Skip Codecov upload (token missing)
+        if: ${{ secrets.CODECOV_TOKEN == '' }}
+        run: echo "Codecov upload skipped because CODECOV_TOKEN is not configured."
 
   docker-build:
     runs-on: ubuntu-latest
