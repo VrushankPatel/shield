@@ -1,0 +1,31 @@
+{
+  "version": "phase7-v1",
+  "tables": [
+    {
+      "name": "payment_gateway_txn",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "transaction_ref", "type": "VARCHAR(120)", "nullable": false, "unique": true},
+        {"name": "bill_id", "type": "UUID", "nullable": false, "references": "maintenance_bill(id)"},
+        {"name": "provider", "type": "VARCHAR(50)", "nullable": false, "default": "'MANUAL_SIMULATOR'"},
+        {"name": "gateway_order_id", "type": "VARCHAR(120)", "nullable": true},
+        {"name": "gateway_payment_id", "type": "VARCHAR(120)", "nullable": true},
+        {"name": "amount", "type": "NUMERIC(12, 2)", "nullable": false},
+        {"name": "currency", "type": "VARCHAR(10)", "nullable": false, "default": "'INR'"},
+        {"name": "mode", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "status", "type": "VARCHAR(32)", "nullable": false, "default": "'CREATED'"},
+        {"name": "callback_payload", "type": "TEXT", "nullable": true},
+        {"name": "failure_reason", "type": "VARCHAR(500)", "nullable": true},
+        {"name": "initiated_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "verified_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "verified_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_payment_gateway_txn_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_payment_gateway_txn_bill", "columns": ["tenant_id", "bill_id"]},
+        {"name": "idx_payment_gateway_txn_status", "columns": ["tenant_id", "status"]},
+        {"name": "idx_payment_gateway_txn_provider", "columns": ["tenant_id", "provider"]}
+      ]
+    }
+  ]
+}

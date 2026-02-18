@@ -168,6 +168,36 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Payment fetched}
+  /payments/initiate:
+    post:
+      tags: [Billing]
+      summary: Initiate payment through gateway scaffold
+      responses:
+        '200': {description: Payment initiated}
+  /payments/verify:
+    post:
+      tags: [Billing]
+      summary: Verify initiated payment and settle bill
+      responses:
+        '200': {description: Payment verification processed}
+  /payments/callback:
+    post:
+      tags: [Billing]
+      summary: Process payment gateway callback
+      responses:
+        '200': {description: Payment callback processed}
+  /payments/transaction/{transactionRef}:
+    get:
+      tags: [Billing]
+      summary: Get payment gateway transaction by reference
+      parameters:
+        - in: path
+          name: transactionRef
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: Payment gateway transaction fetched}
 
   /ledger:
     post:

@@ -1,6 +1,7 @@
 package com.shield.module.billing.service;
 
 import com.shield.audit.service.AuditLogService;
+import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
 import com.shield.module.billing.dto.BillGenerateRequest;
 import com.shield.module.billing.dto.BillResponse;
@@ -58,13 +59,20 @@ public class BillingService {
 
         MaintenanceBillEntity bill = maintenanceBillRepository.findByIdAndDeletedFalse(request.billId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + request.billId()));
+        if (bill.getStatus() == BillStatus.PAID) {
+            throw new BadRequestException("Bill is already paid");
+        }
+        if (request.transactionRef() != null && !request.transactionRef().isBlank()
+                && paymentRepository.findByTransactionRefAndDeletedFalse(request.transactionRef().trim()).isPresent()) {
+            throw new BadRequestException("Duplicate payment transaction reference");
+        }
 
         PaymentEntity payment = new PaymentEntity();
         payment.setTenantId(tenantId);
         payment.setBillId(request.billId());
         payment.setAmount(request.amount());
         payment.setMode(request.mode());
-        payment.setTransactionRef(request.transactionRef());
+        payment.setTransactionRef(request.transactionRef() != null ? request.transactionRef().trim() : null);
         payment.setPaidAt(Instant.now());
 
         PaymentEntity savedPayment = paymentRepository.save(payment);
