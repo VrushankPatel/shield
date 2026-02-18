@@ -27,3 +27,6 @@ application-secrets.yml
 *.jar
 *.war
 coverage/
+
+# Local file storage
+storage/

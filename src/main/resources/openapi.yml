@@ -1672,6 +1672,201 @@ paths:
       responses:
         '200': {description: API request logs exported}
 
+  /config:
+    get:
+      tags: [Configuration]
+      summary: List tenant configuration entries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Tenant configuration entries fetched}
+  /config/{key}:
+    get:
+      tags: [Configuration]
+      summary: Get tenant configuration by key
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: Tenant configuration fetched}
+    put:
+      tags: [Configuration]
+      summary: Upsert tenant configuration by key
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: Tenant configuration upserted}
+    delete:
+      tags: [Configuration]
+      summary: Delete tenant configuration by key
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: Tenant configuration deleted}
+  /config/category/{category}:
+    get:
+      tags: [Configuration]
+      summary: List tenant configuration by category
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Tenant configuration by category fetched}
+  /config/bulk-update:
+    post:
+      tags: [Configuration]
+      summary: Bulk upsert tenant configuration
+      responses:
+        '200': {description: Tenant configuration bulk updated}
+
+  /settings/modules:
+    get:
+      tags: [Configuration]
+      summary: List module toggle settings
+      responses:
+        '200': {description: Module settings fetched}
+  /settings/modules/{module}/toggle:
+    put:
+      tags: [Configuration]
+      summary: Toggle module availability
+      parameters:
+        - in: path
+          name: module
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: Module setting updated}
+  /settings/billing-formula:
+    get:
+      tags: [Configuration]
+      summary: Get billing formula setting
+      responses:
+        '200': {description: Billing formula fetched}
+    put:
+      tags: [Configuration]
+      summary: Update billing formula setting
+      responses:
+        '200': {description: Billing formula updated}
+  /settings/sla-rules:
+    get:
+      tags: [Configuration]
+      summary: Get SLA rules setting
+      responses:
+        '200': {description: SLA rules fetched}
+    put:
+      tags: [Configuration]
+      summary: Update SLA rules setting
+      responses:
+        '200': {description: SLA rules updated}
+  /settings/notification-channels:
+    get:
+      tags: [Configuration]
+      summary: Get notification channels setting
+      responses:
+        '200': {description: Notification channels fetched}
+    put:
+      tags: [Configuration]
+      summary: Update notification channels setting
+      responses:
+        '200': {description: Notification channels updated}
+
+  /files/upload:
+    post:
+      tags: [Files]
+      summary: Upload single file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200': {description: File uploaded}
+  /files/upload-multiple:
+    post:
+      tags: [Files]
+      summary: Upload multiple files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200': {description: Files uploaded}
+  /files/{fileId}:
+    get:
+      tags: [Files]
+      summary: Get file metadata
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: File metadata fetched}
+    delete:
+      tags: [Files]
+      summary: Delete file
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: File deleted}
+  /files/{fileId}/download:
+    get:
+      tags: [Files]
+      summary: Download file bytes
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200': {description: File downloaded}
+  /files/generate-presigned-url:
+    post:
+      tags: [Files]
+      summary: Generate local upload presigned URL placeholder
+      responses:
+        '200': {description: Presigned upload URL generated}
+
 components:
   securitySchemes:
     bearerAuth:
