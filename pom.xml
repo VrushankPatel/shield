@@ -143,13 +143,6 @@
         </dependency>
     </dependencies>
 
-    <distributionManagement>
-        <repository>
-            <id>gitlab-maven</id>
-            <url>${env.GITLAB_MAVEN_REPOSITORY_URL}</url>
-        </repository>
-    </distributionManagement>
-
     <build>
         <finalName>shield-${project.version}</finalName>
         <plugins>

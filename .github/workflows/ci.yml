@@ -7,6 +7,9 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
@@ -62,10 +65,13 @@ jobs:
       - name: Build Docker image
         run: docker build -t shield-api:${{ github.sha }} .
 
-  publish-artifact:
+  publish-ghcr:
     runs-on: ubuntu-latest
     needs: build-test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,40 +83,27 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Check publish secrets
-        id: publish_check
+      - name: Resolve image metadata
+        id: image_meta
         run: |
-          if [ -n "${{ secrets.GITLAB_MAVEN_REPOSITORY_URL }}" ] && [ -n "${{ secrets.GITLAB_MAVEN_USERNAME }}" ] && [ -n "${{ secrets.GITLAB_MAVEN_TOKEN }}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
+          OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          VERSION="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version | tail -n 1)"
+          echo "image=ghcr.io/${OWNER_LC}/shield" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Create Maven settings
-        if: steps.publish_check.outputs.enabled == 'true'
-        run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml <<SETTINGS
-          <settings>
-            <servers>
-              <server>
-                <id>gitlab-maven</id>
-                <username>${GITLAB_MAVEN_USERNAME}</username>
-                <password>${GITLAB_MAVEN_TOKEN}</password>
-              </server>
-            </servers>
-          </settings>
-          SETTINGS
-        env:
-          GITLAB_MAVEN_USERNAME: ${{ secrets.GITLAB_MAVEN_USERNAME }}
-          GITLAB_MAVEN_TOKEN: ${{ secrets.GITLAB_MAVEN_TOKEN }}
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy Maven artifact
-        if: steps.publish_check.outputs.enabled == 'true'
-        run: mvn -B -DskipTests deploy
-        env:
-          GITLAB_MAVEN_REPOSITORY_URL: ${{ secrets.GITLAB_MAVEN_REPOSITORY_URL }}
-
-      - name: Skip publish (secrets missing)
-        if: steps.publish_check.outputs.enabled != 'true'
-        run: echo "GitLab publish skipped because required secrets are not configured."
+      - name: Build and push GHCR image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image_meta.outputs.image }}:${{ steps.image_meta.outputs.version }}
+            ${{ steps.image_meta.outputs.image }}:${{ github.sha }}
+            ${{ steps.image_meta.outputs.image }}:latest
