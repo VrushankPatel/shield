@@ -20,7 +20,7 @@ Phase 1:
 - User: `/users/*`
 - Billing: `/billing/*`, `/payments/*`
 - Accounting (baseline): `/ledger/*`
-- Visitor: `/visitors/pass/*`
+- Visitor (legacy): `/visitors/pass/*`
 - Asset: `/assets/*`
 - Complaint: `/complaints/*`
 - Amenities: `/amenities/*`
@@ -75,6 +75,13 @@ Phase 1:
   - Vendors: `/vendors/*`, `/vendors/type/{type}`, `/vendors/active`, `/vendors/{id}/status`
   - Vendor payments: `/vendor-payments/*`, `/vendor-payments/vendor/{vendorId}`, `/vendor-payments/expense/{expenseId}`, `/vendor-payments/pending`
   - Budgets and reports: `/budgets/*`, `/budgets/financial-year/{year}`, `/budgets/vs-actual`, `/reports/income-statement`, `/reports/balance-sheet`, `/reports/cash-flow`, `/reports/trial-balance`, `/reports/fund-summary`, `/reports/export/ca-format`
+- Visitor management expansion:
+  - Visitors: `/visitors/*`, `/visitors/search`, `/visitors/phone/{phone}`
+  - Visitor passes: `/visitor-passes/*`, `/visitor-passes/create`, `/visitor-passes/unit/{unitId}`, `/visitor-passes/date/{date}`, `/visitor-passes/active`, `/visitor-passes/verify/{qrCode}`, `/visitor-passes/pre-approve`
+  - Visitor logs: `/visitor-logs/*`, `/visitor-logs/entry`, `/visitor-logs/exit`, `/visitor-logs/pass/{passId}`, `/visitor-logs/date-range`, `/visitor-logs/currently-inside`
+  - Domestic help: `/domestic-help/*`, `/domestic-help/type/{type}`, `/domestic-help/{id}/verify`, `/domestic-help/{id}/assign-unit`, `/domestic-help/{helpId}/unit/{unitId}`
+  - Blacklist: `/blacklist/*`, `/blacklist/check/{phone}`, `/blacklist/{id}/activate`, `/blacklist/{id}/deactivate`
+  - Delivery logs: `/delivery-logs/*`, `/delivery-logs/unit/{unitId}`, `/delivery-logs/date-range`, `/delivery-logs/partner/{partner}`
 - Expanded operations:
   - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`

@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record VisitorPassCreateRequest(
+public record VisitorPassPreApproveRequest(
         UUID visitorId,
         @NotNull UUID unitId,
         String visitorName,
@@ -14,6 +14,7 @@ public record VisitorPassCreateRequest(
         @NotNull Instant validTo,
         LocalDate visitDate,
         String purpose,
-        Integer numberOfPersons
+        Integer numberOfPersons,
+        UUID approvedBy
 ) {
 }

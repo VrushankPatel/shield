@@ -20,6 +20,8 @@ PostgreSQL 15+
 - `V13__phase11_billing_payment_alterations.sql`: payment table extensions for invoice-linked flows
 - `V14__phase12_accounting_treasury_generated.sql`: generated phase-12 accounting/treasury tables
 - `V15__phase12_ledger_entry_extensions.sql`: phase-12 ledger enhancements for accounting reports
+- `V16__phase13_visitor_expansion_generated.sql`: generated phase-13 visitor management tables
+- `V17__phase13_visitor_pass_extensions.sql`: phase-13 visitor-pass table enrichments
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -30,6 +32,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase10_schema.json`
 - Generator source model: `db/model/phase11_schema.json`
 - Generator source model: `db/model/phase12_schema.json`
+- Generator source model: `db/model/phase13_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -99,6 +102,12 @@ Phase 2:
 - `expense`
 - `vendor_payment`
 - `budget`
+- `visitor`
+- `visitor_entry_exit_log`
+- `domestic_help_registry`
+- `domestic_help_unit_mapping`
+- `blacklist`
+- `delivery_log`
 
 ## Common Columns
 Most domain tables include:

@@ -1762,16 +1762,481 @@ paths:
       responses:
         '200': {description: CA format export generated}
 
-  /visitors/pass:
+  /visitors:
+    get:
+      tags: [Visitor]
+      summary: List visitors
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Visitors fetched}
+    post:
+      tags: [Visitor]
+      summary: Create visitor
+      responses:
+        '200': {description: Visitor created}
+  /visitors/search:
+    get:
+      tags: [Visitor]
+      summary: Search visitors
+      parameters:
+        - in: query
+          name: q
+          required: false
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitors fetched}
+  /visitors/phone/{phone}:
+    get:
+      tags: [Visitor]
+      summary: List visitors by phone
+      parameters:
+        - in: path
+          name: phone
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitors fetched}
+  /visitors/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor fetched}
+    put:
+      tags: [Visitor]
+      summary: Update visitor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete visitor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor deleted}
+
+  /visitor-passes:
+    get:
+      tags: [Visitor]
+      summary: List visitor passes
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Visitor passes fetched}
     post:
       tags: [Visitor]
       summary: Create visitor pass
       responses:
         '200': {description: Visitor pass created}
+  /visitor-passes/create:
+    post:
+      tags: [Visitor]
+      summary: Create visitor pass (alias)
+      responses:
+        '200': {description: Visitor pass created}
+  /visitor-passes/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor pass by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass fetched}
+    put:
+      tags: [Visitor]
+      summary: Update visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass deleted}
+  /visitor-passes/{id}/cancel:
+    post:
+      tags: [Visitor]
+      summary: Cancel visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass cancelled}
+  /visitor-passes/unit/{unitId}:
+    get:
+      tags: [Visitor]
+      summary: List visitor passes by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor passes fetched}
+  /visitor-passes/date/{date}:
+    get:
+      tags: [Visitor]
+      summary: List visitor passes by date
+      parameters:
+        - in: path
+          name: date
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor passes fetched}
+  /visitor-passes/active:
+    get:
+      tags: [Visitor]
+      summary: List active visitor passes
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Active visitor passes fetched}
+  /visitor-passes/verify/{qrCode}:
+    get:
+      tags: [Visitor]
+      summary: Verify visitor pass by QR code
+      parameters:
+        - in: path
+          name: qrCode
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Visitor pass verified}
+  /visitor-passes/pre-approve:
+    post:
+      tags: [Visitor]
+      summary: Pre-approve visitor pass
+      responses:
+        '200': {description: Visitor pass pre-approved}
+
+  /visitor-logs:
+    get:
+      tags: [Visitor]
+      summary: List visitor logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Visitor logs fetched}
+  /visitor-logs/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor log fetched}
+  /visitor-logs/entry:
+    post:
+      tags: [Visitor]
+      summary: Log visitor entry
+      responses:
+        '200': {description: Visitor entry logged}
+  /visitor-logs/exit:
+    post:
+      tags: [Visitor]
+      summary: Log visitor exit
+      responses:
+        '200': {description: Visitor exit logged}
+  /visitor-logs/pass/{passId}:
+    get:
+      tags: [Visitor]
+      summary: List visitor logs by pass
+      parameters:
+        - in: path
+          name: passId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor logs fetched}
+  /visitor-logs/date-range:
+    get:
+      tags: [Visitor]
+      summary: List visitor logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date-time}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date-time}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor logs fetched}
+  /visitor-logs/currently-inside:
+    get:
+      tags: [Visitor]
+      summary: List visitors currently inside
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor logs fetched}
+
+  /domestic-help:
+    get:
+      tags: [Visitor]
+      summary: List domestic help records
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Domestic help records fetched}
+    post:
+      tags: [Visitor]
+      summary: Create domestic help record
+      responses:
+        '200': {description: Domestic help created}
+  /domestic-help/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get domestic help by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help fetched}
+    put:
+      tags: [Visitor]
+      summary: Update domestic help record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete domestic help record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help deleted}
+  /domestic-help/type/{type}:
+    get:
+      tags: [Visitor]
+      summary: List domestic help by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Domestic help fetched}
+  /domestic-help/{id}/verify:
+    post:
+      tags: [Visitor]
+      summary: Verify domestic help
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help verified}
+  /domestic-help/unit/{unitId}:
+    get:
+      tags: [Visitor]
+      summary: List domestic help by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Domestic help fetched}
+  /domestic-help/{id}/assign-unit:
+    post:
+      tags: [Visitor]
+      summary: Assign domestic help to unit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help mapped to unit}
+  /domestic-help/{helpId}/unit/{unitId}:
+    delete:
+      tags: [Visitor]
+      summary: Remove domestic help unit mapping
+      parameters:
+        - in: path
+          name: helpId
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Domestic help mapping removed}
+
+  /blacklist:
+    get:
+      tags: [Visitor]
+      summary: List blacklist entries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Blacklist entries fetched}
+    post:
+      tags: [Visitor]
+      summary: Create blacklist entry
+      responses:
+        '200': {description: Blacklist entry created}
+  /blacklist/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get blacklist entry by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry fetched}
+    put:
+      tags: [Visitor]
+      summary: Update blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry deleted}
+  /blacklist/check/{phone}:
+    get:
+      tags: [Visitor]
+      summary: Check blacklist by phone
+      parameters:
+        - in: path
+          name: phone
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Blacklist check completed}
+  /blacklist/{id}/activate:
+    post:
+      tags: [Visitor]
+      summary: Activate blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry activated}
+  /blacklist/{id}/deactivate:
+    post:
+      tags: [Visitor]
+      summary: Deactivate blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry deactivated}
+
+  /delivery-logs:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Delivery logs fetched}
+    post:
+      tags: [Visitor]
+      summary: Create delivery log
+      responses:
+        '200': {description: Delivery log created}
+  /delivery-logs/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get delivery log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Delivery log fetched}
+  /delivery-logs/unit/{unitId}:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Delivery logs fetched}
+  /delivery-logs/date-range:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date-time}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date-time}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Delivery logs fetched}
+  /delivery-logs/partner/{partner}:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs by partner
+      parameters:
+        - in: path
+          name: partner
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Delivery logs fetched}
+
+  /visitors/pass:
+    post:
+      tags: [Visitor]
+      summary: Create visitor pass (legacy)
+      responses:
+        '200': {description: Visitor pass created}
   /visitors/pass/{id}:
     get:
       tags: [Visitor]
-      summary: Get visitor pass
+      summary: Get visitor pass (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -1779,7 +2244,7 @@ paths:
   /visitors/pass/{id}/approve:
     put:
       tags: [Visitor]
-      summary: Approve visitor pass
+      summary: Approve visitor pass (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -1787,7 +2252,7 @@ paths:
   /visitors/pass/{id}/reject:
     put:
       tags: [Visitor]
-      summary: Reject visitor pass
+      summary: Reject visitor pass (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:

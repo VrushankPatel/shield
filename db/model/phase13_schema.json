@@ -1,0 +1,115 @@
+{
+  "version": "phase13-v1",
+  "tables": [
+    {
+      "name": "visitor",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "visitor_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "phone", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "vehicle_number", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "visitor_type", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "id_proof_type", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "id_proof_number", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "photo_url", "type": "VARCHAR(1000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_visitor_registry_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_visitor_registry_phone", "columns": ["tenant_id", "phone"]},
+        {"name": "idx_visitor_registry_type", "columns": ["tenant_id", "visitor_type"]}
+      ]
+    },
+    {
+      "name": "visitor_entry_exit_log",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "visitor_pass_id", "type": "UUID", "nullable": false, "references": "visitor_pass(id)"},
+        {"name": "entry_time", "type": "TIMESTAMP", "nullable": true},
+        {"name": "exit_time", "type": "TIMESTAMP", "nullable": true},
+        {"name": "entry_gate", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "exit_gate", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "security_guard_entry", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "security_guard_exit", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "face_capture_url", "type": "VARCHAR(1000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_visitor_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_visitor_log_pass", "columns": ["tenant_id", "visitor_pass_id"]},
+        {"name": "idx_visitor_log_entry_time", "columns": ["tenant_id", "entry_time"]},
+        {"name": "idx_visitor_log_exit_time", "columns": ["tenant_id", "exit_time"]}
+      ]
+    },
+    {
+      "name": "domestic_help_registry",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "help_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "phone", "type": "VARCHAR(20)", "nullable": true},
+        {"name": "help_type", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "permanent_pass", "type": "BOOLEAN", "nullable": false, "default": "FALSE"},
+        {"name": "police_verification_done", "type": "BOOLEAN", "nullable": false, "default": "FALSE"},
+        {"name": "verification_date", "type": "DATE", "nullable": true},
+        {"name": "photo_url", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "registered_by", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_domestic_help_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_domestic_help_type", "columns": ["tenant_id", "help_type"]},
+        {"name": "idx_domestic_help_phone", "columns": ["tenant_id", "phone"]}
+      ]
+    },
+    {
+      "name": "domestic_help_unit_mapping",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "domestic_help_id", "type": "UUID", "nullable": false, "references": "domestic_help_registry(id)"},
+        {"name": "unit_id", "type": "UUID", "nullable": false, "references": "unit(id)"},
+        {"name": "start_date", "type": "DATE", "nullable": true},
+        {"name": "end_date", "type": "DATE", "nullable": true},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_domestic_help_unit_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_domestic_help_unit_help", "columns": ["tenant_id", "domestic_help_id"]},
+        {"name": "idx_domestic_help_unit_unit", "columns": ["tenant_id", "unit_id"]},
+        {"name": "idx_domestic_help_unit_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "blacklist",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "person_name", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "phone", "type": "VARCHAR(20)", "nullable": true},
+        {"name": "reason", "type": "VARCHAR(1000)", "nullable": true},
+        {"name": "blacklisted_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "blacklist_date", "type": "DATE", "nullable": true},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_blacklist_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_blacklist_phone", "columns": ["tenant_id", "phone"]},
+        {"name": "idx_blacklist_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "delivery_log",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "unit_id", "type": "UUID", "nullable": false, "references": "unit(id)"},
+        {"name": "delivery_partner", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "tracking_number", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "delivery_time", "type": "TIMESTAMP", "nullable": false},
+        {"name": "received_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "security_guard_id", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "photo_url", "type": "VARCHAR(1000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_delivery_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_delivery_log_unit", "columns": ["tenant_id", "unit_id"]},
+        {"name": "idx_delivery_log_partner", "columns": ["tenant_id", "delivery_partner"]},
+        {"name": "idx_delivery_log_time", "columns": ["tenant_id", "delivery_time"]}
+      ]
+    }
+  ]
+}

@@ -11,8 +11,8 @@ This tracker is the single source of truth for implementation progress against t
   - commit + push
 
 ## Current Status Summary
-- M1 through M4 are complete with unit and integration coverage.
-- Remaining work is to close full-spec gaps (modules M5+ and production-grade integrations).
+- M1 through M5 are complete with unit and integration coverage.
+- Remaining work is to close full-spec gaps (modules M6+ and production-grade integrations).
 
 ## Milestone Plan
 
@@ -97,7 +97,7 @@ Exit Criteria:
 - Full module-4 endpoint and reporting parity.
 
 ### M5. Visitor Management Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - `/visitors/*`, `/visitor-passes/*`, `/visitor-logs/*`, `/domestic-help/*`, `/blacklist/*`, `/delivery-logs/*`

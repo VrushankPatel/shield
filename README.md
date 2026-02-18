@@ -20,7 +20,7 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - Unit filters and occupancy/member views (`/units/block/{block}`, `/units/available`, `/units/{id}/members`, `/units/{id}/history`)
 - Billing + Payments
 - Accounting + Treasury
-- Visitor Pass
+- Visitor Management
 - Asset
 - Complaint
 - Amenities + Bookings
@@ -65,6 +65,12 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `/vendor-payments/*`
   - `/budgets/*`
   - financial reports: `/reports/income-statement`, `/reports/balance-sheet`, `/reports/cash-flow`, `/reports/trial-balance`, `/reports/fund-summary`, `/reports/export/ca-format`
+- Visitor management expansion:
+  - `/visitors/*`, `/visitors/search`, `/visitors/phone/{phone}`
+  - `/visitor-passes/*`, `/visitor-passes/create`, `/visitor-passes/unit/{unitId}`, `/visitor-passes/date/{date}`, `/visitor-passes/active`, `/visitor-passes/verify/{qrCode}`, `/visitor-passes/pre-approve`
+  - `/visitor-logs/*`, `/visitor-logs/entry`, `/visitor-logs/exit`, `/visitor-logs/pass/{passId}`, `/visitor-logs/date-range`, `/visitor-logs/currently-inside`
+  - `/domestic-help/*`, `/blacklist/*`, `/delivery-logs/*`
+  - legacy compatibility path retained: `/visitors/pass/*`
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
@@ -76,13 +82,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase10_schema.json` -> `V10__phase10_iam_rbac_generated.sql`
   - `db/model/phase11_schema.json` -> `V12__phase11_billing_expansion_generated.sql` (+ `V13__phase11_billing_payment_alterations.sql`)
   - `db/model/phase12_schema.json` -> `V14__phase12_accounting_treasury_generated.sql` (+ `V15__phase12_ledger_entry_extensions.sql`)
+  - `db/model/phase13_schema.json` -> `V16__phase13_visitor_expansion_generated.sql` (+ `V17__phase13_visitor_pass_extensions.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V15`)
+- Flyway migrations (`V1` to `V17`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -245,6 +252,7 @@ Required secrets:
 - `docs/generated/phase10_schema_generated.md`
 - `docs/generated/phase11_schema_generated.md`
 - `docs/generated/phase12_schema_generated.md`
+- `docs/generated/phase13_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`
