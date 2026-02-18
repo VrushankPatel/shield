@@ -97,4 +97,43 @@ class ParkingSlotServiceTest {
 
         assertThrows(BadRequestException.class, () -> parkingSlotService.allocate(slotId, new ParkingSlotAllocateRequest(unitB), principal));
     }
+
+    @Test
+    void deallocateShouldReturnSameWhenAlreadyFree() {
+        UUID slotId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        ParkingSlotEntity slot = new ParkingSlotEntity();
+        slot.setId(slotId);
+        slot.setTenantId(tenantId);
+        slot.setAllocated(false);
+        slot.setSlotNumber("A-01");
+        slot.setParkingType(ParkingType.COVERED);
+        slot.setVehicleType(VehicleType.FOUR_WHEELER);
+
+        when(parkingSlotRepository.findByIdAndDeletedFalse(slotId)).thenReturn(Optional.of(slot));
+
+        ParkingSlotResponse response = parkingSlotService.deallocate(
+                slotId,
+                new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN"));
+
+        assertEquals(false, response.allocated());
+    }
+
+    @Test
+    void deleteShouldRejectAllocatedSlot() {
+        UUID slotId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        ParkingSlotEntity slot = new ParkingSlotEntity();
+        slot.setId(slotId);
+        slot.setTenantId(tenantId);
+        slot.setAllocated(true);
+
+        when(parkingSlotRepository.findByIdAndDeletedFalse(slotId)).thenReturn(Optional.of(slot));
+
+        assertThrows(BadRequestException.class, () -> parkingSlotService.delete(
+                slotId,
+                new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN")));
+    }
 }

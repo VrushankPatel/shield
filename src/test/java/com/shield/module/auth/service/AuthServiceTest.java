@@ -4,22 +4,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.exception.UnauthorizedException;
 import com.shield.module.auth.dto.AuthResponse;
+import com.shield.module.auth.dto.ChangePasswordRequest;
+import com.shield.module.auth.dto.ForgotPasswordRequest;
 import com.shield.module.auth.dto.LoginRequest;
+import com.shield.module.auth.dto.RefreshRequest;
 import com.shield.module.auth.dto.RegisterRequest;
 import com.shield.module.auth.dto.RegisterResponse;
+import com.shield.module.auth.dto.ResetPasswordRequest;
 import com.shield.module.auth.entity.AuthTokenEntity;
 import com.shield.module.auth.entity.AuthTokenType;
 import com.shield.module.auth.repository.AuthTokenRepository;
 import com.shield.module.tenant.entity.TenantEntity;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.unit.entity.UnitEntity;
-import com.shield.module.auth.dto.ChangePasswordRequest;
 import com.shield.module.unit.repository.UnitRepository;
 import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.entity.UserRole;
@@ -27,6 +31,7 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
+import io.jsonwebtoken.Claims;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +72,9 @@ class AuthServiceTest {
 
     @Mock
     private AuditLogService auditLogService;
+
+    @Mock
+    private Claims claims;
 
     private AuthService authService;
 
@@ -190,6 +198,113 @@ class AuthServiceTest {
     }
 
     @Test
+    void refreshShouldIssueNewAccessToken() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        when(jwtService.stripBearerPrefix("Bearer refresh-token")).thenReturn("refresh-token");
+        when(jwtService.isTokenValid("refresh-token")).thenReturn(true);
+        when(jwtService.parseClaims("refresh-token")).thenReturn(claims);
+        when(claims.get("tokenType", String.class)).thenReturn("refresh");
+        when(claims.get("userId", String.class)).thenReturn(userId.toString());
+        when(claims.get("tenantId", String.class)).thenReturn(tenantId.toString());
+        when(claims.getSubject()).thenReturn("admin@shield.dev");
+        when(claims.get("role", String.class)).thenReturn("ADMIN");
+        when(jwtService.generateAccessToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("new-access");
+
+        AuthResponse response = authService.refresh(new RefreshRequest("Bearer refresh-token"));
+
+        assertEquals("new-access", response.accessToken());
+        assertEquals("refresh-token", response.refreshToken());
+    }
+
+    @Test
+    void forgotPasswordShouldCreateResetTokenForExistingUser() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setEmail("resident@shield.dev");
+
+        when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("resident@shield.dev")).thenReturn(Optional.of(user));
+        when(authTokenRepository.findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
+                tenantId,
+                userId,
+                AuthTokenType.PASSWORD_RESET)).thenReturn(List.of());
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> {
+            AuthTokenEntity token = invocation.getArgument(0);
+            token.setId(UUID.randomUUID());
+            token.setTokenValue("reset-token");
+            return token;
+        });
+
+        authService.forgotPassword(new ForgotPasswordRequest("resident@shield.dev"));
+
+        verify(authTokenRepository).save(any(AuthTokenEntity.class));
+        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_FORGOT_PASSWORD_REQUESTED"), eq("users"), eq(userId), any());
+    }
+
+    @Test
+    void resetPasswordShouldConsumeTokenAndUpdatePassword() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        AuthTokenEntity token = new AuthTokenEntity();
+        token.setId(UUID.randomUUID());
+        token.setTenantId(tenantId);
+        token.setUserId(userId);
+        token.setTokenType(AuthTokenType.PASSWORD_RESET);
+        token.setTokenValue("reset-token");
+        token.setExpiresAt(Instant.now().plusSeconds(300));
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setPasswordHash("old-hash");
+
+        when(authTokenRepository.findByTokenValueAndDeletedFalse("reset-token")).thenReturn(Optional.of(token));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("NewPassword#123")).thenReturn("new-hash");
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authService.resetPassword(new ResetPasswordRequest("reset-token", "NewPassword#123"));
+
+        assertEquals("new-hash", user.getPasswordHash());
+        verify(authTokenRepository).save(any(AuthTokenEntity.class));
+        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_PASSWORD_RESET"), eq("users"), eq(userId), any());
+    }
+
+    @Test
+    void verifyEmailShouldActivateUser() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        AuthTokenEntity token = new AuthTokenEntity();
+        token.setId(UUID.randomUUID());
+        token.setTenantId(tenantId);
+        token.setUserId(userId);
+        token.setTokenType(AuthTokenType.EMAIL_VERIFICATION);
+        token.setTokenValue("verify-token");
+        token.setExpiresAt(Instant.now().plusSeconds(300));
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setStatus(UserStatus.INACTIVE);
+
+        when(authTokenRepository.findByTokenValueAndDeletedFalse("verify-token")).thenReturn(Optional.of(token));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authService.verifyEmail("verify-token");
+
+        assertEquals(UserStatus.ACTIVE, user.getStatus());
+        verify(authTokenRepository).save(any(AuthTokenEntity.class));
+    }
+
+    @Test
     void changePasswordShouldFailWhenCurrentPasswordIsInvalid() {
         UUID userId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
@@ -206,5 +321,15 @@ class AuthServiceTest {
 
         assertThrows(UnauthorizedException.class,
                 () -> authService.changePassword(principal, new ChangePasswordRequest("wrong-current", "new-pass-123")));
+    }
+
+    @Test
+    void logoutShouldSkipAuditWhenTokenInvalid() {
+        when(jwtService.stripBearerPrefix("Bearer bad")).thenReturn("bad");
+        when(jwtService.isTokenValid("bad")).thenReturn(false);
+
+        authService.logout("Bearer bad");
+
+        verify(auditLogService, never()).record(any(), any(), any(), any(), any(), any());
     }
 }

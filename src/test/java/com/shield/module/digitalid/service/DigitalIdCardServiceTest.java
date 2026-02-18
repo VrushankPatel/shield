@@ -7,9 +7,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
+import com.shield.module.digitalid.dto.DigitalIdCardResponse;
+import com.shield.module.digitalid.dto.DigitalIdGenerateRequest;
+import com.shield.module.digitalid.dto.DigitalIdRenewRequest;
 import com.shield.module.digitalid.dto.DigitalIdVerificationResponse;
 import com.shield.module.digitalid.entity.DigitalIdCardEntity;
 import com.shield.module.digitalid.repository.DigitalIdCardRepository;
+import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.model.ShieldPrincipal;
 import java.time.LocalDate;
@@ -38,6 +42,53 @@ class DigitalIdCardServiceTest {
     @BeforeEach
     void setUp() {
         digitalIdCardService = new DigitalIdCardService(digitalIdCardRepository, userRepository, auditLogService);
+    }
+
+    @Test
+    void generateShouldCreateActiveCard() {
+        UUID tenantId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.of(user));
+        when(digitalIdCardRepository.save(any(DigitalIdCardEntity.class))).thenAnswer(invocation -> {
+            DigitalIdCardEntity entity = invocation.getArgument(0);
+            entity.setId(UUID.randomUUID());
+            return entity;
+        });
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN");
+        DigitalIdCardResponse response = digitalIdCardService.generate(
+                new DigitalIdGenerateRequest(userId, 365, "https://qr.png"),
+                principal);
+
+        assertEquals(userId, response.userId());
+        assertEquals(true, response.active());
+    }
+
+    @Test
+    void renewShouldReactivateCard() {
+        UUID tenantId = UUID.randomUUID();
+        UUID cardId = UUID.randomUUID();
+
+        DigitalIdCardEntity entity = new DigitalIdCardEntity();
+        entity.setId(cardId);
+        entity.setTenantId(tenantId);
+        entity.setUserId(UUID.randomUUID());
+        entity.setActive(false);
+        entity.setIssueDate(LocalDate.now().minusDays(200));
+        entity.setExpiryDate(LocalDate.now().minusDays(10));
+
+        when(digitalIdCardRepository.findByIdAndDeletedFalse(cardId)).thenReturn(Optional.of(entity));
+        when(digitalIdCardRepository.save(any(DigitalIdCardEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), tenantId, "security@shield.dev", "SECURITY");
+        DigitalIdCardResponse response = digitalIdCardService.renew(cardId, new DigitalIdRenewRequest(100, null), principal);
+
+        assertEquals(true, response.active());
+        assertEquals(LocalDate.now().plusDays(100), response.expiryDate());
     }
 
     @Test
