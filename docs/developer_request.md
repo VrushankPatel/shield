@@ -80,7 +80,12 @@ gh secret set SPRING_MAIL_PASSWORD --repo VrushankPatel/shield
 - Payments provider + API/webhook credentials
 - SMS/OTP provider credentials
 - WhatsApp provider credentials
-- File storage credentials
+- External object storage credentials (optional future switch from local disk storage)
+
+## I. File Storage Mode (Current)
+- Current implementation uses local disk storage only.
+- Configure storage root with `SHIELD_FILES_STORAGE_PATH` (default `./storage/files`).
+- No cloud storage API keys are required for the current baseline.
 
 ## H. Security Notes
 - Never commit credentials in source control.
