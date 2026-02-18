@@ -1,6 +1,7 @@
 # SHIELD Backend
 [![CI](https://github.com/VrushankPatel/shield/actions/workflows/ci.yml/badge.svg)](https://github.com/VrushankPatel/shield/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/VrushankPatel/shield/graph/badge.svg)](https://codecov.io/gh/VrushankPatel/shield)
+[![GHCR](https://img.shields.io/badge/GHCR-shield-blue?logo=github)](https://github.com/VrushankPatel/shield/pkgs/container/shield)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VrushankPatel_shield&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VrushankPatel_shield)
 
 SHIELD stands for **Smart Housing Infrastructure and Entry Log Digitalization**.
@@ -180,12 +181,14 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 1. Maven build + tests + coverage report
 2. Coverage upload to Codecov (when `CODECOV_TOKEN` is configured)
 3. Docker image build
-4. GHCR image publish on `main` pushes
+4. GHCR image publish on `push` events (branches + tags)
 
 Published image tags:
 - `ghcr.io/<github-owner>/shield:<project.version>`
 - `ghcr.io/<github-owner>/shield:<git-sha>`
 - `ghcr.io/<github-owner>/shield:latest`
+- `ghcr.io/<github-owner>/shield:<branch>` for branch pushes (`main`, `release/**`, `feature/**`, `codex/**`)
+- `ghcr.io/<github-owner>/shield:<tag>` for Git tags (`v*`)
 
 Required secrets:
 - `CODECOV_TOKEN` (for coverage upload)

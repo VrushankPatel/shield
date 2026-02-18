@@ -43,7 +43,7 @@ GitHub Actions workflow in `.github/workflows/ci.yml`:
 - Build + tests (unit + integration)
 - Coverage artifact upload
 - Docker image build
-- Docker image publish to GitHub Container Registry (GHCR) on `main` pushes
+- Docker image publish to GitHub Container Registry (GHCR) on push events (configured branches + tags)
 
 ## 6. GHCR Image Publishing
 The pipeline publishes:
