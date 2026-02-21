@@ -52,7 +52,6 @@ jobs:
         run: python scripts/generate_coverage_pdf_report.py target/quality-reports/coverage
 
       - name: SonarCloud analysis
-        if: ${{ secrets.SONAR_TOKEN != '' }}
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
