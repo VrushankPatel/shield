@@ -3,6 +3,7 @@
 ## 1. Unit Tests
 - Framework: JUnit 5 + Mockito
 - Focus:
+  - platform root auth service behavior (first-login change-password, token invalidation, society onboarding guardrails)
   - auth service credential paths
   - notification dispatch behavior (enabled/disabled)
   - announcement publish audience filtering
@@ -24,6 +25,7 @@
 - Framework: Spring Boot Test + Testcontainers + RestAssured
 - Database: singleton PostgreSQL container
 - Focus:
+  - platform root lifecycle flow (root login -> forced change password -> stale token invalidation -> society onboarding)
   - Flyway migrations applied on fresh database
   - full auth -> JWT -> secured endpoint lifecycle
   - identity lifecycle flows (register, verify-email, forgot/reset/change password)

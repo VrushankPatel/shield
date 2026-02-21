@@ -54,4 +54,28 @@ class LoginRateLimiterFilterTest {
         assertEquals(200, response.getStatus());
         assertTrue(chain.getRequest() != null);
     }
+
+    @Test
+    void shouldApplyRateLimitToRootLoginEndpoint() throws Exception {
+        LoginRateLimiterFilter filter = new LoginRateLimiterFilter(objectMapper(), 1, 60);
+
+        MockHttpServletRequest firstRequest = new MockHttpServletRequest("POST", "/api/v1/platform/root/login");
+        firstRequest.setRemoteAddr("127.0.0.1");
+        MockHttpServletResponse firstResponse = new MockHttpServletResponse();
+        MockFilterChain firstChain = new MockFilterChain();
+
+        filter.doFilter(firstRequest, firstResponse, firstChain);
+        assertEquals(200, firstResponse.getStatus());
+        assertTrue(firstChain.getRequest() != null);
+
+        MockHttpServletRequest secondRequest = new MockHttpServletRequest("POST", "/api/v1/platform/root/login");
+        secondRequest.setRemoteAddr("127.0.0.1");
+        MockHttpServletResponse secondResponse = new MockHttpServletResponse();
+        MockFilterChain secondChain = new MockFilterChain();
+
+        filter.doFilter(secondRequest, secondResponse, secondChain);
+        assertEquals(429, secondResponse.getStatus());
+        assertTrue(secondResponse.getContentAsString().contains("Too many login attempts"));
+        assertNull(secondChain.getRequest());
+    }
 }

@@ -54,7 +54,9 @@ public class ApiRequestLoggingFilter extends OncePerRequestFilter {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 if (authentication != null && authentication.getPrincipal() instanceof ShieldPrincipal principal) {
                     tenantId = principal.tenantId();
-                    userId = principal.userId();
+                    if ("USER".equalsIgnoreCase(principal.principalType())) {
+                        userId = principal.userId();
+                    }
                 }
 
                 String requestId = response.getHeader(CorrelationIdFilter.HEADER);

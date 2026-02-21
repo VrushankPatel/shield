@@ -106,6 +106,81 @@ paths:
       responses:
         '200':
           description: Logout successful
+  /platform/root/login:
+    post:
+      tags: [Platform]
+      summary: Root login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [loginId, password]
+              properties:
+                loginId: {type: string, example: root}
+                password: {type: string, example: RootTemporaryPassword123!}
+      responses:
+        '200':
+          description: Root login successful
+  /platform/root/refresh:
+    post:
+      tags: [Platform]
+      summary: Refresh root token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: {type: string}
+      responses:
+        '200':
+          description: Root token refreshed
+  /platform/root/change-password:
+    post:
+      tags: [Platform]
+      summary: Root first-login password change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, mobile, newPassword, confirmNewPassword]
+              properties:
+                email: {type: string, format: email}
+                mobile: {type: string, example: "9999999999"}
+                newPassword: {type: string}
+                confirmNewPassword: {type: string}
+      responses:
+        '200':
+          description: Root password changed
+  /platform/societies:
+    post:
+      tags: [Platform]
+      summary: Create society and tenant admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [societyName, adminName, adminEmail, adminPassword]
+              properties:
+                societyName: {type: string}
+                societyAddress: {type: string}
+                adminName: {type: string}
+                adminEmail: {type: string, format: email}
+                adminPhone: {type: string}
+                adminPassword: {type: string}
+      responses:
+        '200':
+          description: Society and admin created
 
   /kyc/upload:
     post:

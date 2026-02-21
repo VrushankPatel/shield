@@ -18,11 +18,13 @@
 ## 4. Security and Secrets
 - JWT-only authentication (stateless).
 - RBAC is mandatory for protected endpoints.
+- Platform root session invalidation must use JWT claim `tokenVersion`.
 - Never commit credentials, tokens, private keys, or secrets.
 - Use env vars and CI secrets for all sensitive values.
 
 ## 5. Database and Migration Rules
 - Schema changes only via Flyway under `db/migration`.
+- Keep `docs/database-model.sql` regenerated after schema changes.
 - For generated domain tables, update the source model file first (for example `db/model/phase2_schema.json`, `db/model/phase3_schema.json`, `db/model/phase4_schema.json`, `db/model/phase5_schema.json`, `db/model/phase6_schema.json`, `db/model/phase7_schema.json`, `db/model/phase8_schema.json`, `db/model/phase10_schema.json`), then regenerate artifacts with `scripts/generate_db_artifacts.py`.
 - Migrations are immutable once merged.
 - Include indexes/constraints for new query paths.

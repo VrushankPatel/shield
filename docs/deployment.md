@@ -58,6 +58,12 @@ Persistent storage paths:
 - PostgreSQL: `db_files/postgres/`
 - Redis AOF: `db_files/redis/`
 
+## 5. First Login Hardening
+- Platform root login id is fixed as `root`.
+- If no root password exists at startup, SHIELD generates one and logs it once.
+- Immediately rotate that password through `POST /api/v1/platform/root/change-password`.
+- Old root JWT sessions become invalid automatically after password change.
+
 These directories are mounted into containers and survive container recreation/restarts.
 
 ## 5. Required Environment Variables

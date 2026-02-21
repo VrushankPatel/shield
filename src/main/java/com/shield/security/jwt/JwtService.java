@@ -36,11 +36,19 @@ public class JwtService {
     }
 
     public String generateAccessToken(UUID userId, UUID tenantId, String email, String role) {
-        return generateToken(userId, tenantId, email, role, accessTokenTtlMinutes, "access");
+        return generateToken(userId, tenantId, email, role, accessTokenTtlMinutes, "access", "USER", 0L);
     }
 
     public String generateRefreshToken(UUID userId, UUID tenantId, String email, String role) {
-        return generateToken(userId, tenantId, email, role, refreshTokenTtlMinutes, "refresh");
+        return generateToken(userId, tenantId, email, role, refreshTokenTtlMinutes, "refresh", "USER", 0L);
+    }
+
+    public String generateRootAccessToken(UUID rootAccountId, String loginId, long tokenVersion) {
+        return generateToken(rootAccountId, null, loginId, "ROOT", accessTokenTtlMinutes, "access", "ROOT", tokenVersion);
+    }
+
+    public String generateRootRefreshToken(UUID rootAccountId, String loginId, long tokenVersion) {
+        return generateToken(rootAccountId, null, loginId, "ROOT", refreshTokenTtlMinutes, "refresh", "ROOT", tokenVersion);
     }
 
     public Claims parseClaims(String token) {
@@ -73,16 +81,22 @@ public class JwtService {
             String email,
             String role,
             long ttlMinutes,
-            String tokenType) {
+            String tokenType,
+            String principalType,
+            long tokenVersion) {
 
         Instant now = Instant.now();
         Instant expiration = now.plus(ttlMinutes, ChronoUnit.MINUTES);
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId.toString());
-        claims.put("tenantId", tenantId.toString());
+        if (tenantId != null) {
+            claims.put("tenantId", tenantId.toString());
+        }
         claims.put("role", role);
         claims.put("tokenType", tokenType);
+        claims.put("principalType", principalType);
+        claims.put("tokenVersion", tokenVersion);
 
         return Jwts.builder()
                 .subject(email)

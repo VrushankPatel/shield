@@ -48,6 +48,8 @@ Cross-cutting modules:
 - `tenant_id` column in tenant-owned tables
 - Tenant extracted from JWT claims
 - Hibernate tenant filter enabled during transactional service execution
+- Platform root account is stored in `platform_root_account` and is not tenant-scoped
+- Root JWTs carry `principalType=ROOT` and `tokenVersion` for server-side session invalidation
 
 ## Request Flow (secured endpoint)
 1. Correlation ID filter injects request id

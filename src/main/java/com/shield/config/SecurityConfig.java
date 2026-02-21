@@ -15,8 +15,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
@@ -61,6 +59,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/forgot-password",
                                 "/api/v1/auth/reset-password",
                                 "/api/v1/auth/logout",
+                                "/api/v1/platform/root/login",
+                                "/api/v1/platform/root/refresh",
                                 "/api/v1/payments/webhook/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/verify-email/**").permitAll()
@@ -74,10 +74,5 @@ public class SecurityConfig {
                 .addFilterAfter(apiRequestLoggingFilter, TenantContextFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }

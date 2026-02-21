@@ -77,6 +77,8 @@ public class LoginRateLimiterFilter extends OncePerRequestFilter {
             return false;
         }
         String uri = request.getRequestURI();
-        return "/api/v1/auth/login".equals(uri) || "/api/v1/auth/login/otp/send".equals(uri);
+        return "/api/v1/auth/login".equals(uri)
+                || "/api/v1/auth/login/otp/send".equals(uri)
+                || "/api/v1/platform/root/login".equals(uri);
     }
 }

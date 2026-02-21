@@ -53,6 +53,9 @@ public class SystemLogService {
         if (authentication == null || !(authentication.getPrincipal() instanceof ShieldPrincipal principal)) {
             return null;
         }
+        if (!"USER".equalsIgnoreCase(principal.principalType())) {
+            return null;
+        }
         return principal.userId();
     }
 
