@@ -102,7 +102,7 @@ class PlatformRootServiceTest {
         assertEquals(32, generatedPassword.length());
         assertEquals("encoded-root-password", rootAccount.getPasswordHash());
         assertTrue(rootAccount.isPasswordChangeRequired());
-        verify(auditLogService).record(eq(null), eq(rootId), eq("ROOT_PASSWORD_GENERATED"), eq("platform_root_account"), eq(rootId), eq(null));
+        verify(auditLogService).logEvent(eq(null), eq(rootId), eq("ROOT_PASSWORD_GENERATED"), eq("platform_root_account"), eq(rootId), eq(null));
     }
 
     @Test
@@ -150,7 +150,7 @@ class PlatformRootServiceTest {
 
         assertEquals(0, rootAccount.getFailedLoginAttempts());
         assertTrue(rootAccount.getLockedUntil().isAfter(Instant.now()));
-        verify(auditLogService).record(
+        verify(auditLogService).logEvent(
                 eq(null),
                 eq(rootId),
                 eq("ROOT_LOGIN_FAILED"),
@@ -177,7 +177,7 @@ class PlatformRootServiceTest {
                 () -> platformRootService.login(new RootLoginRequest("root", "RootPassword#123")));
 
         verify(passwordEncoder, never()).matches(anyString(), anyString());
-        verify(auditLogService).record(
+        verify(auditLogService).logEvent(
                 eq(null),
                 eq(rootId),
                 eq("ROOT_LOGIN_BLOCKED"),

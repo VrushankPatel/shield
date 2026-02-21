@@ -37,7 +37,7 @@ public class AccountingService {
         entity.setEntryDate(request.entryDate());
 
         LedgerEntryEntity saved = ledgerEntryRepository.save(entity);
-        auditLogService.record(tenantId, null, "LEDGER_ENTRY_CREATED", "ledger_entry", saved.getId(), null);
+        auditLogService.logEvent(tenantId, null, "LEDGER_ENTRY_CREATED", "ledger_entry", saved.getId(), null);
         return toResponse(saved);
     }
 

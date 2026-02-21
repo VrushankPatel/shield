@@ -67,7 +67,7 @@ public class PollService {
             pollOptionRepository.save(option);
         }
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "POLL_CREATED", "poll", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "POLL_CREATED", "poll", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -97,7 +97,7 @@ public class PollService {
         entity.setDescription(request.description());
         entity.setExpiresAt(request.expiresAt());
         PollEntity saved = pollRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "POLL_UPDATED", "poll", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "POLL_UPDATED", "poll", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -105,7 +105,7 @@ public class PollService {
         PollEntity entity = findPoll(id);
         entity.setDeleted(true);
         pollRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "POLL_DELETED", "poll", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "POLL_DELETED", "poll", id, null);
     }
 
     public PollResponse activate(UUID id, ShieldPrincipal principal) {
@@ -115,7 +115,7 @@ public class PollService {
         }
         entity.setStatus(PollStatus.ACTIVE);
         PollEntity saved = pollRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "POLL_ACTIVATED", "poll", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "POLL_ACTIVATED", "poll", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -126,7 +126,7 @@ public class PollService {
         }
         entity.setStatus(PollStatus.CLOSED);
         PollEntity saved = pollRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "POLL_DEACTIVATED", "poll", saved.getId(),
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "POLL_DEACTIVATED", "poll", saved.getId(),
                 null);
         return toResponse(saved);
     }
@@ -154,7 +154,7 @@ public class PollService {
         vote.setUserId(principal.userId());
         PollVoteEntity saved = pollVoteRepository.save(vote);
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "POLL_VOTED", "poll", pollId, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "POLL_VOTED", "poll", pollId, null);
         return new PollVoteResponse(saved.getId(), saved.getPollId(), saved.getOptionId(), saved.getUserId(),
                 saved.getCreatedAt());
     }

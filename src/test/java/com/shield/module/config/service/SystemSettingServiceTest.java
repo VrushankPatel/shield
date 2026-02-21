@@ -77,7 +77,7 @@ class SystemSettingServiceTest {
 
         assertEquals("billing", response.module());
         assertTrue(response.enabled());
-        verify(auditLogService).record(tenantId, userId, "MODULE_SETTING_TOGGLED", "system_setting", id, null);
+        verify(auditLogService).logEvent(tenantId, userId, "MODULE_SETTING_TOGGLED", "system_setting", id, null);
     }
 
     @Test
@@ -116,7 +116,7 @@ class SystemSettingServiceTest {
 
         assertEquals("BILLING", response.group());
         assertEquals("HYBRID", response.value().get("mode").asText());
-        verify(auditLogService).record(tenantId, userId, "BILLING_FORMULA_UPDATED", "system_setting", id, null);
+        verify(auditLogService).logEvent(tenantId, userId, "BILLING_FORMULA_UPDATED", "system_setting", id, null);
     }
 
     @Test

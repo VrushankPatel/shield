@@ -57,6 +57,12 @@ public class AmenitiesService {
 
     private static final List<AmenityBookingStatus> BLOCKING_BOOKING_STATUSES =
             List.of(AmenityBookingStatus.PENDING, AmenityBookingStatus.CONFIRMED);
+    private static final String ENTITY_AMENITY = "amenity";
+    private static final String ENTITY_AMENITY_TIME_SLOT = "amenity_time_slot";
+    private static final String ENTITY_AMENITY_PRICING = "amenity_pricing";
+    private static final String ENTITY_AMENITY_BOOKING = "amenity_booking";
+    private static final String ENTITY_AMENITY_BOOKING_RULE = "amenity_booking_rule";
+    private static final String ENTITY_AMENITY_CANCELLATION_POLICY = "amenity_cancellation_policy";
 
     private final AmenityRepository amenityRepository;
     private final AmenityBookingRepository amenityBookingRepository;
@@ -71,12 +77,10 @@ public class AmenitiesService {
 
         AmenityEntity entity = new AmenityEntity();
         entity.setTenantId(tenantId);
-        applyAmenityFields(entity, request.name(), request.amenityType(), request.description(), request.capacity(),
-                request.location(), request.bookingAllowed(), request.advanceBookingDays(), request.active(),
-                request.requiresApproval());
+        applyAmenityFields(entity, toAmenityFieldValues(request));
 
         AmenityEntity saved = amenityRepository.save(entity);
-        auditLogService.record(tenantId, null, "AMENITY_CREATED", "amenity", saved.getId(), null);
+        auditLogService.logEvent(tenantId, null, "AMENITY_CREATED", ENTITY_AMENITY, saved.getId(), null);
         return toAmenityResponse(saved);
     }
 
@@ -92,12 +96,10 @@ public class AmenitiesService {
 
     public AmenityResponse update(UUID id, AmenityUpdateRequest request) {
         AmenityEntity entity = getAmenityEntity(id);
-        applyAmenityFields(entity, request.name(), request.amenityType(), request.description(), request.capacity(),
-                request.location(), request.bookingAllowed(), request.advanceBookingDays(), request.active(),
-                request.requiresApproval());
+        applyAmenityFields(entity, toAmenityFieldValues(request));
 
         AmenityEntity saved = amenityRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_UPDATED", "amenity", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_UPDATED", ENTITY_AMENITY, saved.getId(), null);
         return toAmenityResponse(saved);
     }
 
@@ -105,7 +107,7 @@ public class AmenitiesService {
         AmenityEntity entity = getAmenityEntity(id);
         entity.setDeleted(true);
         amenityRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "AMENITY_DELETED", "amenity", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "AMENITY_DELETED", ENTITY_AMENITY, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -126,7 +128,7 @@ public class AmenitiesService {
         AmenityEntity entity = getAmenityEntity(id);
         entity.setActive(true);
         AmenityEntity saved = amenityRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_ACTIVATED", "amenity", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_ACTIVATED", ENTITY_AMENITY, saved.getId(), null);
         return toAmenityResponse(saved);
     }
 
@@ -134,7 +136,7 @@ public class AmenitiesService {
         AmenityEntity entity = getAmenityEntity(id);
         entity.setActive(false);
         AmenityEntity saved = amenityRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_DEACTIVATED", "amenity", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_DEACTIVATED", ENTITY_AMENITY, saved.getId(), null);
         return toAmenityResponse(saved);
     }
 
@@ -160,7 +162,7 @@ public class AmenitiesService {
         entity.setActive(request.active() == null || request.active());
 
         AmenityTimeSlotEntity saved = amenityTimeSlotRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_TIME_SLOT_CREATED", "amenity_time_slot", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_TIME_SLOT_CREATED", ENTITY_AMENITY_TIME_SLOT, saved.getId(), null);
         return toAmenityTimeSlotResponse(saved);
     }
 
@@ -174,7 +176,7 @@ public class AmenitiesService {
         entity.setActive(request.active() == null || request.active());
 
         AmenityTimeSlotEntity saved = amenityTimeSlotRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_TIME_SLOT_UPDATED", "amenity_time_slot", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_TIME_SLOT_UPDATED", ENTITY_AMENITY_TIME_SLOT, saved.getId(), null);
         return toAmenityTimeSlotResponse(saved);
     }
 
@@ -182,14 +184,14 @@ public class AmenitiesService {
         AmenityTimeSlotEntity entity = getAmenityTimeSlotEntity(id);
         entity.setDeleted(true);
         amenityTimeSlotRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "AMENITY_TIME_SLOT_DELETED", "amenity_time_slot", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "AMENITY_TIME_SLOT_DELETED", ENTITY_AMENITY_TIME_SLOT, entity.getId(), null);
     }
 
     public AmenityTimeSlotResponse activateTimeSlot(UUID id) {
         AmenityTimeSlotEntity entity = getAmenityTimeSlotEntity(id);
         entity.setActive(true);
         AmenityTimeSlotEntity saved = amenityTimeSlotRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_TIME_SLOT_ACTIVATED", "amenity_time_slot", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_TIME_SLOT_ACTIVATED", ENTITY_AMENITY_TIME_SLOT, saved.getId(), null);
         return toAmenityTimeSlotResponse(saved);
     }
 
@@ -197,7 +199,7 @@ public class AmenitiesService {
         AmenityTimeSlotEntity entity = getAmenityTimeSlotEntity(id);
         entity.setActive(false);
         AmenityTimeSlotEntity saved = amenityTimeSlotRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_TIME_SLOT_DEACTIVATED", "amenity_time_slot", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_TIME_SLOT_DEACTIVATED", ENTITY_AMENITY_TIME_SLOT, saved.getId(), null);
         return toAmenityTimeSlotResponse(saved);
     }
 
@@ -225,7 +227,7 @@ public class AmenitiesService {
         entity.setPeakHourMultiplier(request.peakHourMultiplier());
 
         AmenityPricingEntity saved = amenityPricingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_PRICING_CREATED", "amenity_pricing", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_PRICING_CREATED", ENTITY_AMENITY_PRICING, saved.getId(), null);
         return toAmenityPricingResponse(saved);
     }
 
@@ -241,7 +243,7 @@ public class AmenitiesService {
         entity.setPeakHourMultiplier(request.peakHourMultiplier());
 
         AmenityPricingEntity saved = amenityPricingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_PRICING_UPDATED", "amenity_pricing", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_PRICING_UPDATED", ENTITY_AMENITY_PRICING, saved.getId(), null);
         return toAmenityPricingResponse(saved);
     }
 
@@ -249,7 +251,7 @@ public class AmenitiesService {
         AmenityPricingEntity entity = getAmenityPricingEntity(id);
         entity.setDeleted(true);
         amenityPricingRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "AMENITY_PRICING_DELETED", "amenity_pricing", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "AMENITY_PRICING_DELETED", ENTITY_AMENITY_PRICING, entity.getId(), null);
     }
 
     public AmenityBookingResponse book(UUID amenityId, AmenityBookingCreateRequest request) {
@@ -297,7 +299,7 @@ public class AmenitiesService {
         entity.setNotes(request.notes());
 
         AmenityBookingEntity saved = amenityBookingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), principal.userId(), "AMENITY_BOOKING_CREATED", "amenity_booking", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), principal.userId(), "AMENITY_BOOKING_CREATED", ENTITY_AMENITY_BOOKING, saved.getId(), null);
         return toAmenityBookingResponse(saved);
     }
 
@@ -345,7 +347,7 @@ public class AmenitiesService {
         }
 
         AmenityBookingEntity saved = amenityBookingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_BOOKING_UPDATED", "amenity_booking", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_BOOKING_UPDATED", ENTITY_AMENITY_BOOKING, saved.getId(), null);
         return toAmenityBookingResponse(saved);
     }
 
@@ -353,7 +355,7 @@ public class AmenitiesService {
         AmenityBookingEntity entity = getAmenityBookingEntity(id);
         entity.setDeleted(true);
         amenityBookingRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "AMENITY_BOOKING_DELETED", "amenity_booking", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "AMENITY_BOOKING_DELETED", ENTITY_AMENITY_BOOKING, entity.getId(), null);
     }
 
     public AmenityBookingResponse approveBooking(UUID id) {
@@ -364,7 +366,7 @@ public class AmenitiesService {
         entity.setApprovalDate(Instant.now());
 
         AmenityBookingEntity saved = amenityBookingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), principal.userId(), "AMENITY_BOOKING_APPROVED", "amenity_booking", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), principal.userId(), "AMENITY_BOOKING_APPROVED", ENTITY_AMENITY_BOOKING, saved.getId(), null);
         return toAmenityBookingResponse(saved);
     }
 
@@ -374,7 +376,7 @@ public class AmenitiesService {
         entity.setCancellationDate(Instant.now());
 
         AmenityBookingEntity saved = amenityBookingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_BOOKING_REJECTED", "amenity_booking", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_BOOKING_REJECTED", ENTITY_AMENITY_BOOKING, saved.getId(), null);
         return toAmenityBookingResponse(saved);
     }
 
@@ -384,7 +386,7 @@ public class AmenitiesService {
         entity.setCancellationDate(Instant.now());
 
         AmenityBookingEntity saved = amenityBookingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_BOOKING_CANCELLED", "amenity_booking", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_BOOKING_CANCELLED", ENTITY_AMENITY_BOOKING, saved.getId(), null);
         return toAmenityBookingResponse(saved);
     }
 
@@ -393,7 +395,7 @@ public class AmenitiesService {
         entity.setStatus(AmenityBookingStatus.COMPLETED);
 
         AmenityBookingEntity saved = amenityBookingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_BOOKING_COMPLETED", "amenity_booking", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_BOOKING_COMPLETED", ENTITY_AMENITY_BOOKING, saved.getId(), null);
         return toAmenityBookingResponse(saved);
     }
 
@@ -456,7 +458,7 @@ public class AmenitiesService {
         entity.setActive(request.active() == null || request.active());
 
         AmenityBookingRuleEntity saved = amenityBookingRuleRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_BOOKING_RULE_CREATED", "amenity_booking_rule", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_BOOKING_RULE_CREATED", ENTITY_AMENITY_BOOKING_RULE, saved.getId(), null);
         return toAmenityBookingRuleResponse(saved);
     }
 
@@ -467,7 +469,7 @@ public class AmenitiesService {
         entity.setActive(request.active() == null || request.active());
 
         AmenityBookingRuleEntity saved = amenityBookingRuleRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_BOOKING_RULE_UPDATED", "amenity_booking_rule", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_BOOKING_RULE_UPDATED", ENTITY_AMENITY_BOOKING_RULE, saved.getId(), null);
         return toAmenityBookingRuleResponse(saved);
     }
 
@@ -475,7 +477,7 @@ public class AmenitiesService {
         AmenityBookingRuleEntity entity = getAmenityBookingRuleEntity(id);
         entity.setDeleted(true);
         amenityBookingRuleRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "AMENITY_BOOKING_RULE_DELETED", "amenity_booking_rule", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "AMENITY_BOOKING_RULE_DELETED", ENTITY_AMENITY_BOOKING_RULE, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -497,7 +499,7 @@ public class AmenitiesService {
         entity.setRefundPercentage(request.refundPercentage());
 
         AmenityCancellationPolicyEntity saved = amenityCancellationPolicyRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_CANCELLATION_POLICY_CREATED", "amenity_cancellation_policy", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_CANCELLATION_POLICY_CREATED", ENTITY_AMENITY_CANCELLATION_POLICY, saved.getId(), null);
         return toAmenityCancellationPolicyResponse(saved);
     }
 
@@ -507,7 +509,7 @@ public class AmenitiesService {
         entity.setRefundPercentage(request.refundPercentage());
 
         AmenityCancellationPolicyEntity saved = amenityCancellationPolicyRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "AMENITY_CANCELLATION_POLICY_UPDATED", "amenity_cancellation_policy", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "AMENITY_CANCELLATION_POLICY_UPDATED", ENTITY_AMENITY_CANCELLATION_POLICY, saved.getId(), null);
         return toAmenityCancellationPolicyResponse(saved);
     }
 
@@ -515,7 +517,7 @@ public class AmenitiesService {
         AmenityCancellationPolicyEntity entity = getAmenityCancellationPolicyEntity(id);
         entity.setDeleted(true);
         amenityCancellationPolicyRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "AMENITY_CANCELLATION_POLICY_DELETED", "amenity_cancellation_policy", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "AMENITY_CANCELLATION_POLICY_DELETED", ENTITY_AMENITY_CANCELLATION_POLICY, entity.getId(), null);
     }
 
     private AmenityEntity getAmenityEntity(UUID amenityId) {
@@ -548,27 +550,42 @@ public class AmenitiesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Amenity cancellation policy not found: " + id));
     }
 
-    private void applyAmenityFields(
-            AmenityEntity entity,
-            String name,
-            String amenityType,
-            String description,
-            Integer capacity,
-            String location,
-            Boolean bookingAllowed,
-            Integer advanceBookingDays,
-            Boolean active,
-            boolean requiresApproval) {
+    private AmenityFieldValues toAmenityFieldValues(AmenityCreateRequest request) {
+        return new AmenityFieldValues(
+                request.name(),
+                request.amenityType(),
+                request.description(),
+                request.capacity(),
+                request.location(),
+                request.bookingAllowed(),
+                request.advanceBookingDays(),
+                request.active(),
+                request.requiresApproval());
+    }
 
-        entity.setName(name);
-        entity.setAmenityType(amenityType);
-        entity.setDescription(description);
-        entity.setCapacity(capacity);
-        entity.setLocation(location);
-        entity.setBookingAllowed(bookingAllowed == null || bookingAllowed);
-        entity.setAdvanceBookingDays(advanceBookingDays == null ? 30 : advanceBookingDays);
-        entity.setRequiresApproval(requiresApproval);
-        entity.setActive(active == null || active);
+    private AmenityFieldValues toAmenityFieldValues(AmenityUpdateRequest request) {
+        return new AmenityFieldValues(
+                request.name(),
+                request.amenityType(),
+                request.description(),
+                request.capacity(),
+                request.location(),
+                request.bookingAllowed(),
+                request.advanceBookingDays(),
+                request.active(),
+                request.requiresApproval());
+    }
+
+    private void applyAmenityFields(AmenityEntity entity, AmenityFieldValues values) {
+        entity.setName(values.name());
+        entity.setAmenityType(values.amenityType());
+        entity.setDescription(values.description());
+        entity.setCapacity(values.capacity());
+        entity.setLocation(values.location());
+        entity.setBookingAllowed(values.bookingAllowed() == null || values.bookingAllowed());
+        entity.setAdvanceBookingDays(values.advanceBookingDays() == null ? 30 : values.advanceBookingDays());
+        entity.setRequiresApproval(values.requiresApproval());
+        entity.setActive(values.active() == null || values.active());
     }
 
     private void validateTimeSlot(java.time.LocalTime start, java.time.LocalTime end) {
@@ -707,5 +724,17 @@ public class AmenitiesService {
                 entity.getAmenityId(),
                 entity.getDaysBeforeBooking(),
                 entity.getRefundPercentage());
+    }
+
+    private record AmenityFieldValues(
+            String name,
+            String amenityType,
+            String description,
+            Integer capacity,
+            String location,
+            Boolean bookingAllowed,
+            Integer advanceBookingDays,
+            Boolean active,
+            boolean requiresApproval) {
     }
 }

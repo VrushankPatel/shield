@@ -44,7 +44,7 @@ public class AnnouncementAttachmentService {
         entity.setContentType(request.contentType());
 
         AnnouncementAttachmentEntity saved = attachmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ATTACHMENT_ADDED", "announcement_attachment",
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ATTACHMENT_ADDED", "announcement_attachment",
                 saved.getId(), null);
         return toResponse(saved);
     }
@@ -63,7 +63,7 @@ public class AnnouncementAttachmentService {
 
         entity.setDeleted(true);
         attachmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ATTACHMENT_DELETED",
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ATTACHMENT_DELETED",
                 "announcement_attachment", attachmentId, null);
     }
 

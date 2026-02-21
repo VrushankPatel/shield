@@ -66,7 +66,7 @@ public class UtilityService {
         entity.setLocation(request.location());
 
         WaterTankEntity saved = waterTankRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WATER_TANK_CREATED", "water_tank", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_CREATED", "water_tank", saved.getId(), null);
         return toWaterTankResponse(saved);
     }
 
@@ -92,7 +92,7 @@ public class UtilityService {
         entity.setLocation(request.location());
 
         WaterTankEntity saved = waterTankRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WATER_TANK_UPDATED", "water_tank", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_UPDATED", "water_tank", saved.getId(), null);
         return toWaterTankResponse(saved);
     }
 
@@ -102,7 +102,7 @@ public class UtilityService {
 
         entity.setDeleted(true);
         waterTankRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WATER_TANK_DELETED", "water_tank", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_DELETED", "water_tank", entity.getId(), null);
     }
 
     public WaterLevelLogResponse createWaterLevelLog(WaterLevelLogCreateRequest request, ShieldPrincipal principal) {
@@ -118,7 +118,7 @@ public class UtilityService {
         entity.setRecordedBy(principal.userId());
 
         WaterLevelLogEntity saved = waterLevelLogRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WATER_LEVEL_LOG_CREATED", "water_level_log", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_LEVEL_LOG_CREATED", "water_level_log", saved.getId(), null);
         return toWaterLevelLogResponse(saved);
     }
 
@@ -149,7 +149,7 @@ public class UtilityService {
         entity.setUnitId(request.unitId());
 
         ElectricityMeterEntity saved = electricityMeterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_CREATED", "electricity_meter", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_CREATED", "electricity_meter", saved.getId(), null);
         return toElectricityMeterResponse(saved);
     }
 
@@ -186,7 +186,7 @@ public class UtilityService {
         entity.setUnitId(request.unitId());
 
         ElectricityMeterEntity saved = electricityMeterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_UPDATED", "electricity_meter", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_UPDATED", "electricity_meter", saved.getId(), null);
         return toElectricityMeterResponse(saved);
     }
 
@@ -196,7 +196,7 @@ public class UtilityService {
 
         entity.setDeleted(true);
         electricityMeterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_DELETED", "electricity_meter", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_DELETED", "electricity_meter", entity.getId(), null);
     }
 
     public ElectricityReadingResponse createElectricityReading(ElectricityReadingCreateRequest request, ShieldPrincipal principal) {
@@ -213,7 +213,7 @@ public class UtilityService {
         entity.setRecordedBy(principal.userId());
 
         ElectricityReadingEntity saved = electricityReadingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ELECTRICITY_READING_CREATED", "electricity_reading", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_READING_CREATED", "electricity_reading", saved.getId(), null);
         return toElectricityReadingResponse(saved);
     }
 

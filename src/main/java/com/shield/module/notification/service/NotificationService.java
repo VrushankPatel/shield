@@ -32,6 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class NotificationService {
 
+    private static final String EMAIL_DISABLED_REASON = "Email notifications are disabled";
+    private static final String EMAIL_PREFERENCE_DISABLED_REASON = "Recipient disabled email notifications";
+
     private final JavaMailSender mailSender;
     private final NotificationEmailLogRepository notificationEmailLogRepository;
     private final NotificationPreferenceRepository notificationPreferenceRepository;
@@ -71,7 +74,7 @@ public class NotificationService {
                 "MANUAL",
                 principal.userId());
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 "NOTIFICATION_MANUAL_SENT",
@@ -101,7 +104,7 @@ public class NotificationService {
                 "ANNOUNCEMENT",
                 announcementId);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 tenantId,
                 initiatedBy,
                 "ANNOUNCEMENT_EMAIL_DISPATCHED",
@@ -172,36 +175,41 @@ public class NotificationService {
         int skipped = 0;
 
         for (DispatchTarget target : targets) {
+            DispatchStatus dispatchStatus;
             if (!isEligibleForEmail(tenantId, target.userId())) {
-                persistLog(tenantId, target, subject, body, NotificationDeliveryStatus.SKIPPED,
-                        "Recipient disabled email notifications", sourceType, sourceId, null);
+                dispatchStatus = new DispatchStatus(NotificationDeliveryStatus.SKIPPED, EMAIL_PREFERENCE_DISABLED_REASON, null);
                 skipped++;
-                continue;
-            }
-
-            if (!emailEnabled) {
-                persistLog(tenantId, target, subject, body, NotificationDeliveryStatus.SKIPPED,
-                        "Email notifications are disabled", sourceType, sourceId, null);
+            } else if (!emailEnabled) {
+                dispatchStatus = new DispatchStatus(NotificationDeliveryStatus.SKIPPED, EMAIL_DISABLED_REASON, null);
                 skipped++;
-                continue;
+            } else {
+                try {
+                    SimpleMailMessage message = new SimpleMailMessage();
+                    message.setFrom(fromAddress);
+                    message.setTo(target.email());
+                    message.setSubject(subject);
+                    message.setText(body);
+                    mailSender.send(message);
+
+                    dispatchStatus = new DispatchStatus(NotificationDeliveryStatus.SENT, null, Instant.now());
+                    sent++;
+                } catch (Exception ex) {
+                    dispatchStatus = new DispatchStatus(NotificationDeliveryStatus.FAILED, ex.getMessage(), null);
+                    failed++;
+                }
             }
 
-            try {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setFrom(fromAddress);
-                message.setTo(target.email());
-                message.setSubject(subject);
-                message.setText(body);
-                mailSender.send(message);
-
-                persistLog(tenantId, target, subject, body, NotificationDeliveryStatus.SENT,
-                        null, sourceType, sourceId, Instant.now());
-                sent++;
-            } catch (Exception ex) {
-                persistLog(tenantId, target, subject, body, NotificationDeliveryStatus.FAILED,
-                        ex.getMessage(), sourceType, sourceId, null);
-                failed++;
-            }
+            persistLog(
+                    tenantId,
+                    target,
+                    new DispatchLog(
+                            subject,
+                            body,
+                            dispatchStatus.status(),
+                            dispatchStatus.error(),
+                            sourceType,
+                            sourceId,
+                            dispatchStatus.sentAt()));
         }
 
         return new NotificationDispatchResponse(targets.size(), sent, failed, skipped);
@@ -220,25 +228,19 @@ public class NotificationService {
     private void persistLog(
             UUID tenantId,
             DispatchTarget target,
-            String subject,
-            String body,
-            NotificationDeliveryStatus status,
-            String error,
-            String sourceType,
-            UUID sourceId,
-            Instant sentAt) {
+            DispatchLog dispatchLog) {
 
         NotificationEmailLogEntity log = new NotificationEmailLogEntity();
         log.setTenantId(tenantId);
         log.setUserId(target.userId());
         log.setRecipientEmail(target.email());
-        log.setSubject(subject);
-        log.setBody(body);
-        log.setStatus(status);
-        log.setErrorMessage(error);
-        log.setSourceType(sourceType);
-        log.setSourceId(sourceId);
-        log.setSentAt(sentAt);
+        log.setSubject(dispatchLog.subject());
+        log.setBody(dispatchLog.body());
+        log.setStatus(dispatchLog.status());
+        log.setErrorMessage(dispatchLog.error());
+        log.setSourceType(dispatchLog.sourceType());
+        log.setSourceId(dispatchLog.sourceId());
+        log.setSentAt(dispatchLog.sentAt());
         notificationEmailLogRepository.save(log);
     }
 
@@ -269,6 +271,19 @@ public class NotificationService {
     }
 
     private record DispatchTarget(UUID userId, String email) {
+    }
+
+    private record DispatchLog(
+            String subject,
+            String body,
+            NotificationDeliveryStatus status,
+            String error,
+            String sourceType,
+            UUID sourceId,
+            Instant sentAt) {
+    }
+
+    private record DispatchStatus(NotificationDeliveryStatus status, String error, Instant sentAt) {
     }
 
     private DispatchTarget resolveDispatchTarget(UUID tenantId, String recipientEmail) {

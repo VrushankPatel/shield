@@ -47,7 +47,7 @@ public class UnitService {
         unit.setStatus(request.status());
 
         UnitEntity saved = unitRepository.save(unit);
-        auditLogService.record(tenantId, null, "UNIT_CREATED", "unit", saved.getId(), null);
+        auditLogService.logEvent(tenantId, null, "UNIT_CREATED", "unit", saved.getId(), null);
         return unitMapper.toResponse(saved);
     }
 
@@ -84,7 +84,7 @@ public class UnitService {
         unit.setStatus(request.status());
 
         UnitEntity saved = unitRepository.save(unit);
-        auditLogService.record(saved.getTenantId(), null, "UNIT_UPDATED", "unit", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "UNIT_UPDATED", "unit", saved.getId(), null);
         return unitMapper.toResponse(saved);
     }
 
@@ -94,7 +94,7 @@ public class UnitService {
 
         unit.setDeleted(true);
         unitRepository.save(unit);
-        auditLogService.record(unit.getTenantId(), null, "UNIT_DELETED", "unit", unit.getId(), null);
+        auditLogService.logEvent(unit.getTenantId(), null, "UNIT_DELETED", "unit", unit.getId(), null);
     }
 
     @Transactional(readOnly = true)

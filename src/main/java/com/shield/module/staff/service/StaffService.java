@@ -61,7 +61,7 @@ public class StaffService {
         entity.setActive(request.active());
 
         StaffEntity saved = staffRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_CREATED", "staff", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CREATED", "staff", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -104,7 +104,7 @@ public class StaffService {
         entity.setActive(request.active());
 
         StaffEntity saved = staffRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_UPDATED", "staff", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_UPDATED", "staff", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -114,7 +114,7 @@ public class StaffService {
 
         entity.setActive(request.active());
         StaffEntity saved = staffRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_STATUS_UPDATED", "staff", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_STATUS_UPDATED", "staff", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -124,7 +124,7 @@ public class StaffService {
 
         entity.setDeleted(true);
         staffRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_DELETED", "staff", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_DELETED", "staff", entity.getId(), null);
     }
 
     public StaffAttendanceResponse checkIn(StaffAttendanceCheckInRequest request, ShieldPrincipal principal) {
@@ -148,7 +148,7 @@ public class StaffService {
         entity.setMarkedBy(principal.userId());
 
         StaffAttendanceEntity saved = staffAttendanceRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_CHECK_IN", "staff_attendance", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CHECK_IN", "staff_attendance", saved.getId(), null);
         return toAttendanceResponse(saved);
     }
 
@@ -169,7 +169,7 @@ public class StaffService {
         entity.setMarkedBy(principal.userId());
 
         StaffAttendanceEntity saved = staffAttendanceRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_CHECK_OUT", "staff_attendance", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CHECK_OUT", "staff_attendance", saved.getId(), null);
         return toAttendanceResponse(saved);
     }
 
@@ -210,7 +210,7 @@ public class StaffService {
         }
 
         StaffAttendanceEntity saved = staffAttendanceRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_ATTENDANCE_UPDATED", "staff_attendance", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_ATTENDANCE_UPDATED", "staff_attendance", saved.getId(), null);
         return toAttendanceResponse(saved);
     }
 

@@ -6,6 +6,6 @@ import jakarta.validation.constraints.Size;
 
 public record LoginOtpVerifyRequest(
         @NotBlank @Size(max = 128) String challengeToken,
-        @NotBlank @Pattern(regexp = "^[0-9]{4,8}$") String otpCode
+        @NotBlank @Pattern(regexp = "^\\d{4,8}$") String otpCode
 ) {
 }

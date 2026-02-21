@@ -29,6 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MarketplaceService {
 
+    private static final String ENTITY_MARKETPLACE_CATEGORY = "marketplace_category";
+    private static final String MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX = "Marketplace category not found: ";
+    private static final String ENTITY_MARKETPLACE_LISTING = "marketplace_listing";
+    private static final String MARKETPLACE_LISTING_NOT_FOUND_PREFIX = "Marketplace listing not found: ";
+
     private final MarketplaceCategoryRepository marketplaceCategoryRepository;
     private final MarketplaceListingRepository marketplaceListingRepository;
     private final MarketplaceInquiryRepository marketplaceInquiryRepository;
@@ -52,7 +57,7 @@ public class MarketplaceService {
         entity.setDescription(request.description());
 
         MarketplaceCategoryEntity saved = marketplaceCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_CATEGORY_CREATED", "marketplace_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_CATEGORY_CREATED", ENTITY_MARKETPLACE_CATEGORY, saved.getId(), null);
         return toCategoryResponse(saved);
     }
 
@@ -64,35 +69,35 @@ public class MarketplaceService {
     @Transactional(readOnly = true)
     public MarketplaceCategoryResponse getCategory(UUID id) {
         MarketplaceCategoryEntity entity = marketplaceCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX + id));
         return toCategoryResponse(entity);
     }
 
     public MarketplaceCategoryResponse updateCategory(UUID id, MarketplaceCategoryUpdateRequest request, ShieldPrincipal principal) {
         MarketplaceCategoryEntity entity = marketplaceCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX + id));
 
         entity.setCategoryName(request.categoryName());
         entity.setDescription(request.description());
 
         MarketplaceCategoryEntity saved = marketplaceCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_CATEGORY_UPDATED", "marketplace_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_CATEGORY_UPDATED", ENTITY_MARKETPLACE_CATEGORY, saved.getId(), null);
         return toCategoryResponse(saved);
     }
 
     public void deleteCategory(UUID id, ShieldPrincipal principal) {
         MarketplaceCategoryEntity entity = marketplaceCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         marketplaceCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_CATEGORY_DELETED", "marketplace_category", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_CATEGORY_DELETED", ENTITY_MARKETPLACE_CATEGORY, entity.getId(), null);
     }
 
     public MarketplaceListingResponse createListing(MarketplaceListingCreateRequest request, ShieldPrincipal principal) {
         if (request.categoryId() != null) {
             marketplaceCategoryRepository.findByIdAndDeletedFalse(request.categoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Marketplace category not found: " + request.categoryId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX + request.categoryId()));
         }
 
         MarketplaceListingEntity entity = new MarketplaceListingEntity();
@@ -112,7 +117,7 @@ public class MarketplaceService {
         entity.setExpiresAt(request.expiresAt());
 
         MarketplaceListingEntity saved = marketplaceListingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_CREATED", "marketplace_listing", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_CREATED", ENTITY_MARKETPLACE_LISTING, saved.getId(), null);
         return toListingResponse(saved);
     }
 
@@ -124,7 +129,7 @@ public class MarketplaceService {
     @Transactional(readOnly = true)
     public MarketplaceListingResponse getListing(UUID id) {
         MarketplaceListingEntity entity = marketplaceListingRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_LISTING_NOT_FOUND_PREFIX + id));
         return toListingResponse(entity);
     }
 
@@ -159,12 +164,12 @@ public class MarketplaceService {
 
     public MarketplaceListingResponse updateListing(UUID id, MarketplaceListingUpdateRequest request, ShieldPrincipal principal) {
         MarketplaceListingEntity entity = marketplaceListingRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_LISTING_NOT_FOUND_PREFIX + id));
         assertCanManageListing(principal, entity);
 
         if (request.categoryId() != null) {
             marketplaceCategoryRepository.findByIdAndDeletedFalse(request.categoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Marketplace category not found: " + request.categoryId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX + request.categoryId()));
         }
 
         entity.setCategoryId(request.categoryId());
@@ -178,18 +183,18 @@ public class MarketplaceService {
         entity.setExpiresAt(request.expiresAt());
 
         MarketplaceListingEntity saved = marketplaceListingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_UPDATED", "marketplace_listing", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_UPDATED", ENTITY_MARKETPLACE_LISTING, saved.getId(), null);
         return toListingResponse(saved);
     }
 
     public void deleteListing(UUID id, ShieldPrincipal principal) {
         MarketplaceListingEntity entity = marketplaceListingRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_LISTING_NOT_FOUND_PREFIX + id));
         assertCanManageListing(principal, entity);
 
         entity.setDeleted(true);
         marketplaceListingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_DELETED", "marketplace_listing", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_DELETED", ENTITY_MARKETPLACE_LISTING, entity.getId(), null);
     }
 
     public MarketplaceListingResponse markSold(UUID id, ShieldPrincipal principal) {
@@ -202,17 +207,17 @@ public class MarketplaceService {
 
     public MarketplaceListingResponse incrementViews(UUID id, ShieldPrincipal principal) {
         MarketplaceListingEntity entity = marketplaceListingRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_LISTING_NOT_FOUND_PREFIX + id));
         entity.setViewsCount(entity.getViewsCount() + 1);
 
         MarketplaceListingEntity saved = marketplaceListingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_VIEW_INCREMENTED", "marketplace_listing", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_LISTING_VIEW_INCREMENTED", ENTITY_MARKETPLACE_LISTING, saved.getId(), null);
         return toListingResponse(saved);
     }
 
     public MarketplaceInquiryResponse createInquiry(UUID listingId, MarketplaceInquiryCreateRequest request, ShieldPrincipal principal) {
         marketplaceListingRepository.findByIdAndDeletedFalse(listingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + listingId));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_LISTING_NOT_FOUND_PREFIX + listingId));
 
         MarketplaceInquiryEntity entity = new MarketplaceInquiryEntity();
         entity.setTenantId(principal.tenantId());
@@ -221,7 +226,7 @@ public class MarketplaceService {
         entity.setMessage(request.message());
 
         MarketplaceInquiryEntity saved = marketplaceInquiryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MARKETPLACE_INQUIRY_CREATED", "marketplace_inquiry", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MARKETPLACE_INQUIRY_CREATED", "marketplace_inquiry", saved.getId(), null);
         return toInquiryResponse(saved);
     }
 
@@ -244,12 +249,12 @@ public class MarketplaceService {
             String auditAction) {
 
         MarketplaceListingEntity entity = marketplaceListingRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Marketplace listing not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(MARKETPLACE_LISTING_NOT_FOUND_PREFIX + id));
         assertCanManageListing(principal, entity);
 
         entity.setStatus(status);
         MarketplaceListingEntity saved = marketplaceListingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), auditAction, "marketplace_listing", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), auditAction, ENTITY_MARKETPLACE_LISTING, saved.getId(), null);
         return toListingResponse(saved);
     }
 

@@ -35,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileStorageService {
 
     private static final int DEFAULT_PRESIGNED_EXPIRY_MINUTES = 15;
+    private static final String ENTITY_STORED_FILE = "stored_file";
 
     private final StoredFileRepository storedFileRepository;
     private final AuditLogService auditLogService;
@@ -94,11 +95,11 @@ public class FileStorageService {
             entity.setExpiresAt(expiresAt);
 
             StoredFileEntity saved = storedFileRepository.save(entity);
-            auditLogService.record(
+            auditLogService.logEvent(
                     principal.tenantId(),
                     principal.userId(),
                     "FILE_UPLOADED",
-                    "stored_file",
+                    ENTITY_STORED_FILE,
                     saved.getId(),
                     null);
             return toResponse(saved);
@@ -141,11 +142,11 @@ public class FileStorageService {
         Path path = Paths.get(entity.getStoragePath());
         try {
             byte[] content = Files.readAllBytes(path);
-            auditLogService.record(
+            auditLogService.logEvent(
                     principal.tenantId(),
                     principal.userId(),
                     "FILE_DOWNLOADED",
-                    "stored_file",
+                    ENTITY_STORED_FILE,
                     entity.getId(),
                     null);
             return new FileDownloadPayload(
@@ -170,11 +171,11 @@ public class FileStorageService {
             // Metadata is source-of-truth; physical cleanup can be retried asynchronously.
         }
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 "FILE_DELETED",
-                "stored_file",
+                ENTITY_STORED_FILE,
                 entity.getId(),
                 null);
     }
@@ -192,11 +193,11 @@ public class FileStorageService {
         String encodedName = URLEncoder.encode(request.fileName(), StandardCharsets.UTF_8);
         String uploadUrl = "/api/v1/files/upload?fileId=" + fileId + "&fileName=" + encodedName;
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 "FILE_PRESIGNED_URL_GENERATED",
-                "stored_file",
+                ENTITY_STORED_FILE,
                 null,
                 null);
 

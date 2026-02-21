@@ -43,6 +43,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class HelpdeskService {
 
+    private static final String ENTITY_HELPDESK_CATEGORY = "helpdesk_category";
+    private static final String HELPDESK_CATEGORY_NOT_FOUND_PREFIX = "Helpdesk category not found: ";
+    private static final String ENTITY_HELPDESK_TICKET = "helpdesk_ticket";
+    private static final String HELPDESK_TICKET_NOT_FOUND_PREFIX = "Helpdesk ticket not found: ";
+
     private final HelpdeskCategoryRepository helpdeskCategoryRepository;
     private final HelpdeskTicketRepository helpdeskTicketRepository;
     private final HelpdeskCommentRepository helpdeskCommentRepository;
@@ -70,7 +75,7 @@ public class HelpdeskService {
         entity.setSlaHours(request.slaHours());
 
         HelpdeskCategoryEntity saved = helpdeskCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_CATEGORY_CREATED", "helpdesk_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_CATEGORY_CREATED", ENTITY_HELPDESK_CATEGORY, saved.getId(), null);
         return toCategoryResponse(saved);
     }
 
@@ -82,30 +87,30 @@ public class HelpdeskService {
     @Transactional(readOnly = true)
     public HelpdeskCategoryResponse getCategory(UUID id) {
         HelpdeskCategoryEntity entity = helpdeskCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_CATEGORY_NOT_FOUND_PREFIX + id));
         return toCategoryResponse(entity);
     }
 
     public HelpdeskCategoryResponse updateCategory(UUID id, HelpdeskCategoryUpdateRequest request, ShieldPrincipal principal) {
         HelpdeskCategoryEntity entity = helpdeskCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_CATEGORY_NOT_FOUND_PREFIX + id));
 
         entity.setName(request.name());
         entity.setDescription(request.description());
         entity.setSlaHours(request.slaHours());
 
         HelpdeskCategoryEntity saved = helpdeskCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_CATEGORY_UPDATED", "helpdesk_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_CATEGORY_UPDATED", ENTITY_HELPDESK_CATEGORY, saved.getId(), null);
         return toCategoryResponse(saved);
     }
 
     public void deleteCategory(UUID id, ShieldPrincipal principal) {
         HelpdeskCategoryEntity entity = helpdeskCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_CATEGORY_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         helpdeskCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_CATEGORY_DELETED", "helpdesk_category", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_CATEGORY_DELETED", ENTITY_HELPDESK_CATEGORY, entity.getId(), null);
     }
 
     public HelpdeskTicketResponse createTicket(HelpdeskTicketCreateRequest request, ShieldPrincipal principal) {
@@ -121,7 +126,7 @@ public class HelpdeskService {
         entity.setStatus(TicketStatus.OPEN);
 
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_CREATED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_CREATED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
@@ -150,13 +155,13 @@ public class HelpdeskService {
     @Transactional(readOnly = true)
     public HelpdeskTicketResponse getTicket(UUID id) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
         return toTicketResponse(entity);
     }
 
     public HelpdeskTicketResponse updateTicket(UUID id, HelpdeskTicketUpdateRequest request, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         entity.setCategoryId(request.categoryId());
         entity.setUnitId(request.unitId());
@@ -165,22 +170,22 @@ public class HelpdeskService {
         entity.setPriority(request.priority());
 
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_UPDATED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_UPDATED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
     public void deleteTicket(UUID id, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_DELETED", "helpdesk_ticket", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_DELETED", ENTITY_HELPDESK_TICKET, entity.getId(), null);
     }
 
     public HelpdeskTicketResponse assignTicket(UUID id, HelpdeskTicketAssignRequest request, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         entity.setAssignedTo(request.assignedTo());
         entity.setAssignedAt(Instant.now());
@@ -188,13 +193,13 @@ public class HelpdeskService {
         entity.setClosedAt(null);
 
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_ASSIGNED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_ASSIGNED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
     public HelpdeskTicketResponse resolveTicket(UUID id, HelpdeskTicketResolveRequest request, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         entity.setStatus(TicketStatus.RESOLVED);
         entity.setResolvedAt(Instant.now());
@@ -202,13 +207,13 @@ public class HelpdeskService {
         entity.setClosedAt(null);
 
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_RESOLVED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_RESOLVED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
     public HelpdeskTicketResponse closeTicket(UUID id, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         if (entity.getStatus() == TicketStatus.CLOSED) {
             throw new BadRequestException("Helpdesk ticket is already closed");
@@ -221,13 +226,13 @@ public class HelpdeskService {
         }
 
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_CLOSED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_CLOSED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
     public HelpdeskTicketResponse reopenTicket(UUID id, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         if (entity.getStatus() != TicketStatus.CLOSED && entity.getStatus() != TicketStatus.RESOLVED) {
             throw new BadRequestException("Only resolved or closed tickets can be reopened");
@@ -237,13 +242,13 @@ public class HelpdeskService {
         entity.setClosedAt(null);
 
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_REOPENED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_REOPENED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
     public HelpdeskTicketResponse rateTicket(UUID id, HelpdeskTicketRateRequest request, ShieldPrincipal principal) {
         HelpdeskTicketEntity entity = helpdeskTicketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + id));
 
         if (entity.getStatus() != TicketStatus.RESOLVED && entity.getStatus() != TicketStatus.CLOSED) {
             throw new BadRequestException("Only resolved or closed tickets can be rated");
@@ -251,7 +256,7 @@ public class HelpdeskService {
 
         entity.setSatisfactionRating(request.satisfactionRating());
         HelpdeskTicketEntity saved = helpdeskTicketRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_RATED", "helpdesk_ticket", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_RATED", ENTITY_HELPDESK_TICKET, saved.getId(), null);
         return toTicketResponse(saved);
     }
 
@@ -304,7 +309,7 @@ public class HelpdeskService {
 
     public HelpdeskCommentResponse addComment(UUID ticketId, HelpdeskCommentCreateRequest request, ShieldPrincipal principal) {
         HelpdeskTicketEntity ticket = helpdeskTicketRepository.findByIdAndDeletedFalse(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + ticketId));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + ticketId));
 
         HelpdeskCommentEntity comment = new HelpdeskCommentEntity();
         comment.setTenantId(ticket.getTenantId());
@@ -314,7 +319,7 @@ public class HelpdeskService {
         comment.setInternalNote(request.internalNote());
 
         HelpdeskCommentEntity saved = helpdeskCommentRepository.save(comment);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_COMMENT_ADDED", "helpdesk_comment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_COMMENT_ADDED", "helpdesk_comment", saved.getId(), null);
         return toCommentResponse(saved);
     }
 
@@ -328,7 +333,7 @@ public class HelpdeskService {
             HelpdeskTicketAttachmentCreateRequest request,
             ShieldPrincipal principal) {
         HelpdeskTicketEntity ticket = helpdeskTicketRepository.findByIdAndDeletedFalse(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk ticket not found: " + ticketId));
+                .orElseThrow(() -> new ResourceNotFoundException(HELPDESK_TICKET_NOT_FOUND_PREFIX + ticketId));
 
         HelpdeskTicketAttachmentEntity attachment = new HelpdeskTicketAttachmentEntity();
         attachment.setTenantId(ticket.getTenantId());
@@ -339,7 +344,7 @@ public class HelpdeskService {
         attachment.setUploadedAt(Instant.now());
 
         HelpdeskTicketAttachmentEntity saved = helpdeskTicketAttachmentRepository.save(attachment);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_ATTACHMENT_ADDED", "helpdesk_ticket_attachment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_ATTACHMENT_ADDED", "helpdesk_ticket_attachment", saved.getId(), null);
         return toAttachmentResponse(saved);
     }
 
@@ -355,7 +360,7 @@ public class HelpdeskService {
 
         attachment.setDeleted(true);
         helpdeskTicketAttachmentRepository.save(attachment);
-        auditLogService.record(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_ATTACHMENT_DELETED", "helpdesk_ticket_attachment", attachment.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_TICKET_ATTACHMENT_DELETED", "helpdesk_ticket_attachment", attachment.getId(), null);
     }
 
     private HelpdeskCategoryResponse toCategoryResponse(HelpdeskCategoryEntity entity) {

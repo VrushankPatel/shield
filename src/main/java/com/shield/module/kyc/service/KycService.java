@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class KycService {
 
+    private static final String ENTITY_KYC_DOCUMENT = "kyc_document";
+
     private final KycDocumentRepository kycDocumentRepository;
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
@@ -53,7 +55,7 @@ public class KycService {
         entity.setVerificationStatus(KycVerificationStatus.PENDING);
 
         KycDocumentEntity saved = kycDocumentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "KYC_UPLOADED", "kyc_document", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "KYC_UPLOADED", ENTITY_KYC_DOCUMENT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -74,7 +76,7 @@ public class KycService {
         entity.setVerifiedBy(null);
 
         KycDocumentEntity saved = kycDocumentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "KYC_UPDATED", "kyc_document", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "KYC_UPDATED", ENTITY_KYC_DOCUMENT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -84,7 +86,7 @@ public class KycService {
 
         entity.setDeleted(true);
         kycDocumentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "KYC_DELETED", "kyc_document", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "KYC_DELETED", ENTITY_KYC_DOCUMENT, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -115,7 +117,7 @@ public class KycService {
         entity.setVerifiedBy(principal.userId());
 
         KycDocumentEntity saved = kycDocumentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "KYC_VERIFIED", "kyc_document", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "KYC_VERIFIED", ENTITY_KYC_DOCUMENT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -127,7 +129,7 @@ public class KycService {
         entity.setVerifiedBy(principal.userId());
 
         KycDocumentEntity saved = kycDocumentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "KYC_REJECTED", "kyc_document", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "KYC_REJECTED", ENTITY_KYC_DOCUMENT, saved.getId(), null);
         return toResponse(saved);
     }
 

@@ -141,7 +141,7 @@ class AuthServiceTest {
         assertEquals("refresh", response.refreshToken());
         assertEquals("Bearer", response.tokenType());
         assertEquals(1800L, response.expiresIn());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGIN"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_LOGIN"), eq("users"), eq(userId), any());
         verify(authTokenRepository).save(any(AuthTokenEntity.class));
     }
 
@@ -187,7 +187,7 @@ class AuthServiceTest {
         assertEquals("challenge-token", response.challengeToken());
         assertEquals("******9999", response.destination());
         verify(smsOtpSender).sendLoginOtp(eq("9999999999"), any(), any());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGIN_OTP_SENT"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_LOGIN_OTP_SENT"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -235,7 +235,7 @@ class AuthServiceTest {
 
         assertEquals("access-otp", response.accessToken());
         assertEquals("refresh-otp", response.refreshToken());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGIN_OTP_VERIFIED"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_LOGIN_OTP_VERIFIED"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -324,7 +324,7 @@ class AuthServiceTest {
         assertEquals(UserStatus.INACTIVE, userCaptor.getValue().getStatus());
 
         verify(authTokenRepository).save(any(AuthTokenEntity.class));
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_REGISTER"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_REGISTER"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -370,7 +370,7 @@ class AuthServiceTest {
 
         assertEquals("new-access", response.accessToken());
         assertEquals("rotated-refresh", response.refreshToken());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_REFRESH"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_REFRESH"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -398,7 +398,7 @@ class AuthServiceTest {
         authService.forgotPassword(new ForgotPasswordRequest("resident@shield.dev"));
 
         verify(authTokenRepository).save(any(AuthTokenEntity.class));
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_FORGOT_PASSWORD_REQUESTED"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_FORGOT_PASSWORD_REQUESTED"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -430,7 +430,7 @@ class AuthServiceTest {
 
         assertEquals("new-hash", user.getPasswordHash());
         verify(authTokenRepository).save(any(AuthTokenEntity.class));
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_PASSWORD_RESET"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_PASSWORD_RESET"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -520,7 +520,7 @@ class AuthServiceTest {
 
         authService.logout("Bearer bad");
 
-        verify(auditLogService, never()).record(any(), any(), any(), any(), any(), any());
+        verify(auditLogService, never()).logEvent(any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -548,7 +548,7 @@ class AuthServiceTest {
         authService.logout("Bearer access");
 
         verify(authTokenRepository).saveAll(any());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGOUT"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_LOGOUT"), eq("users"), eq(userId), any());
     }
 
     private static String hashToken(String rawToken) {

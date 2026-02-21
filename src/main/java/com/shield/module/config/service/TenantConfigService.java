@@ -66,7 +66,7 @@ public class TenantConfigService {
         entity.setDeleted(true);
         tenantConfigRepository.save(entity);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 "TENANT_CONFIG_DELETED",
@@ -92,7 +92,7 @@ public class TenantConfigService {
 
         TenantConfigEntity saved = tenantConfigRepository.save(entity);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 created ? "TENANT_CONFIG_CREATED" : "TENANT_CONFIG_UPDATED",

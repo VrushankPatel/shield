@@ -42,6 +42,7 @@ public class PlatformRootService {
     public static final String ROOT_LOGIN_ID = "root";
     private static final String ROOT_PRINCIPAL_TYPE = "ROOT";
     private static final String ROOT_ROLE = "ROOT";
+    private static final String ENTITY_PLATFORM_ROOT_ACCOUNT = "platform_root_account";
 
     private static final String UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     private static final String LOWER = "abcdefghijkmnopqrstuvwxyz";
@@ -90,7 +91,7 @@ public class PlatformRootService {
         rootAccount.setLastLoginAt(null);
         platformRootAccountRepository.save(rootAccount);
 
-        auditLogService.record(null, rootAccount.getId(), "ROOT_PASSWORD_GENERATED", "platform_root_account", rootAccount.getId(), null);
+        auditLogService.logEvent(null, rootAccount.getId(), "ROOT_PASSWORD_GENERATED", ENTITY_PLATFORM_ROOT_ACCOUNT, rootAccount.getId(), null);
         return Optional.of(generatedPassword);
     }
 
@@ -120,11 +121,11 @@ public class PlatformRootService {
         }
 
         if (isLocked(rootAccount)) {
-            auditLogService.record(
+            auditLogService.logEvent(
                     null,
                     rootAccount.getId(),
                     "ROOT_LOGIN_BLOCKED",
-                    "platform_root_account",
+                    ENTITY_PLATFORM_ROOT_ACCOUNT,
                     rootAccount.getId(),
                     "reason=lockout,lockedUntil=" + rootAccount.getLockedUntil());
             throw new UnauthorizedException("Root account is temporarily locked due to failed login attempts. Try again later.");
@@ -143,11 +144,11 @@ public class PlatformRootService {
         String accessToken = jwtService.generateRootAccessToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
         String refreshToken = jwtService.generateRootRefreshToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 null,
                 rootAccount.getId(),
                 "ROOT_LOGIN",
-                "platform_root_account",
+                ENTITY_PLATFORM_ROOT_ACCOUNT,
                 rootAccount.getId(),
                 "passwordChangeRequired=" + rootAccount.isPasswordChangeRequired());
         return new RootAuthResponse(
@@ -223,11 +224,11 @@ public class PlatformRootService {
         resetRootLoginFailureState(rootAccount);
         platformRootAccountRepository.save(rootAccount);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 null,
                 rootAccount.getId(),
                 "ROOT_PASSWORD_CHANGED",
-                "platform_root_account",
+                ENTITY_PLATFORM_ROOT_ACCOUNT,
                 rootAccount.getId(),
                 "emailVerified=" + emailVerified
                         + ",mobileVerified=" + mobileVerified
@@ -242,11 +243,11 @@ public class PlatformRootService {
             throw new BadRequestException("Root password change is required before onboarding societies");
         }
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 null,
                 rootAccount.getId(),
                 "ROOT_ONBOARDING_STARTED",
-                "platform_root_account",
+                ENTITY_PLATFORM_ROOT_ACCOUNT,
                 rootAccount.getId(),
                 "societyName=" + request.societyName().trim()
                         + ",adminEmail=" + request.adminEmail().trim().toLowerCase());
@@ -267,21 +268,21 @@ public class PlatformRootService {
 
         UserEntity savedAdmin = userRepository.save(admin);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 null,
                 rootAccount.getId(),
                 "ROOT_SOCIETY_CREATED",
                 "tenant",
                 savedTenant.getId(),
                 "societyName=" + savedTenant.getName());
-        auditLogService.record(
+        auditLogService.logEvent(
                 savedTenant.getId(),
                 rootAccount.getId(),
                 "ROOT_ADMIN_CREATED",
                 "users",
                 savedAdmin.getId(),
                 "adminEmail=" + savedAdmin.getEmail());
-        auditLogService.record(
+        auditLogService.logEvent(
                 savedTenant.getId(),
                 rootAccount.getId(),
                 "ROOT_ONBOARDING_COMPLETED",
@@ -327,11 +328,11 @@ public class PlatformRootService {
         }
 
         platformRootAccountRepository.save(rootAccount);
-        auditLogService.record(
+        auditLogService.logEvent(
                 null,
                 rootAccount.getId(),
                 "ROOT_LOGIN_FAILED",
-                "platform_root_account",
+                ENTITY_PLATFORM_ROOT_ACCOUNT,
                 rootAccount.getId(),
                 payload);
     }

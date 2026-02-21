@@ -66,7 +66,7 @@ class TenantConfigServiceTest {
         assertEquals(configId, response.id());
         assertEquals("notifications.email", response.key());
         assertEquals("preferences", response.category());
-        verify(auditLogService).record(tenantId, userId, "TENANT_CONFIG_CREATED", "tenant_config", configId, null);
+        verify(auditLogService).logEvent(tenantId, userId, "TENANT_CONFIG_CREATED", "tenant_config", configId, null);
     }
 
     @Test
@@ -91,7 +91,7 @@ class TenantConfigServiceTest {
                 principal(tenantId, userId));
 
         assertEquals("modern", response.value());
-        verify(auditLogService).record(tenantId, userId, "TENANT_CONFIG_UPDATED", "tenant_config", configId, null);
+        verify(auditLogService).logEvent(tenantId, userId, "TENANT_CONFIG_UPDATED", "tenant_config", configId, null);
     }
 
     @Test
@@ -159,7 +159,7 @@ class TenantConfigServiceTest {
         tenantConfigService.deleteByKey("notification.sms", principal(tenantId, userId));
 
         assertTrue(entity.isDeleted());
-        verify(auditLogService).record(tenantId, userId, "TENANT_CONFIG_DELETED", "tenant_config", configId, null);
+        verify(auditLogService).logEvent(tenantId, userId, "TENANT_CONFIG_DELETED", "tenant_config", configId, null);
     }
 
     private ShieldPrincipal principal(UUID tenantId, UUID userId) {

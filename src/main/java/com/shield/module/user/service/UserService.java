@@ -74,7 +74,7 @@ public class UserService {
         entity.setStatus(request.status());
 
         UserEntity saved = userRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), saved.getId(), "USER_UPDATED", "users", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), saved.getId(), "USER_UPDATED", "users", saved.getId(), null);
         return userMapper.toResponse(saved);
     }
 
@@ -84,7 +84,7 @@ public class UserService {
 
         entity.setDeleted(true);
         userRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), entity.getId(), "USER_DELETED", "users", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), entity.getId(), "USER_DELETED", "users", entity.getId(), null);
     }
 
     public UserBulkImportResponse bulkImport(UserBulkImportRequest request) {
@@ -141,7 +141,7 @@ public class UserService {
         entity.setStatus(UserStatus.ACTIVE);
 
         UserEntity saved = userRepository.save(entity);
-        auditLogService.record(tenantId, saved.getId(), "USER_CREATED", "users", saved.getId(), null);
+        auditLogService.logEvent(tenantId, saved.getId(), "USER_CREATED", "users", saved.getId(), null);
         return saved;
     }
 

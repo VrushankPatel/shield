@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PayrollComponentService {
 
+    private static final String ENTITY_PAYROLL_COMPONENT = "payroll_component";
+    private static final String PAYROLL_COMPONENT_NOT_FOUND_PREFIX = "Payroll component not found: ";
+
     private final PayrollComponentRepository payrollComponentRepository;
     private final AuditLogService auditLogService;
 
@@ -42,7 +45,7 @@ public class PayrollComponentService {
         entity.setTaxable(request.taxable());
 
         PayrollComponentEntity saved = payrollComponentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_COMPONENT_CREATED", "payroll_component", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_COMPONENT_CREATED", ENTITY_PAYROLL_COMPONENT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -54,13 +57,13 @@ public class PayrollComponentService {
     @Transactional(readOnly = true)
     public PayrollComponentResponse getById(UUID id) {
         PayrollComponentEntity entity = payrollComponentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll component not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_COMPONENT_NOT_FOUND_PREFIX + id));
         return toResponse(entity);
     }
 
     public PayrollComponentResponse update(UUID id, PayrollComponentUpdateRequest request, ShieldPrincipal principal) {
         PayrollComponentEntity entity = payrollComponentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll component not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_COMPONENT_NOT_FOUND_PREFIX + id));
 
         String normalizedName = request.componentName().trim();
         if (payrollComponentRepository.existsByComponentNameIgnoreCaseAndDeletedFalseAndIdNot(normalizedName, id)) {
@@ -72,17 +75,17 @@ public class PayrollComponentService {
         entity.setTaxable(request.taxable());
 
         PayrollComponentEntity saved = payrollComponentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_COMPONENT_UPDATED", "payroll_component", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_COMPONENT_UPDATED", ENTITY_PAYROLL_COMPONENT, saved.getId(), null);
         return toResponse(saved);
     }
 
     public void delete(UUID id, ShieldPrincipal principal) {
         PayrollComponentEntity entity = payrollComponentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll component not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_COMPONENT_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         payrollComponentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_COMPONENT_DELETED", "payroll_component", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_COMPONENT_DELETED", ENTITY_PAYROLL_COMPONENT, entity.getId(), null);
     }
 
     private PayrollComponentResponse toResponse(PayrollComponentEntity entity) {

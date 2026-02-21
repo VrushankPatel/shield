@@ -133,7 +133,7 @@ class KycServiceTest {
 
         assertEquals(KycVerificationStatus.VERIFIED, response.verificationStatus());
         assertEquals(reviewerId, response.verifiedBy());
-        verify(auditLogService).record(eq(tenantId), eq(reviewerId), eq("KYC_VERIFIED"), eq("kyc_document"), eq(documentId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(reviewerId), eq("KYC_VERIFIED"), eq("kyc_document"), eq(documentId), any());
     }
 
     @Test

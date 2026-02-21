@@ -33,6 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ComplaintService {
 
+    private static final String ENTITY_COMPLAINT = "complaint";
+    private static final String ENTITY_COMPLAINT_COMMENT = "complaint_comment";
+
     private final ComplaintRepository complaintRepository;
     private final ComplaintCommentRepository complaintCommentRepository;
     private final AuditLogService auditLogService;
@@ -56,7 +59,7 @@ public class ComplaintService {
         entity.setSlaBreach(false);
 
         ComplaintEntity saved = complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_CREATED", "complaint", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_CREATED", ENTITY_COMPLAINT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -84,7 +87,7 @@ public class ComplaintService {
         entity.setSlaHours(sanitizeSlaHours(request.slaHours()));
 
         ComplaintEntity saved = complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_UPDATED", "complaint", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_UPDATED", ENTITY_COMPLAINT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -93,7 +96,7 @@ public class ComplaintService {
         ComplaintEntity entity = findById(id);
         entity.setDeleted(true);
         complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_DELETED", "complaint", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_DELETED", ENTITY_COMPLAINT, id, null);
     }
 
     public ComplaintResponse assign(UUID id, ComplaintAssignRequest request) {
@@ -105,7 +108,7 @@ public class ComplaintService {
         entity.setStatus(ComplaintStatus.ASSIGNED);
 
         ComplaintEntity saved = complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_ASSIGNED", "complaint", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_ASSIGNED", ENTITY_COMPLAINT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -119,7 +122,7 @@ public class ComplaintService {
         updateSlaBreachFlag(entity);
 
         ComplaintEntity saved = complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_RESOLVED", "complaint", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_RESOLVED", ENTITY_COMPLAINT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -135,7 +138,7 @@ public class ComplaintService {
         updateSlaBreachFlag(entity);
 
         ComplaintEntity saved = complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_CLOSED", "complaint", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_CLOSED", ENTITY_COMPLAINT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -150,7 +153,7 @@ public class ComplaintService {
         entity.setSlaBreach(isPastSlaDeadline(entity, Instant.now()));
 
         ComplaintEntity saved = complaintRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_REOPENED", "complaint", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_REOPENED", ENTITY_COMPLAINT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -216,7 +219,7 @@ public class ComplaintService {
         entity.setComment(request.comment().trim());
 
         ComplaintCommentEntity saved = complaintCommentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_COMMENT_CREATED", "complaint_comment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_COMMENT_CREATED", ENTITY_COMPLAINT_COMMENT, saved.getId(), null);
         return toCommentResponse(saved);
     }
 
@@ -232,7 +235,7 @@ public class ComplaintService {
         ComplaintCommentEntity entity = findCommentById(id);
         entity.setComment(request.comment().trim());
         ComplaintCommentEntity saved = complaintCommentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_COMMENT_UPDATED", "complaint_comment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_COMMENT_UPDATED", ENTITY_COMPLAINT_COMMENT, saved.getId(), null);
         return toCommentResponse(saved);
     }
 
@@ -241,7 +244,7 @@ public class ComplaintService {
         ComplaintCommentEntity entity = findCommentById(id);
         entity.setDeleted(true);
         complaintCommentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "COMPLAINT_COMMENT_DELETED", "complaint_comment", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "COMPLAINT_COMMENT_DELETED", ENTITY_COMPLAINT_COMMENT, id, null);
     }
 
     private ComplaintEntity findById(UUID id) {

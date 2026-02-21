@@ -120,7 +120,7 @@ class NotificationServiceTest {
         assertEquals(0, response.skipped());
 
         verify(mailSender, times(1)).send(any(org.springframework.mail.SimpleMailMessage.class));
-        verify(auditLogService).record(eq(principal.tenantId()), eq(principal.userId()), eq("NOTIFICATION_MANUAL_SENT"), eq("notification_email_log"), eq(null), eq(null));
+        verify(auditLogService).logEvent(eq(principal.tenantId()), eq(principal.userId()), eq("NOTIFICATION_MANUAL_SENT"), eq("notification_email_log"), eq(null), eq(null));
     }
 
     @Test

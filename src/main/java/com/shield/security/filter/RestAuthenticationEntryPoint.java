@@ -37,7 +37,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 "Authentication is required",
                 request.getRequestURI());
 
-        systemLogService.recordWarn(
+        systemLogService.logWarn(
                 RestAuthenticationEntryPoint.class.getSimpleName(),
                 "Authentication is required",
                 authException,

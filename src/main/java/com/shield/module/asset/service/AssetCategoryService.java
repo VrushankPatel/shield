@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AssetCategoryService {
 
+    private static final String ENTITY_ASSET_CATEGORY = "asset_category";
+
     private final AssetCategoryRepository assetCategoryRepository;
     private final AuditLogService auditLogService;
 
@@ -33,7 +35,7 @@ public class AssetCategoryService {
         entity.setDescription(trimToNull(request.description()));
 
         AssetCategoryEntity saved = assetCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ASSET_CATEGORY_CREATED", "asset_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ASSET_CATEGORY_CREATED", ENTITY_ASSET_CATEGORY, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -54,7 +56,7 @@ public class AssetCategoryService {
         entity.setDescription(trimToNull(request.description()));
 
         AssetCategoryEntity saved = assetCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ASSET_CATEGORY_UPDATED", "asset_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ASSET_CATEGORY_UPDATED", ENTITY_ASSET_CATEGORY, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -63,7 +65,7 @@ public class AssetCategoryService {
         AssetCategoryEntity entity = findById(id);
         entity.setDeleted(true);
         assetCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ASSET_CATEGORY_DELETED", "asset_category", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ASSET_CATEGORY_DELETED", ENTITY_ASSET_CATEGORY, id, null);
     }
 
     private AssetCategoryEntity findById(UUID id) {

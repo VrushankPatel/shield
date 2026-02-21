@@ -97,7 +97,7 @@ class PollServiceTest {
         assertEquals(pollId, response.id());
         assertEquals(2, response.options().size());
         assertEquals(PollStatus.DRAFT, response.status());
-        verify(auditLogService).record(tenantId, userId, "POLL_CREATED", "poll", pollId, null);
+        verify(auditLogService).logEvent(tenantId, userId, "POLL_CREATED", "poll", pollId, null);
     }
 
     @Test
@@ -213,7 +213,7 @@ class PollServiceTest {
 
         assertEquals(voteId, response.id());
         assertEquals(optionId, response.optionId());
-        verify(auditLogService).record(tenantId, userId, "POLL_VOTED", "poll", pollId, null);
+        verify(auditLogService).logEvent(tenantId, userId, "POLL_VOTED", "poll", pollId, null);
     }
 
     @Test

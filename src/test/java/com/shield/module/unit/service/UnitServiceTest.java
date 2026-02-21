@@ -107,7 +107,7 @@ class UnitServiceTest {
 
         assertEquals(tenantId, response.tenantId());
         assertEquals("A-101", response.unitNumber());
-        verify(auditLogService).record(eq(tenantId), eq(null), eq("UNIT_CREATED"), eq("unit"), eq(unitId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(null), eq("UNIT_CREATED"), eq("unit"), eq(unitId), any());
     }
 
     @Test
@@ -251,7 +251,7 @@ class UnitServiceTest {
 
         assertEquals("A-102", response.unitNumber());
         assertEquals(UnitStatus.OCCUPIED, response.status());
-        verify(auditLogService).record(eq(tenantId), eq(null), eq("UNIT_UPDATED"), eq("unit"), eq(unitId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(null), eq("UNIT_UPDATED"), eq("unit"), eq(unitId), any());
     }
 
     @Test

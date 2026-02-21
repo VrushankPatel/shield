@@ -58,6 +58,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class BillingManagementService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
+    private static final String ENTITY_BILLING_CYCLE = "billing_cycle";
+    private static final String ENTITY_MAINTENANCE_CHARGE = "maintenance_charge";
+    private static final String ENTITY_SPECIAL_ASSESSMENT = "special_assessment";
+    private static final String ENTITY_INVOICE = "invoice";
+    private static final String ENTITY_LATE_FEE_RULE = "late_fee_rule";
 
     private final BillingCycleRepository billingCycleRepository;
     private final MaintenanceChargeRepository maintenanceChargeRepository;
@@ -77,7 +82,7 @@ public class BillingManagementService {
         entity.setLateFeeApplicableDate(request.lateFeeApplicableDate());
         entity.setStatus(BillingCycleStatus.DRAFT);
         BillingCycleEntity saved = billingCycleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BILLING_CYCLE_CREATED", "billing_cycle", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BILLING_CYCLE_CREATED", ENTITY_BILLING_CYCLE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -114,7 +119,7 @@ public class BillingManagementService {
         entity.setDueDate(request.dueDate());
         entity.setLateFeeApplicableDate(request.lateFeeApplicableDate());
         BillingCycleEntity saved = billingCycleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BILLING_CYCLE_UPDATED", "billing_cycle", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BILLING_CYCLE_UPDATED", ENTITY_BILLING_CYCLE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -122,7 +127,7 @@ public class BillingManagementService {
         BillingCycleEntity entity = findBillingCycle(id);
         entity.setDeleted(true);
         billingCycleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BILLING_CYCLE_DELETED", "billing_cycle", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BILLING_CYCLE_DELETED", ENTITY_BILLING_CYCLE, id, null);
     }
 
     public BillingCycleResponse publishBillingCycle(UUID id, ShieldPrincipal principal) {
@@ -132,7 +137,7 @@ public class BillingManagementService {
         }
         entity.setStatus(BillingCycleStatus.PUBLISHED);
         BillingCycleEntity saved = billingCycleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BILLING_CYCLE_PUBLISHED", "billing_cycle", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BILLING_CYCLE_PUBLISHED", ENTITY_BILLING_CYCLE, id, null);
         return toResponse(saved);
     }
 
@@ -143,7 +148,7 @@ public class BillingManagementService {
         }
         entity.setStatus(BillingCycleStatus.CLOSED);
         BillingCycleEntity saved = billingCycleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BILLING_CYCLE_CLOSED", "billing_cycle", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BILLING_CYCLE_CLOSED", ENTITY_BILLING_CYCLE, id, null);
         return toResponse(saved);
     }
 
@@ -158,7 +163,7 @@ public class BillingManagementService {
         entity.setFixedAmount(request.fixedAmount());
         entity.setTotalAmount(request.totalAmount());
         MaintenanceChargeEntity saved = maintenanceChargeRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MAINTENANCE_CHARGE_CREATED", "maintenance_charge", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MAINTENANCE_CHARGE_CREATED", ENTITY_MAINTENANCE_CHARGE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -190,7 +195,7 @@ public class BillingManagementService {
         entity.setFixedAmount(request.fixedAmount());
         entity.setTotalAmount(request.totalAmount());
         MaintenanceChargeEntity saved = maintenanceChargeRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MAINTENANCE_CHARGE_UPDATED", "maintenance_charge", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MAINTENANCE_CHARGE_UPDATED", ENTITY_MAINTENANCE_CHARGE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -198,7 +203,7 @@ public class BillingManagementService {
         MaintenanceChargeEntity entity = findMaintenanceCharge(id);
         entity.setDeleted(true);
         maintenanceChargeRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MAINTENANCE_CHARGE_DELETED", "maintenance_charge", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MAINTENANCE_CHARGE_DELETED", ENTITY_MAINTENANCE_CHARGE, id, null);
     }
 
     public SpecialAssessmentResponse createSpecialAssessment(SpecialAssessmentCreateRequest request, ShieldPrincipal principal) {
@@ -213,7 +218,7 @@ public class BillingManagementService {
         entity.setCreatedBy(principal.userId());
         entity.setStatus(SpecialAssessmentStatus.ACTIVE);
         SpecialAssessmentEntity saved = specialAssessmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SPECIAL_ASSESSMENT_CREATED", "special_assessment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SPECIAL_ASSESSMENT_CREATED", ENTITY_SPECIAL_ASSESSMENT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -244,7 +249,7 @@ public class BillingManagementService {
         entity.setDueDate(request.dueDate());
         entity.setStatus(parseSpecialAssessmentStatus(request.status()));
         SpecialAssessmentEntity saved = specialAssessmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SPECIAL_ASSESSMENT_UPDATED", "special_assessment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SPECIAL_ASSESSMENT_UPDATED", ENTITY_SPECIAL_ASSESSMENT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -252,12 +257,12 @@ public class BillingManagementService {
         SpecialAssessmentEntity entity = findSpecialAssessment(id);
         entity.setDeleted(true);
         specialAssessmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SPECIAL_ASSESSMENT_DELETED", "special_assessment", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SPECIAL_ASSESSMENT_DELETED", ENTITY_SPECIAL_ASSESSMENT, id, null);
     }
 
     public InvoiceResponse generateInvoice(InvoiceGenerateRequest request, ShieldPrincipal principal) {
         InvoiceEntity saved = invoiceRepository.save(buildInvoiceEntity(request, principal.tenantId()));
-        auditLogService.record(principal.tenantId(), principal.userId(), "INVOICE_GENERATED", "invoice", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "INVOICE_GENERATED", ENTITY_INVOICE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -277,7 +282,7 @@ public class BillingManagementService {
                 })
                 .toList();
         List<InvoiceEntity> saved = invoiceRepository.saveAll(entities);
-        auditLogService.record(principal.tenantId(), principal.userId(), "INVOICE_BULK_GENERATED", "invoice", null, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "INVOICE_BULK_GENERATED", ENTITY_INVOICE, null, null);
         return saved.stream().map(this::toResponse).toList();
     }
 
@@ -318,7 +323,7 @@ public class BillingManagementService {
         entity.setOutstandingAmount(request.outstandingAmount());
         entity.setStatus(parseInvoiceStatus(request.status()));
         InvoiceEntity saved = invoiceRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "INVOICE_UPDATED", "invoice", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "INVOICE_UPDATED", ENTITY_INVOICE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -326,7 +331,7 @@ public class BillingManagementService {
         InvoiceEntity entity = findInvoice(id);
         entity.setDeleted(true);
         invoiceRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "INVOICE_DELETED", "invoice", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "INVOICE_DELETED", ENTITY_INVOICE, id, null);
     }
 
     @Transactional(readOnly = true)
@@ -362,7 +367,7 @@ public class BillingManagementService {
         entity.setSentAt(Instant.now());
         entity.setStatus(ReminderStatus.SENT);
         PaymentReminderEntity saved = paymentReminderRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYMENT_REMINDER_SENT", "payment_reminder", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYMENT_REMINDER_SENT", "payment_reminder", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -376,7 +381,7 @@ public class BillingManagementService {
         entity.setSentAt(request.scheduledAt());
         entity.setStatus(ReminderStatus.SCHEDULED);
         PaymentReminderEntity saved = paymentReminderRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYMENT_REMINDER_SCHEDULED", "payment_reminder", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYMENT_REMINDER_SCHEDULED", "payment_reminder", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -394,7 +399,7 @@ public class BillingManagementService {
         entity.setFeeAmount(request.feeAmount());
         entity.setActive(true);
         LateFeeRuleEntity saved = lateFeeRuleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_CREATED", "late_fee_rule", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_CREATED", ENTITY_LATE_FEE_RULE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -416,7 +421,7 @@ public class BillingManagementService {
         entity.setFeeAmount(request.feeAmount());
         entity.setActive(request.active());
         LateFeeRuleEntity saved = lateFeeRuleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_UPDATED", "late_fee_rule", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_UPDATED", ENTITY_LATE_FEE_RULE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -424,14 +429,14 @@ public class BillingManagementService {
         LateFeeRuleEntity entity = findLateFeeRule(id);
         entity.setDeleted(true);
         lateFeeRuleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_DELETED", "late_fee_rule", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_DELETED", ENTITY_LATE_FEE_RULE, id, null);
     }
 
     public LateFeeRuleResponse activateLateFeeRule(UUID id, ShieldPrincipal principal) {
         LateFeeRuleEntity entity = findLateFeeRule(id);
         entity.setActive(true);
         LateFeeRuleEntity saved = lateFeeRuleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_ACTIVATED", "late_fee_rule", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_ACTIVATED", ENTITY_LATE_FEE_RULE, id, null);
         return toResponse(saved);
     }
 
@@ -439,7 +444,7 @@ public class BillingManagementService {
         LateFeeRuleEntity entity = findLateFeeRule(id);
         entity.setActive(false);
         LateFeeRuleEntity saved = lateFeeRuleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_DEACTIVATED", "late_fee_rule", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LATE_FEE_RULE_DEACTIVATED", ENTITY_LATE_FEE_RULE, id, null);
         return toResponse(saved);
     }
 

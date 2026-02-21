@@ -44,6 +44,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EmergencyService {
 
+    private static final String ENTITY_EMERGENCY_CONTACT = "emergency_contact";
+    private static final String EMERGENCY_CONTACT_NOT_FOUND_PREFIX = "Emergency contact not found: ";
+    private static final String ENTITY_SOS_ALERT = "sos_alert";
+    private static final String SOS_ALERT_NOT_FOUND_PREFIX = "SOS alert not found: ";
+    private static final String ENTITY_FIRE_DRILL_RECORD = "fire_drill_record";
+    private static final String FIRE_DRILL_RECORD_NOT_FOUND_PREFIX = "Fire drill record not found: ";
+    private static final String ENTITY_SAFETY_EQUIPMENT = "safety_equipment";
+    private static final String SAFETY_EQUIPMENT_NOT_FOUND_PREFIX = "Safety equipment not found: ";
+    private static final String ENTITY_SAFETY_INSPECTION = "safety_inspection";
+    private static final String SAFETY_INSPECTION_NOT_FOUND_PREFIX = "Safety inspection not found: ";
+
     private final EmergencyContactRepository emergencyContactRepository;
     private final SosAlertRepository sosAlertRepository;
     private final FireDrillRecordRepository fireDrillRecordRepository;
@@ -78,7 +89,7 @@ public class EmergencyService {
         entity.setActive(request.active());
 
         EmergencyContactEntity saved = emergencyContactRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_CREATED", "emergency_contact", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_CREATED", ENTITY_EMERGENCY_CONTACT, saved.getId(), null);
         return toContactResponse(saved);
     }
 
@@ -96,13 +107,13 @@ public class EmergencyService {
     @Transactional(readOnly = true)
     public EmergencyContactResponse getContact(UUID id) {
         EmergencyContactEntity entity = emergencyContactRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Emergency contact not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(EMERGENCY_CONTACT_NOT_FOUND_PREFIX + id));
         return toContactResponse(entity);
     }
 
     public EmergencyContactResponse updateContact(UUID id, EmergencyContactUpdateRequest request, ShieldPrincipal principal) {
         EmergencyContactEntity entity = emergencyContactRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Emergency contact not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(EMERGENCY_CONTACT_NOT_FOUND_PREFIX + id));
 
         entity.setContactType(request.contactType());
         entity.setContactName(request.contactName());
@@ -113,27 +124,27 @@ public class EmergencyService {
         entity.setActive(request.active());
 
         EmergencyContactEntity saved = emergencyContactRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_UPDATED", "emergency_contact", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_UPDATED", ENTITY_EMERGENCY_CONTACT, saved.getId(), null);
         return toContactResponse(saved);
     }
 
     public EmergencyContactResponse updateContactOrder(UUID id, EmergencyContactOrderUpdateRequest request, ShieldPrincipal principal) {
         EmergencyContactEntity entity = emergencyContactRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Emergency contact not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(EMERGENCY_CONTACT_NOT_FOUND_PREFIX + id));
 
         entity.setDisplayOrder(request.displayOrder());
         EmergencyContactEntity saved = emergencyContactRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_ORDER_UPDATED", "emergency_contact", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_ORDER_UPDATED", ENTITY_EMERGENCY_CONTACT, saved.getId(), null);
         return toContactResponse(saved);
     }
 
     public void deleteContact(UUID id, ShieldPrincipal principal) {
         EmergencyContactEntity entity = emergencyContactRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Emergency contact not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(EMERGENCY_CONTACT_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         emergencyContactRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_DELETED", "emergency_contact", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EMERGENCY_CONTACT_DELETED", ENTITY_EMERGENCY_CONTACT, entity.getId(), null);
     }
 
     public SosAlertResponse raiseAlert(SosAlertRaiseRequest request, ShieldPrincipal principal) {
@@ -150,7 +161,7 @@ public class EmergencyService {
         entity.setStatus(SosAlertStatus.ACTIVE);
 
         SosAlertEntity saved = sosAlertRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SOS_ALERT_RAISED", "sos_alert", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SOS_ALERT_RAISED", ENTITY_SOS_ALERT, saved.getId(), null);
         return toAlertResponse(saved);
     }
 
@@ -178,44 +189,44 @@ public class EmergencyService {
     @Transactional(readOnly = true)
     public SosAlertResponse getAlert(UUID id) {
         SosAlertEntity entity = sosAlertRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("SOS alert not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SOS_ALERT_NOT_FOUND_PREFIX + id));
         return toAlertResponse(entity);
     }
 
     public SosAlertResponse respondAlert(UUID id, SosAlertResponseRequest request, ShieldPrincipal principal) {
         SosAlertEntity entity = sosAlertRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("SOS alert not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SOS_ALERT_NOT_FOUND_PREFIX + id));
 
         entity.setStatus(SosAlertStatus.RESPONDED);
         entity.setRespondedBy(request.respondedBy() != null ? request.respondedBy() : principal.userId());
         entity.setRespondedAt(Instant.now());
 
         SosAlertEntity saved = sosAlertRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SOS_ALERT_RESPONDED", "sos_alert", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SOS_ALERT_RESPONDED", ENTITY_SOS_ALERT, saved.getId(), null);
         return toAlertResponse(saved);
     }
 
     public SosAlertResponse resolveAlert(UUID id, SosAlertResolveRequest request, ShieldPrincipal principal) {
         SosAlertEntity entity = sosAlertRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("SOS alert not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SOS_ALERT_NOT_FOUND_PREFIX + id));
 
         entity.setStatus(request.falseAlarm() ? SosAlertStatus.FALSE_ALARM : SosAlertStatus.RESOLVED);
         entity.setResolvedAt(Instant.now());
 
         SosAlertEntity saved = sosAlertRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SOS_ALERT_RESOLVED", "sos_alert", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SOS_ALERT_RESOLVED", ENTITY_SOS_ALERT, saved.getId(), null);
         return toAlertResponse(saved);
     }
 
     public SosAlertResponse markFalseAlarm(UUID id, ShieldPrincipal principal) {
         SosAlertEntity entity = sosAlertRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("SOS alert not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SOS_ALERT_NOT_FOUND_PREFIX + id));
 
         entity.setStatus(SosAlertStatus.FALSE_ALARM);
         entity.setResolvedAt(Instant.now());
 
         SosAlertEntity saved = sosAlertRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SOS_ALERT_FALSE_ALARM_MARKED", "sos_alert", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SOS_ALERT_FALSE_ALARM_MARKED", ENTITY_SOS_ALERT, saved.getId(), null);
         return toAlertResponse(saved);
     }
 
@@ -231,7 +242,7 @@ public class EmergencyService {
         entity.setReportUrl(request.reportUrl());
 
         FireDrillRecordEntity saved = fireDrillRecordRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "FIRE_DRILL_CREATED", "fire_drill_record", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "FIRE_DRILL_CREATED", ENTITY_FIRE_DRILL_RECORD, saved.getId(), null);
         return toFireDrillResponse(saved);
     }
 
@@ -243,13 +254,13 @@ public class EmergencyService {
     @Transactional(readOnly = true)
     public FireDrillRecordResponse getFireDrill(UUID id) {
         FireDrillRecordEntity entity = fireDrillRecordRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Fire drill record not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(FIRE_DRILL_RECORD_NOT_FOUND_PREFIX + id));
         return toFireDrillResponse(entity);
     }
 
     public FireDrillRecordResponse updateFireDrill(UUID id, FireDrillRecordUpdateRequest request, ShieldPrincipal principal) {
         FireDrillRecordEntity entity = fireDrillRecordRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Fire drill record not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(FIRE_DRILL_RECORD_NOT_FOUND_PREFIX + id));
 
         entity.setDrillDate(request.drillDate());
         entity.setDrillTime(request.drillTime());
@@ -260,17 +271,17 @@ public class EmergencyService {
         entity.setReportUrl(request.reportUrl());
 
         FireDrillRecordEntity saved = fireDrillRecordRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "FIRE_DRILL_UPDATED", "fire_drill_record", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "FIRE_DRILL_UPDATED", ENTITY_FIRE_DRILL_RECORD, saved.getId(), null);
         return toFireDrillResponse(saved);
     }
 
     public void deleteFireDrill(UUID id, ShieldPrincipal principal) {
         FireDrillRecordEntity entity = fireDrillRecordRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Fire drill record not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(FIRE_DRILL_RECORD_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         fireDrillRecordRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "FIRE_DRILL_DELETED", "fire_drill_record", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "FIRE_DRILL_DELETED", ENTITY_FIRE_DRILL_RECORD, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -294,7 +305,7 @@ public class EmergencyService {
         entity.setFunctional(request.functional() == null || request.functional());
 
         SafetyEquipmentEntity saved = safetyEquipmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SAFETY_EQUIPMENT_CREATED", "safety_equipment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SAFETY_EQUIPMENT_CREATED", ENTITY_SAFETY_EQUIPMENT, saved.getId(), null);
         return toSafetyEquipmentResponse(saved);
     }
 
@@ -306,13 +317,13 @@ public class EmergencyService {
     @Transactional(readOnly = true)
     public SafetyEquipmentResponse getSafetyEquipment(UUID id) {
         SafetyEquipmentEntity entity = safetyEquipmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Safety equipment not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_EQUIPMENT_NOT_FOUND_PREFIX + id));
         return toSafetyEquipmentResponse(entity);
     }
 
     public SafetyEquipmentResponse updateSafetyEquipment(UUID id, SafetyEquipmentUpdateRequest request, ShieldPrincipal principal) {
         SafetyEquipmentEntity entity = safetyEquipmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Safety equipment not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_EQUIPMENT_NOT_FOUND_PREFIX + id));
 
         entity.setEquipmentType(request.equipmentType());
         entity.setEquipmentTag(request.equipmentTag());
@@ -324,17 +335,17 @@ public class EmergencyService {
         entity.setFunctional(request.functional() == null || request.functional());
 
         SafetyEquipmentEntity saved = safetyEquipmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SAFETY_EQUIPMENT_UPDATED", "safety_equipment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SAFETY_EQUIPMENT_UPDATED", ENTITY_SAFETY_EQUIPMENT, saved.getId(), null);
         return toSafetyEquipmentResponse(saved);
     }
 
     public void deleteSafetyEquipment(UUID id, ShieldPrincipal principal) {
         SafetyEquipmentEntity entity = safetyEquipmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Safety equipment not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_EQUIPMENT_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         safetyEquipmentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SAFETY_EQUIPMENT_DELETED", "safety_equipment", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SAFETY_EQUIPMENT_DELETED", ENTITY_SAFETY_EQUIPMENT, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -352,7 +363,7 @@ public class EmergencyService {
 
     public SafetyInspectionResponse createSafetyInspection(SafetyInspectionCreateRequest request, ShieldPrincipal principal) {
         safetyEquipmentRepository.findByIdAndDeletedFalse(request.equipmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Safety equipment not found: " + request.equipmentId()));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_EQUIPMENT_NOT_FOUND_PREFIX + request.equipmentId()));
 
         SafetyInspectionEntity entity = new SafetyInspectionEntity();
         entity.setTenantId(principal.tenantId());
@@ -363,7 +374,7 @@ public class EmergencyService {
         entity.setRemarks(request.remarks());
 
         SafetyInspectionEntity saved = safetyInspectionRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SAFETY_INSPECTION_CREATED", "safety_inspection", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SAFETY_INSPECTION_CREATED", ENTITY_SAFETY_INSPECTION, saved.getId(), null);
         return toSafetyInspectionResponse(saved);
     }
 
@@ -375,16 +386,16 @@ public class EmergencyService {
     @Transactional(readOnly = true)
     public SafetyInspectionResponse getSafetyInspection(UUID id) {
         SafetyInspectionEntity entity = safetyInspectionRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Safety inspection not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_INSPECTION_NOT_FOUND_PREFIX + id));
         return toSafetyInspectionResponse(entity);
     }
 
     public SafetyInspectionResponse updateSafetyInspection(UUID id, SafetyInspectionUpdateRequest request, ShieldPrincipal principal) {
         safetyEquipmentRepository.findByIdAndDeletedFalse(request.equipmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Safety equipment not found: " + request.equipmentId()));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_EQUIPMENT_NOT_FOUND_PREFIX + request.equipmentId()));
 
         SafetyInspectionEntity entity = safetyInspectionRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Safety inspection not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_INSPECTION_NOT_FOUND_PREFIX + id));
 
         entity.setEquipmentId(request.equipmentId());
         entity.setInspectionDate(request.inspectionDate());
@@ -393,17 +404,17 @@ public class EmergencyService {
         entity.setRemarks(request.remarks());
 
         SafetyInspectionEntity saved = safetyInspectionRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SAFETY_INSPECTION_UPDATED", "safety_inspection", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SAFETY_INSPECTION_UPDATED", ENTITY_SAFETY_INSPECTION, saved.getId(), null);
         return toSafetyInspectionResponse(saved);
     }
 
     public void deleteSafetyInspection(UUID id, ShieldPrincipal principal) {
         SafetyInspectionEntity entity = safetyInspectionRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Safety inspection not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SAFETY_INSPECTION_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         safetyInspectionRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SAFETY_INSPECTION_DELETED", "safety_inspection", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SAFETY_INSPECTION_DELETED", ENTITY_SAFETY_INSPECTION, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)

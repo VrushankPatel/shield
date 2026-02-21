@@ -2,7 +2,6 @@ package com.shield.audit.service;
 
 import com.shield.audit.entity.ApiRequestLogEntity;
 import com.shield.audit.repository.ApiRequestLogRepository;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,29 +16,18 @@ public class ApiRequestLogService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void record(
-            String requestId,
-            UUID tenantId,
-            UUID userId,
-            String endpoint,
-            String httpMethod,
-            String requestBody,
-            Integer responseStatus,
-            Long responseTimeMs,
-            String ipAddress,
-            String userAgent) {
-
+    public void logRequest(ApiRequestLogCommand command) {
         ApiRequestLogEntity entity = new ApiRequestLogEntity();
-        entity.setRequestId(requestId);
-        entity.setTenantId(tenantId);
-        entity.setUserId(userId);
-        entity.setEndpoint(endpoint);
-        entity.setHttpMethod(httpMethod);
-        entity.setRequestBody(requestBody);
-        entity.setResponseStatus(responseStatus);
-        entity.setResponseTimeMs(responseTimeMs);
-        entity.setIpAddress(ipAddress);
-        entity.setUserAgent(userAgent);
+        entity.setRequestId(command.requestId());
+        entity.setTenantId(command.tenantId());
+        entity.setUserId(command.userId());
+        entity.setEndpoint(command.endpoint());
+        entity.setHttpMethod(command.httpMethod());
+        entity.setRequestBody(command.requestBody());
+        entity.setResponseStatus(command.responseStatus());
+        entity.setResponseTimeMs(command.responseTimeMs());
+        entity.setIpAddress(command.ipAddress());
+        entity.setUserAgent(command.userAgent());
         apiRequestLogRepository.save(entity);
     }
 }

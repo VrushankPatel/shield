@@ -69,6 +69,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MeetingService {
 
+    private static final String ENTITY_MEETING = "meeting";
+    private static final String ENTITY_MEETING_AGENDA = "meeting_agenda";
+    private static final String ENTITY_MEETING_ATTENDEE = "meeting_attendee";
+    private static final String ENTITY_MEETING_MINUTES_RECORD = "meeting_minutes_record";
+    private static final String ENTITY_MEETING_RESOLUTION = "meeting_resolution";
+    private static final String ENTITY_MEETING_ACTION_ITEM = "meeting_action_item";
+
     private final MeetingRepository meetingRepository;
     private final MeetingAgendaRepository meetingAgendaRepository;
     private final MeetingAttendeeRepository meetingAttendeeRepository;
@@ -96,7 +103,7 @@ public class MeetingService {
         entity.setStatus(MeetingStatus.SCHEDULED);
 
         MeetingEntity saved = meetingRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MEETING_CREATED", "meeting", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MEETING_CREATED", ENTITY_MEETING, saved.getId(), null);
         return toMeetingResponse(saved);
     }
 
@@ -124,7 +131,7 @@ public class MeetingService {
         }
 
         MeetingEntity saved = meetingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_UPDATED", "meeting", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_UPDATED", ENTITY_MEETING, saved.getId(), null);
         return toMeetingResponse(saved);
     }
 
@@ -132,14 +139,14 @@ public class MeetingService {
         MeetingEntity entity = getMeetingEntity(id);
         entity.setDeleted(true);
         meetingRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "MEETING_DELETED", "meeting", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "MEETING_DELETED", ENTITY_MEETING, entity.getId(), null);
     }
 
     public MeetingResponse start(UUID id) {
         MeetingEntity entity = getMeetingEntity(id);
         entity.setStatus(MeetingStatus.ONGOING);
         MeetingEntity saved = meetingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_STARTED", "meeting", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_STARTED", ENTITY_MEETING, saved.getId(), null);
         return toMeetingResponse(saved);
     }
 
@@ -147,7 +154,7 @@ public class MeetingService {
         MeetingEntity entity = getMeetingEntity(id);
         entity.setStatus(MeetingStatus.COMPLETED);
         MeetingEntity saved = meetingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_ENDED", "meeting", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_ENDED", ENTITY_MEETING, saved.getId(), null);
         return toMeetingResponse(saved);
     }
 
@@ -155,7 +162,7 @@ public class MeetingService {
         MeetingEntity entity = getMeetingEntity(id);
         entity.setStatus(MeetingStatus.CANCELLED);
         MeetingEntity saved = meetingRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_CANCELLED", "meeting", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_CANCELLED", ENTITY_MEETING, saved.getId(), null);
         return toMeetingResponse(saved);
     }
 
@@ -202,7 +209,7 @@ public class MeetingService {
         entity.setEstimatedDuration(request.estimatedDuration());
 
         MeetingAgendaEntity saved = meetingAgendaRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_AGENDA_CREATED", "meeting_agenda", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_AGENDA_CREATED", ENTITY_MEETING_AGENDA, saved.getId(), null);
         return toMeetingAgendaResponse(saved);
     }
 
@@ -215,7 +222,7 @@ public class MeetingService {
         entity.setEstimatedDuration(request.estimatedDuration());
 
         MeetingAgendaEntity saved = meetingAgendaRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_AGENDA_UPDATED", "meeting_agenda", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_AGENDA_UPDATED", ENTITY_MEETING_AGENDA, saved.getId(), null);
         return toMeetingAgendaResponse(saved);
     }
 
@@ -224,7 +231,7 @@ public class MeetingService {
         entity.setDisplayOrder(request.displayOrder());
 
         MeetingAgendaEntity saved = meetingAgendaRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_AGENDA_REORDERED", "meeting_agenda", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_AGENDA_REORDERED", ENTITY_MEETING_AGENDA, saved.getId(), null);
         return toMeetingAgendaResponse(saved);
     }
 
@@ -232,7 +239,7 @@ public class MeetingService {
         MeetingAgendaEntity entity = getMeetingAgendaEntity(agendaId);
         entity.setDeleted(true);
         meetingAgendaRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "MEETING_AGENDA_DELETED", "meeting_agenda", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "MEETING_AGENDA_DELETED", ENTITY_MEETING_AGENDA, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -262,7 +269,7 @@ public class MeetingService {
         entity.setRsvpStatus(MeetingAttendeeRsvpStatus.PENDING);
 
         MeetingAttendeeEntity saved = meetingAttendeeRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_ATTENDEE_ADDED", "meeting_attendee", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_ATTENDEE_ADDED", ENTITY_MEETING_ATTENDEE, saved.getId(), null);
         return toMeetingAttendeeResponse(saved);
     }
 
@@ -274,7 +281,7 @@ public class MeetingService {
 
         attendee.setDeleted(true);
         meetingAttendeeRepository.save(attendee);
-        auditLogService.record(attendee.getTenantId(), null, "MEETING_ATTENDEE_REMOVED", "meeting_attendee", attendee.getId(), null);
+        auditLogService.logEvent(attendee.getTenantId(), null, "MEETING_ATTENDEE_REMOVED", ENTITY_MEETING_ATTENDEE, attendee.getId(), null);
     }
 
     public MeetingAttendeeResponse rsvp(UUID meetingId, MeetingAttendeeRsvpRequest request) {
@@ -296,7 +303,7 @@ public class MeetingService {
 
         attendee.setRsvpStatus(request.rsvpStatus());
         MeetingAttendeeEntity saved = meetingAttendeeRepository.save(attendee);
-        auditLogService.record(saved.getTenantId(), principal.userId(), "MEETING_RSVP_UPDATED", "meeting_attendee", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), principal.userId(), "MEETING_RSVP_UPDATED", ENTITY_MEETING_ATTENDEE, saved.getId(), null);
         return toMeetingAttendeeResponse(saved);
     }
 
@@ -311,7 +318,7 @@ public class MeetingService {
         attendee.setLeftAt(request.leftAt() != null ? request.leftAt() : attendee.getLeftAt());
 
         MeetingAttendeeEntity saved = meetingAttendeeRepository.save(attendee);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_ATTENDANCE_MARKED", "meeting_attendee", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_ATTENDANCE_MARKED", ENTITY_MEETING_ATTENDEE, saved.getId(), null);
         return toMeetingAttendeeResponse(saved);
     }
 
@@ -354,7 +361,7 @@ public class MeetingService {
         meetingRepository.save(meeting);
 
         MeetingMinutesRecordEntity saved = meetingMinutesRecordRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), principal.userId(), "MEETING_MINUTES_CREATED", "meeting_minutes_record", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), principal.userId(), "MEETING_MINUTES_CREATED", ENTITY_MEETING_MINUTES_RECORD, saved.getId(), null);
         return toMeetingMinutesResponse(saved);
     }
 
@@ -370,7 +377,7 @@ public class MeetingService {
         meeting.setMinutes(saved.getMinutesContent());
         meetingRepository.save(meeting);
 
-        auditLogService.record(saved.getTenantId(), null, "MEETING_MINUTES_UPDATED", "meeting_minutes_record", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_MINUTES_UPDATED", ENTITY_MEETING_MINUTES_RECORD, saved.getId(), null);
         return toMeetingMinutesResponse(saved);
     }
 
@@ -394,7 +401,7 @@ public class MeetingService {
         minutes.setPreparedBy(principal.userId());
         meetingMinutesRecordRepository.save(minutes);
 
-        auditLogService.record(savedMeeting.getTenantId(), principal.userId(), "MEETING_MINUTES_UPDATED", "meeting", savedMeeting.getId(), null);
+        auditLogService.logEvent(savedMeeting.getTenantId(), principal.userId(), "MEETING_MINUTES_UPDATED", ENTITY_MEETING, savedMeeting.getId(), null);
         return toMeetingResponse(savedMeeting);
     }
 
@@ -405,7 +412,7 @@ public class MeetingService {
         entity.setApprovalDate(LocalDate.now());
 
         MeetingMinutesRecordEntity saved = meetingMinutesRecordRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), principal.userId(), "MEETING_MINUTES_APPROVED", "meeting_minutes_record", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), principal.userId(), "MEETING_MINUTES_APPROVED", ENTITY_MEETING_MINUTES_RECORD, saved.getId(), null);
         return toMeetingMinutesResponse(saved);
     }
 
@@ -426,7 +433,7 @@ public class MeetingService {
         entity.setAiGeneratedSummary("AI summary placeholder: " + aiSummary);
 
         MeetingMinutesRecordEntity saved = meetingMinutesRecordRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_MINUTES_AI_SUMMARY_GENERATED", "meeting_minutes_record", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_MINUTES_AI_SUMMARY_GENERATED", ENTITY_MEETING_MINUTES_RECORD, saved.getId(), null);
         return toMeetingMinutesResponse(saved);
     }
 
@@ -456,7 +463,7 @@ public class MeetingService {
         entity.setVotesAbstain(0);
 
         MeetingResolutionEntity saved = meetingResolutionRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), principal.userId(), "MEETING_RESOLUTION_CREATED", "meeting_resolution", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), principal.userId(), "MEETING_RESOLUTION_CREATED", ENTITY_MEETING_RESOLUTION, saved.getId(), null);
         return toMeetingResolutionResponse(saved);
     }
 
@@ -470,7 +477,7 @@ public class MeetingService {
         }
 
         MeetingResolutionEntity saved = meetingResolutionRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_RESOLUTION_UPDATED", "meeting_resolution", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_RESOLUTION_UPDATED", ENTITY_MEETING_RESOLUTION, saved.getId(), null);
         return toMeetingResolutionResponse(saved);
     }
 
@@ -478,7 +485,7 @@ public class MeetingService {
         MeetingResolutionEntity entity = getMeetingResolutionEntity(id);
         entity.setDeleted(true);
         meetingResolutionRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "MEETING_RESOLUTION_DELETED", "meeting_resolution", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "MEETING_RESOLUTION_DELETED", ENTITY_MEETING_RESOLUTION, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -514,7 +521,7 @@ public class MeetingService {
 
         MeetingVoteEntity savedVote = meetingVoteRepository.save(vote);
         refreshResolutionVoteCounts(resolution);
-        auditLogService.record(savedVote.getTenantId(), principal.userId(), "MEETING_RESOLUTION_VOTED", "meeting_vote", savedVote.getId(), null);
+        auditLogService.logEvent(savedVote.getTenantId(), principal.userId(), "MEETING_RESOLUTION_VOTED", "meeting_vote", savedVote.getId(), null);
         return toMeetingVoteResponse(savedVote);
     }
 
@@ -568,7 +575,7 @@ public class MeetingService {
         entity.setStatus(request.status() != null ? request.status() : MeetingActionItemStatus.PENDING);
 
         MeetingActionItemEntity saved = meetingActionItemRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_ACTION_ITEM_CREATED", "meeting_action_item", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_ACTION_ITEM_CREATED", ENTITY_MEETING_ACTION_ITEM, saved.getId(), null);
         return toMeetingActionItemResponse(saved);
     }
 
@@ -582,7 +589,7 @@ public class MeetingService {
         entity.setCompletionDate(request.completionDate());
 
         MeetingActionItemEntity saved = meetingActionItemRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_ACTION_ITEM_UPDATED", "meeting_action_item", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_ACTION_ITEM_UPDATED", ENTITY_MEETING_ACTION_ITEM, saved.getId(), null);
         return toMeetingActionItemResponse(saved);
     }
 
@@ -590,7 +597,7 @@ public class MeetingService {
         MeetingActionItemEntity entity = getMeetingActionItemEntity(id);
         entity.setDeleted(true);
         meetingActionItemRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "MEETING_ACTION_ITEM_DELETED", "meeting_action_item", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "MEETING_ACTION_ITEM_DELETED", ENTITY_MEETING_ACTION_ITEM, entity.getId(), null);
     }
 
     public MeetingActionItemResponse completeActionItem(UUID id) {
@@ -599,7 +606,7 @@ public class MeetingService {
         entity.setCompletionDate(LocalDate.now());
 
         MeetingActionItemEntity saved = meetingActionItemRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_ACTION_ITEM_COMPLETED", "meeting_action_item", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_ACTION_ITEM_COMPLETED", ENTITY_MEETING_ACTION_ITEM, saved.getId(), null);
         return toMeetingActionItemResponse(saved);
     }
 
@@ -628,7 +635,7 @@ public class MeetingService {
         entity.setSentAt(Instant.now());
 
         MeetingReminderEntity saved = meetingReminderRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "MEETING_REMINDER_SENT", "meeting_reminder", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "MEETING_REMINDER_SENT", "meeting_reminder", saved.getId(), null);
         return toMeetingReminderResponse(saved);
     }
 

@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DigitalIdCardService {
 
     private static final int DEFAULT_VALIDITY_DAYS = 365;
+    private static final String ENTITY_DIGITAL_ID_CARD = "digital_id_card";
 
     private final DigitalIdCardRepository digitalIdCardRepository;
     private final UserRepository userRepository;
@@ -62,7 +63,7 @@ public class DigitalIdCardService {
         entity.setDeactivatedAt(null);
 
         DigitalIdCardEntity saved = digitalIdCardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DIGITAL_ID_GENERATED", "digital_id_card", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIGITAL_ID_GENERATED", ENTITY_DIGITAL_ID_CARD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -88,7 +89,7 @@ public class DigitalIdCardService {
         }
 
         DigitalIdCardEntity saved = digitalIdCardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DIGITAL_ID_RENEWED", "digital_id_card", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIGITAL_ID_RENEWED", ENTITY_DIGITAL_ID_CARD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -101,7 +102,7 @@ public class DigitalIdCardService {
         entity.setActive(false);
         entity.setDeactivatedAt(Instant.now());
         DigitalIdCardEntity saved = digitalIdCardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DIGITAL_ID_DEACTIVATED", "digital_id_card", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIGITAL_ID_DEACTIVATED", ENTITY_DIGITAL_ID_CARD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -118,9 +119,9 @@ public class DigitalIdCardService {
         }
 
         boolean valid = entity.isActive() && !expired;
-        String message = valid ? "Card is valid" : (expired ? "Card has expired" : "Card is inactive");
+        String message = buildVerificationMessage(valid, expired);
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "DIGITAL_ID_VERIFIED", "digital_id_card", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIGITAL_ID_VERIFIED", ENTITY_DIGITAL_ID_CARD, entity.getId(), null);
         return new DigitalIdVerificationResponse(
                 entity.getId(),
                 entity.getUserId(),
@@ -152,6 +153,16 @@ public class DigitalIdCardService {
 
     private String generateQrCodeData() {
         return "SID-" + UUID.randomUUID();
+    }
+
+    private String buildVerificationMessage(boolean valid, boolean expired) {
+        if (valid) {
+            return "Card is valid";
+        }
+        if (expired) {
+            return "Card has expired";
+        }
+        return "Card is inactive";
     }
 
     private DigitalIdCardResponse toResponse(DigitalIdCardEntity entity) {

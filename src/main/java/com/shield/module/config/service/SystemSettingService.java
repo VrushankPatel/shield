@@ -151,7 +151,7 @@ public class SystemSettingService {
 
         SystemSettingEntity saved = systemSettingRepository.save(entity);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 auditAction,

@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,7 +24,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private final SystemLogService systemLogService;
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+    protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
             HttpHeaders headers,
             HttpStatusCode status,
@@ -41,7 +42,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 message,
                 request.getDescription(false).replace("uri=", ""));
 
-        systemLogService.recordWarn(
+        systemLogService.logWarn(
                 GlobalExceptionHandler.class.getSimpleName(),
                 message,
                 ex,
@@ -52,31 +53,31 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        systemLogService.recordWarn(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
+        systemLogService.logWarn(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
-        systemLogService.recordWarn(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
+        systemLogService.logWarn(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
-        systemLogService.recordWarn(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
+        systemLogService.logWarn(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleForbidden(AccessDeniedException ex, HttpServletRequest request) {
-        systemLogService.recordWarn(GlobalExceptionHandler.class.getSimpleName(), "Access denied", ex, request.getRequestURI());
+        systemLogService.logWarn(GlobalExceptionHandler.class.getSimpleName(), "Access denied", ex, request.getRequestURI());
         return build(HttpStatus.FORBIDDEN, "Access denied", request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        systemLogService.recordError(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
+        systemLogService.logError(GlobalExceptionHandler.class.getSimpleName(), ex.getMessage(), ex, request.getRequestURI());
         return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
     }
 

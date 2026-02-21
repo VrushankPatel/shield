@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ParkingSlotService {
 
+    private static final String ENTITY_PARKING_SLOT = "parking_slot";
+
     private final ParkingSlotRepository parkingSlotRepository;
     private final UnitRepository unitRepository;
     private final AuditLogService auditLogService;
@@ -56,7 +58,7 @@ public class ParkingSlotService {
         applyUnitAllocation(entity, request.unitId());
 
         ParkingSlotEntity saved = parkingSlotRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PARKING_SLOT_CREATED", "parking_slot", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PARKING_SLOT_CREATED", ENTITY_PARKING_SLOT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -70,7 +72,7 @@ public class ParkingSlotService {
         applyUnitAllocation(entity, request.unitId());
 
         ParkingSlotEntity saved = parkingSlotRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PARKING_SLOT_UPDATED", "parking_slot", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PARKING_SLOT_UPDATED", ENTITY_PARKING_SLOT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -82,7 +84,7 @@ public class ParkingSlotService {
 
         entity.setDeleted(true);
         parkingSlotRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PARKING_SLOT_DELETED", "parking_slot", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PARKING_SLOT_DELETED", ENTITY_PARKING_SLOT, entity.getId(), null);
     }
 
     public ParkingSlotResponse allocate(UUID id, ParkingSlotAllocateRequest request, ShieldPrincipal principal) {
@@ -102,7 +104,7 @@ public class ParkingSlotService {
         entity.setAllocatedAt(Instant.now());
 
         ParkingSlotEntity saved = parkingSlotRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PARKING_SLOT_ALLOCATED", "parking_slot", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PARKING_SLOT_ALLOCATED", ENTITY_PARKING_SLOT, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -117,7 +119,7 @@ public class ParkingSlotService {
         entity.setAllocatedAt(null);
 
         ParkingSlotEntity saved = parkingSlotRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PARKING_SLOT_DEALLOCATED", "parking_slot", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PARKING_SLOT_DEALLOCATED", ENTITY_PARKING_SLOT, saved.getId(), null);
         return toResponse(saved);
     }
 

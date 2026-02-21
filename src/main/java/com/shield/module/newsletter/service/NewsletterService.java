@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class NewsletterService {
 
+    private static final String ENTITY_NEWSLETTER = "newsletter";
+
     private final NewsletterRepository newsletterRepository;
     private final AuditLogService auditLogService;
 
@@ -42,7 +44,7 @@ public class NewsletterService {
         entity.setCreatedBy(principal.userId());
 
         NewsletterEntity saved = newsletterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "NEWSLETTER_CREATED", "newsletter",
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "NEWSLETTER_CREATED", ENTITY_NEWSLETTER,
                 saved.getId(), null);
         return toResponse(saved);
     }
@@ -74,7 +76,7 @@ public class NewsletterService {
         entity.setFileUrl(request.fileUrl());
 
         NewsletterEntity saved = newsletterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "NEWSLETTER_UPDATED", "newsletter",
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "NEWSLETTER_UPDATED", ENTITY_NEWSLETTER,
                 saved.getId(), null);
         return toResponse(saved);
     }
@@ -83,7 +85,7 @@ public class NewsletterService {
         NewsletterEntity entity = findNewsletter(id);
         entity.setDeleted(true);
         newsletterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "NEWSLETTER_DELETED", "newsletter", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "NEWSLETTER_DELETED", ENTITY_NEWSLETTER, id, null);
     }
 
     public NewsletterResponse publish(UUID id, ShieldPrincipal principal) {
@@ -96,7 +98,7 @@ public class NewsletterService {
         entity.setPublishedBy(principal.userId());
 
         NewsletterEntity saved = newsletterRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "NEWSLETTER_PUBLISHED", "newsletter",
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "NEWSLETTER_PUBLISHED", ENTITY_NEWSLETTER,
                 saved.getId(), null);
         return toResponse(saved);
     }

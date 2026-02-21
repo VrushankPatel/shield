@@ -52,7 +52,7 @@ public class AnnouncementService {
         entity.setStatus(AnnouncementStatus.DRAFT);
 
         AnnouncementEntity saved = announcementRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ANNOUNCEMENT_CREATED", "announcement", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANNOUNCEMENT_CREATED", "announcement", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -89,7 +89,7 @@ public class AnnouncementService {
                 saved.getContent(),
                 recipients);
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "ANNOUNCEMENT_PUBLISHED", "announcement", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANNOUNCEMENT_PUBLISHED", "announcement", saved.getId(), null);
         return new AnnouncementPublishResponse(toResponse(saved), dispatchResponse);
     }
 

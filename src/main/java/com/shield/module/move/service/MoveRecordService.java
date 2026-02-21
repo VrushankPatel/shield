@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MoveRecordService {
 
+    private static final String ENTITY_MOVE_RECORD = "move_record";
+
     private final MoveRecordRepository moveRecordRepository;
     private final UnitRepository unitRepository;
     private final UserRepository userRepository;
@@ -78,7 +80,7 @@ public class MoveRecordService {
         entity.setApprovalDate(LocalDate.now());
 
         MoveRecordEntity saved = moveRecordRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MOVE_RECORD_APPROVED", "move_record", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MOVE_RECORD_APPROVED", ENTITY_MOVE_RECORD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -90,7 +92,7 @@ public class MoveRecordService {
         entity.setApprovalDate(LocalDate.now());
 
         MoveRecordEntity saved = moveRecordRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MOVE_RECORD_REJECTED", "move_record", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MOVE_RECORD_REJECTED", ENTITY_MOVE_RECORD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -113,7 +115,7 @@ public class MoveRecordService {
         entity.setStatus(MoveStatus.PENDING);
 
         MoveRecordEntity saved = moveRecordRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "MOVE_RECORD_CREATED", "move_record", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "MOVE_RECORD_CREATED", ENTITY_MOVE_RECORD, saved.getId(), null);
         return toResponse(saved);
     }
 

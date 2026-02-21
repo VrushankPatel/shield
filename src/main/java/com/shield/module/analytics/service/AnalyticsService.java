@@ -50,6 +50,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AnalyticsService {
 
+    private static final String ENTITY_REPORT_TEMPLATE = "report_template";
+    private static final String ENTITY_SCHEDULED_REPORT = "scheduled_report";
+    private static final String ENTITY_ANALYTICS_DASHBOARD = "analytics_dashboard";
+    private static final String REPORT_TEMPLATE_NOT_FOUND = "Report template not found: ";
+    private static final String SCHEDULED_REPORT_NOT_FOUND = "Scheduled report not found: ";
+    private static final String ANALYTICS_DASHBOARD_NOT_FOUND = "Analytics dashboard not found: ";
+
     private final ReportTemplateRepository reportTemplateRepository;
     private final ScheduledReportRepository scheduledReportRepository;
     private final AnalyticsDashboardRepository analyticsDashboardRepository;
@@ -81,7 +88,7 @@ public class AnalyticsService {
         entity.setSystemTemplate(request.systemTemplate());
 
         ReportTemplateEntity saved = reportTemplateRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_CREATED", "report_template", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_CREATED", ENTITY_REPORT_TEMPLATE, saved.getId(), null);
         return toReportTemplateResponse(saved);
     }
 
@@ -99,13 +106,13 @@ public class AnalyticsService {
     @Transactional(readOnly = true)
     public ReportTemplateResponse getReportTemplate(UUID id) {
         ReportTemplateEntity entity = reportTemplateRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Report template not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(REPORT_TEMPLATE_NOT_FOUND + id));
         return toReportTemplateResponse(entity);
     }
 
     public ReportTemplateResponse updateReportTemplate(UUID id, ReportTemplateUpdateRequest request, ShieldPrincipal principal) {
         ReportTemplateEntity entity = reportTemplateRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Report template not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(REPORT_TEMPLATE_NOT_FOUND + id));
 
         entity.setTemplateName(request.templateName());
         entity.setReportType(normalizeType(request.reportType()));
@@ -115,22 +122,22 @@ public class AnalyticsService {
         entity.setSystemTemplate(request.systemTemplate());
 
         ReportTemplateEntity saved = reportTemplateRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_UPDATED", "report_template", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_UPDATED", ENTITY_REPORT_TEMPLATE, saved.getId(), null);
         return toReportTemplateResponse(saved);
     }
 
     public void deleteReportTemplate(UUID id, ShieldPrincipal principal) {
         ReportTemplateEntity entity = reportTemplateRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Report template not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(REPORT_TEMPLATE_NOT_FOUND + id));
 
         entity.setDeleted(true);
         reportTemplateRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_DELETED", "report_template", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_DELETED", ENTITY_REPORT_TEMPLATE, entity.getId(), null);
     }
 
     public ReportExecutionResponse executeReport(UUID id, ShieldPrincipal principal) {
         ReportTemplateEntity template = reportTemplateRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Report template not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(REPORT_TEMPLATE_NOT_FOUND + id));
 
         String reportType = normalizeType(template.getReportType());
         Map<String, Object> data = switch (reportType) {
@@ -147,7 +154,7 @@ public class AnalyticsService {
             default -> defaultExecutionPayload(template);
         };
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_EXECUTED", "report_template", template.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "REPORT_TEMPLATE_EXECUTED", ENTITY_REPORT_TEMPLATE, template.getId(), null);
 
         return new ReportExecutionResponse(
                 template.getId(),
@@ -159,7 +166,7 @@ public class AnalyticsService {
 
     public ScheduledReportResponse createScheduledReport(ScheduledReportCreateRequest request, ShieldPrincipal principal) {
         reportTemplateRepository.findByIdAndDeletedFalse(request.templateId())
-                .orElseThrow(() -> new ResourceNotFoundException("Report template not found: " + request.templateId()));
+                .orElseThrow(() -> new ResourceNotFoundException(REPORT_TEMPLATE_NOT_FOUND + request.templateId()));
 
         String frequency = normalizeFrequency(request.frequency());
         Instant nextGenerationAt = request.nextGenerationAt();
@@ -177,7 +184,7 @@ public class AnalyticsService {
         entity.setNextGenerationAt(nextGenerationAt);
 
         ScheduledReportEntity saved = scheduledReportRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_CREATED", "scheduled_report", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_CREATED", ENTITY_SCHEDULED_REPORT, saved.getId(), null);
         return toScheduledReportResponse(saved);
     }
 
@@ -189,13 +196,13 @@ public class AnalyticsService {
     @Transactional(readOnly = true)
     public ScheduledReportResponse getScheduledReport(UUID id) {
         ScheduledReportEntity entity = scheduledReportRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Scheduled report not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SCHEDULED_REPORT_NOT_FOUND + id));
         return toScheduledReportResponse(entity);
     }
 
     public ScheduledReportResponse updateScheduledReport(UUID id, ScheduledReportUpdateRequest request, ShieldPrincipal principal) {
         ScheduledReportEntity entity = scheduledReportRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Scheduled report not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SCHEDULED_REPORT_NOT_FOUND + id));
 
         String frequency = normalizeFrequency(request.frequency());
         entity.setReportName(request.reportName());
@@ -206,17 +213,17 @@ public class AnalyticsService {
                 : request.nextGenerationAt());
 
         ScheduledReportEntity saved = scheduledReportRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_UPDATED", "scheduled_report", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_UPDATED", ENTITY_SCHEDULED_REPORT, saved.getId(), null);
         return toScheduledReportResponse(saved);
     }
 
     public void deleteScheduledReport(UUID id, ShieldPrincipal principal) {
         ScheduledReportEntity entity = scheduledReportRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Scheduled report not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SCHEDULED_REPORT_NOT_FOUND + id));
 
         entity.setDeleted(true);
         scheduledReportRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_DELETED", "scheduled_report", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_DELETED", ENTITY_SCHEDULED_REPORT, entity.getId(), null);
     }
 
     public ScheduledReportResponse activateScheduledReport(UUID id, ShieldPrincipal principal) {
@@ -229,14 +236,14 @@ public class AnalyticsService {
 
     public ScheduledReportResponse sendScheduledReportNow(UUID id, ShieldPrincipal principal) {
         ScheduledReportEntity entity = scheduledReportRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Scheduled report not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SCHEDULED_REPORT_NOT_FOUND + id));
 
         Instant now = Instant.now();
         entity.setLastGeneratedAt(now);
         entity.setNextGenerationAt(calculateNextGenerationAt(entity.getFrequency(), now));
 
         ScheduledReportEntity saved = scheduledReportRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_SENT_NOW", "scheduled_report", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SCHEDULED_REPORT_SENT_NOW", ENTITY_SCHEDULED_REPORT, saved.getId(), null);
         return toScheduledReportResponse(saved);
     }
 
@@ -254,7 +261,7 @@ public class AnalyticsService {
         entity.setDefaultDashboard(request.defaultDashboard());
 
         AnalyticsDashboardEntity saved = analyticsDashboardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_CREATED", "analytics_dashboard", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_CREATED", ENTITY_ANALYTICS_DASHBOARD, saved.getId(), null);
         return toDashboardResponse(saved);
     }
 
@@ -272,13 +279,13 @@ public class AnalyticsService {
     @Transactional(readOnly = true)
     public AnalyticsDashboardResponse getDashboard(UUID id) {
         AnalyticsDashboardEntity entity = analyticsDashboardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Analytics dashboard not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ANALYTICS_DASHBOARD_NOT_FOUND + id));
         return toDashboardResponse(entity);
     }
 
     public AnalyticsDashboardResponse updateDashboard(UUID id, AnalyticsDashboardUpdateRequest request, ShieldPrincipal principal) {
         AnalyticsDashboardEntity entity = analyticsDashboardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Analytics dashboard not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ANALYTICS_DASHBOARD_NOT_FOUND + id));
 
         if (request.defaultDashboard()) {
             clearDefaultDashboards();
@@ -290,32 +297,31 @@ public class AnalyticsService {
         entity.setDefaultDashboard(request.defaultDashboard());
 
         AnalyticsDashboardEntity saved = analyticsDashboardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_UPDATED", "analytics_dashboard", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_UPDATED", ENTITY_ANALYTICS_DASHBOARD, saved.getId(), null);
         return toDashboardResponse(saved);
     }
 
     public void deleteDashboard(UUID id, ShieldPrincipal principal) {
         AnalyticsDashboardEntity entity = analyticsDashboardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Analytics dashboard not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ANALYTICS_DASHBOARD_NOT_FOUND + id));
 
         entity.setDeleted(true);
         analyticsDashboardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_DELETED", "analytics_dashboard", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_DELETED", ENTITY_ANALYTICS_DASHBOARD, entity.getId(), null);
     }
 
     public AnalyticsDashboardResponse setDefaultDashboard(UUID id, ShieldPrincipal principal) {
         AnalyticsDashboardEntity entity = analyticsDashboardRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Analytics dashboard not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ANALYTICS_DASHBOARD_NOT_FOUND + id));
 
         clearDefaultDashboards();
         entity.setDefaultDashboard(true);
 
         AnalyticsDashboardEntity saved = analyticsDashboardRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_SET_DEFAULT", "analytics_dashboard", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANALYTICS_DASHBOARD_SET_DEFAULT", ENTITY_ANALYTICS_DASHBOARD, saved.getId(), null);
         return toDashboardResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public CollectionEfficiencyResponse getCollectionEfficiency() {
         UUID tenantId = TenantContext.getRequiredTenantId();
 
@@ -332,7 +338,6 @@ public class AnalyticsService {
                 calculatePercentage(collectedAmount, billedAmount));
     }
 
-    @Transactional(readOnly = true)
     public List<ExpenseDistributionResponse> getExpenseDistribution() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         return jdbcTemplate.query(
@@ -349,7 +354,6 @@ public class AnalyticsService {
                 tenantId);
     }
 
-    @Transactional(readOnly = true)
     public ComplaintResolutionTimeResponse getComplaintResolutionTime() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         Map<String, Object> row = jdbcTemplate.queryForMap(
@@ -367,7 +371,6 @@ public class AnalyticsService {
         return new ComplaintResolutionTimeResponse(resolvedCount, avgHours);
     }
 
-    @Transactional(readOnly = true)
     public List<AssetFailureFrequencyResponse> getAssetFailureFrequency() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         return jdbcTemplate.query(
@@ -386,7 +389,6 @@ public class AnalyticsService {
                 tenantId);
     }
 
-    @Transactional(readOnly = true)
     public OccupancyRateResponse getOccupancyRate() {
         UUID tenantId = TenantContext.getRequiredTenantId();
 
@@ -407,7 +409,6 @@ public class AnalyticsService {
         return new OccupancyRateResponse(totalUnits, occupiedUnits, calculatePercentage(occupiedUnits, totalUnits));
     }
 
-    @Transactional(readOnly = true)
     public List<AmenityUtilizationResponse> getAmenityUtilization() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         return jdbcTemplate.query(
@@ -430,7 +431,6 @@ public class AnalyticsService {
                 tenantId);
     }
 
-    @Transactional(readOnly = true)
     public List<DefaulterTrendResponse> getDefaulterTrend() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         return jdbcTemplate.query(
@@ -454,7 +454,6 @@ public class AnalyticsService {
                 tenantId);
     }
 
-    @Transactional(readOnly = true)
     public List<FundAllocationResponse> getFundAllocation() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         return jdbcTemplate.query(
@@ -472,7 +471,6 @@ public class AnalyticsService {
                 tenantId);
     }
 
-    @Transactional(readOnly = true)
     public StaffAttendanceSummaryResponse getStaffAttendanceSummary() {
         UUID tenantId = TenantContext.getRequiredTenantId();
 
@@ -494,7 +492,6 @@ public class AnalyticsService {
         return new StaffAttendanceSummaryResponse(totalStaff, presentToday, absentToday);
     }
 
-    @Transactional(readOnly = true)
     public List<VisitorTrendResponse> getVisitorTrends() {
         UUID tenantId = TenantContext.getRequiredTenantId();
         return jdbcTemplate.query(
@@ -522,11 +519,11 @@ public class AnalyticsService {
             String action) {
 
         ScheduledReportEntity entity = scheduledReportRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Scheduled report not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(SCHEDULED_REPORT_NOT_FOUND + id));
 
         entity.setActive(active);
         ScheduledReportEntity saved = scheduledReportRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), action, "scheduled_report", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), action, ENTITY_SCHEDULED_REPORT, saved.getId(), null);
         return toScheduledReportResponse(saved);
     }
 

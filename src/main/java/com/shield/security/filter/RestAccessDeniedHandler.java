@@ -37,7 +37,7 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
                 "Access denied",
                 request.getRequestURI());
 
-        systemLogService.recordWarn(
+        systemLogService.logWarn(
                 RestAccessDeniedHandler.class.getSimpleName(),
                 "Access denied",
                 accessDeniedException,

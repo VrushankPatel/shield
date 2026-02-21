@@ -14,7 +14,7 @@ public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
 
     @Transactional
-    public void record(UUID tenantId, UUID userId, String action, String entityType, UUID entityId, String payload) {
+    public void logEvent(UUID tenantId, UUID userId, String action, String entityType, UUID entityId, String payload) {
         AuditLogEntity log = new AuditLogEntity();
         log.setTenantId(tenantId);
         log.setUserId(userId);

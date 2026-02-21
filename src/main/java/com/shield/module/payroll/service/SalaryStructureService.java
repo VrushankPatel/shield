@@ -26,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class SalaryStructureService {
 
+    private static final String ENTITY_STAFF_SALARY_STRUCTURE = "staff_salary_structure";
+
     private final StaffSalaryStructureRepository staffSalaryStructureRepository;
     private final PayrollComponentRepository payrollComponentRepository;
     private final StaffRepository staffRepository;
@@ -76,7 +78,7 @@ public class SalaryStructureService {
         entity.setEffectiveFrom(request.effectiveFrom());
 
         StaffSalaryStructureEntity saved = staffSalaryStructureRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SALARY_STRUCTURE_CREATED", "staff_salary_structure", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SALARY_STRUCTURE_CREATED", ENTITY_STAFF_SALARY_STRUCTURE, saved.getId(), null);
         return toResponse(saved, component);
     }
 
@@ -101,7 +103,7 @@ public class SalaryStructureService {
         entity.setEffectiveFrom(request.effectiveFrom());
 
         StaffSalaryStructureEntity saved = staffSalaryStructureRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SALARY_STRUCTURE_UPDATED", "staff_salary_structure", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SALARY_STRUCTURE_UPDATED", ENTITY_STAFF_SALARY_STRUCTURE, saved.getId(), null);
         return toResponse(saved, component);
     }
 
@@ -111,7 +113,7 @@ public class SalaryStructureService {
 
         entity.setDeleted(true);
         staffSalaryStructureRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "SALARY_STRUCTURE_DELETED", "staff_salary_structure", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "SALARY_STRUCTURE_DELETED", ENTITY_STAFF_SALARY_STRUCTURE, entity.getId(), null);
     }
 
     private void requireStaff(UUID staffId) {

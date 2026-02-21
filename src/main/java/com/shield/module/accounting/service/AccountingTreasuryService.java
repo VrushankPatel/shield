@@ -68,6 +68,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountingTreasuryService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
+    private static final String ENTITY_ACCOUNT_HEAD = "account_head";
+    private static final String ENTITY_FUND_CATEGORY = "fund_category";
+    private static final String ENTITY_LEDGER_ENTRY = "ledger_entry";
+    private static final String ENTITY_EXPENSE = "expense";
+    private static final String ENTITY_VENDOR = "vendor";
+    private static final String ENTITY_BUDGET = "budget";
 
     private final AccountHeadRepository accountHeadRepository;
     private final FundCategoryRepository fundCategoryRepository;
@@ -85,7 +91,7 @@ public class AccountingTreasuryService {
         entity.setHeadType(parseAccountHeadType(request.headType()));
         entity.setParentHeadId(request.parentHeadId());
         AccountHeadEntity saved = accountHeadRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ACCOUNT_HEAD_CREATED", "account_head", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ACCOUNT_HEAD_CREATED", ENTITY_ACCOUNT_HEAD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -115,7 +121,7 @@ public class AccountingTreasuryService {
         entity.setHeadType(parseAccountHeadType(request.headType()));
         entity.setParentHeadId(request.parentHeadId());
         AccountHeadEntity saved = accountHeadRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ACCOUNT_HEAD_UPDATED", "account_head", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ACCOUNT_HEAD_UPDATED", ENTITY_ACCOUNT_HEAD, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -123,7 +129,7 @@ public class AccountingTreasuryService {
         AccountHeadEntity entity = findAccountHead(id);
         entity.setDeleted(true);
         accountHeadRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ACCOUNT_HEAD_DELETED", "account_head", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ACCOUNT_HEAD_DELETED", ENTITY_ACCOUNT_HEAD, id, null);
     }
 
     public FundCategoryResponse createFundCategory(FundCategoryCreateRequest request, ShieldPrincipal principal) {
@@ -133,7 +139,7 @@ public class AccountingTreasuryService {
         entity.setDescription(trimToNull(request.description()));
         entity.setCurrentBalance(request.currentBalance());
         FundCategoryEntity saved = fundCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "FUND_CATEGORY_CREATED", "fund_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "FUND_CATEGORY_CREATED", ENTITY_FUND_CATEGORY, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -153,7 +159,7 @@ public class AccountingTreasuryService {
         entity.setDescription(trimToNull(request.description()));
         entity.setCurrentBalance(request.currentBalance());
         FundCategoryEntity saved = fundCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "FUND_CATEGORY_UPDATED", "fund_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "FUND_CATEGORY_UPDATED", ENTITY_FUND_CATEGORY, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -161,7 +167,7 @@ public class AccountingTreasuryService {
         FundCategoryEntity entity = findFundCategory(id);
         entity.setDeleted(true);
         fundCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "FUND_CATEGORY_DELETED", "fund_category", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "FUND_CATEGORY_DELETED", ENTITY_FUND_CATEGORY, id, null);
     }
 
     @Transactional(readOnly = true)
@@ -199,7 +205,7 @@ public class AccountingTreasuryService {
         entity.setCategory(resolveCategory(request.category(), accountHead));
 
         LedgerEntryEntity saved = ledgerEntryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LEDGER_ENTRY_CREATED", "ledger_entry", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LEDGER_ENTRY_CREATED", ENTITY_LEDGER_ENTRY, saved.getId(), null);
         return toLedgerEntryResponse(saved);
     }
 
@@ -237,7 +243,7 @@ public class AccountingTreasuryService {
         entity.setCategory(resolveCategory(request.category(), accountHead));
 
         LedgerEntryEntity saved = ledgerEntryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LEDGER_ENTRY_UPDATED", "ledger_entry", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LEDGER_ENTRY_UPDATED", ENTITY_LEDGER_ENTRY, saved.getId(), null);
         return toLedgerEntryResponse(saved);
     }
 
@@ -245,7 +251,7 @@ public class AccountingTreasuryService {
         LedgerEntryEntity entity = findLedgerEntry(id);
         entity.setDeleted(true);
         ledgerEntryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "LEDGER_ENTRY_DELETED", "ledger_entry", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "LEDGER_ENTRY_DELETED", ENTITY_LEDGER_ENTRY, id, null);
     }
 
     @Transactional(readOnly = true)
@@ -305,7 +311,7 @@ public class AccountingTreasuryService {
         entity.setPaymentStatus(ExpensePaymentStatus.PENDING);
 
         ExpenseEntity saved = expenseRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EXPENSE_CREATED", "expense", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EXPENSE_CREATED", ENTITY_EXPENSE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -340,7 +346,7 @@ public class AccountingTreasuryService {
         entity.setPaymentStatus(parseExpensePaymentStatus(request.paymentStatus()));
 
         ExpenseEntity saved = expenseRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EXPENSE_UPDATED", "expense", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EXPENSE_UPDATED", ENTITY_EXPENSE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -348,7 +354,7 @@ public class AccountingTreasuryService {
         ExpenseEntity entity = findExpense(id);
         entity.setDeleted(true);
         expenseRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EXPENSE_DELETED", "expense", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EXPENSE_DELETED", ENTITY_EXPENSE, id, null);
     }
 
     public ExpenseResponse approveExpense(UUID id, ShieldPrincipal principal) {
@@ -357,7 +363,7 @@ public class AccountingTreasuryService {
         entity.setApprovedBy(principal.userId());
         entity.setApprovalDate(LocalDate.now());
         ExpenseEntity saved = expenseRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EXPENSE_APPROVED", "expense", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EXPENSE_APPROVED", ENTITY_EXPENSE, id, null);
         return toResponse(saved);
     }
 
@@ -367,7 +373,7 @@ public class AccountingTreasuryService {
         entity.setApprovedBy(principal.userId());
         entity.setApprovalDate(LocalDate.now());
         ExpenseEntity saved = expenseRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "EXPENSE_REJECTED", "expense", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "EXPENSE_REJECTED", ENTITY_EXPENSE, id, null);
         return toResponse(saved);
     }
 
@@ -423,7 +429,7 @@ public class AccountingTreasuryService {
         entity.setVendorType(trimToNull(request.vendorType()));
         entity.setActive(true);
         VendorEntity saved = vendorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VENDOR_CREATED", "vendor", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VENDOR_CREATED", ENTITY_VENDOR, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -449,7 +455,7 @@ public class AccountingTreasuryService {
         entity.setVendorType(trimToNull(request.vendorType()));
         entity.setActive(request.active());
         VendorEntity saved = vendorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VENDOR_UPDATED", "vendor", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VENDOR_UPDATED", ENTITY_VENDOR, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -457,7 +463,7 @@ public class AccountingTreasuryService {
         VendorEntity entity = findVendor(id);
         entity.setDeleted(true);
         vendorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VENDOR_DELETED", "vendor", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VENDOR_DELETED", ENTITY_VENDOR, id, null);
     }
 
     @Transactional(readOnly = true)
@@ -474,7 +480,7 @@ public class AccountingTreasuryService {
         VendorEntity entity = findVendor(id);
         entity.setActive(active);
         VendorEntity saved = vendorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VENDOR_STATUS_UPDATED", "vendor", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VENDOR_STATUS_UPDATED", ENTITY_VENDOR, id, null);
         return toResponse(saved);
     }
 
@@ -505,7 +511,7 @@ public class AccountingTreasuryService {
             expenseRepository.save(expense);
         }
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "VENDOR_PAYMENT_CREATED", "vendor_payment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VENDOR_PAYMENT_CREATED", "vendor_payment", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -543,7 +549,7 @@ public class AccountingTreasuryService {
         entity.setAccountHeadId(request.accountHeadId());
         entity.setBudgetedAmount(request.budgetedAmount());
         BudgetEntity saved = budgetRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BUDGET_CREATED", "budget", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BUDGET_CREATED", ENTITY_BUDGET, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -565,7 +571,7 @@ public class AccountingTreasuryService {
         entity.setAccountHeadId(request.accountHeadId());
         entity.setBudgetedAmount(request.budgetedAmount());
         BudgetEntity saved = budgetRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BUDGET_UPDATED", "budget", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BUDGET_UPDATED", ENTITY_BUDGET, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -573,7 +579,7 @@ public class AccountingTreasuryService {
         BudgetEntity entity = findBudget(id);
         entity.setDeleted(true);
         budgetRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BUDGET_DELETED", "budget", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BUDGET_DELETED", ENTITY_BUDGET, id, null);
     }
 
     @Transactional(readOnly = true)
@@ -604,7 +610,6 @@ public class AccountingTreasuryService {
         return responses;
     }
 
-    @Transactional(readOnly = true)
     public FinancialReportResponse incomeStatement(String financialYear) {
         BigDecimal income = safeAmount(ledgerEntryRepository.sumAmountByType(LedgerType.INCOME));
         BigDecimal expense = safeAmount(ledgerEntryRepository.sumAmountByType(LedgerType.EXPENSE));
@@ -620,7 +625,6 @@ public class AccountingTreasuryService {
                 Instant.now());
     }
 
-    @Transactional(readOnly = true)
     public FinancialReportResponse balanceSheet(String financialYear) {
         BigDecimal totalAssets = fundCategoryRepository.findAllByDeletedFalseOrderByCategoryNameAsc().stream()
                 .map(FundCategoryEntity::getCurrentBalance)
@@ -641,7 +645,6 @@ public class AccountingTreasuryService {
                 Instant.now());
     }
 
-    @Transactional(readOnly = true)
     public FinancialReportResponse cashFlow(String financialYear) {
         BigDecimal inflow = safeAmount(ledgerEntryRepository.sumAmountByType(LedgerType.INCOME));
         BigDecimal outflow = safeAmount(vendorPaymentRepository.sumAmountByStatus(VendorPaymentStatus.COMPLETED));

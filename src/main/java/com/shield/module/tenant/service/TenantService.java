@@ -28,7 +28,7 @@ public class TenantService {
         tenant.setAddress(request.address());
 
         TenantEntity saved = tenantRepository.save(tenant);
-        auditLogService.record(saved.getId(), null, "TENANT_CREATED", "tenant", saved.getId(), null);
+        auditLogService.logEvent(saved.getId(), null, "TENANT_CREATED", "tenant", saved.getId(), null);
         return tenantMapper.toResponse(saved);
     }
 
@@ -46,7 +46,7 @@ public class TenantService {
         tenant.setName(request.name());
         tenant.setAddress(request.address());
         TenantEntity saved = tenantRepository.save(tenant);
-        auditLogService.record(saved.getId(), null, "TENANT_UPDATED", "tenant", saved.getId(), null);
+        auditLogService.logEvent(saved.getId(), null, "TENANT_UPDATED", "tenant", saved.getId(), null);
         return tenantMapper.toResponse(saved);
     }
 }

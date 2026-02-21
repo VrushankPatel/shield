@@ -58,7 +58,7 @@ public class AssetDepreciationService {
         entity.setBookValue(bookValue.setScale(2, RoundingMode.HALF_UP));
 
         AssetDepreciationEntity saved = assetDepreciationRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "ASSET_DEPRECIATION_CALCULATED", "asset_depreciation", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ASSET_DEPRECIATION_CALCULATED", "asset_depreciation", saved.getId(), null);
         return toResponse(saved);
     }
 

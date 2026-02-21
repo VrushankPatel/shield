@@ -26,16 +26,16 @@ public class SystemLogService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordWarn(String loggerName, String message, Throwable throwable, String endpoint) {
-        record("WARN", loggerName, message, throwable, endpoint);
+    public void logWarn(String loggerName, String message, Throwable throwable, String endpoint) {
+        persistLog("WARN", loggerName, message, throwable, endpoint);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordError(String loggerName, String message, Throwable throwable, String endpoint) {
-        record("ERROR", loggerName, message, throwable, endpoint);
+    public void logError(String loggerName, String message, Throwable throwable, String endpoint) {
+        persistLog("ERROR", loggerName, message, throwable, endpoint);
     }
 
-    private void record(String level, String loggerName, String message, Throwable throwable, String endpoint) {
+    private void persistLog(String level, String loggerName, String message, Throwable throwable, String endpoint) {
         SystemLogEntity entity = new SystemLogEntity();
         entity.setTenantId(TenantContext.getTenantId().orElse(null));
         entity.setUserId(resolveCurrentUserId());

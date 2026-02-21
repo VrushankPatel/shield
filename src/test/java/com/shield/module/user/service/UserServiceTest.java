@@ -101,7 +101,7 @@ class UserServiceTest {
         UserResponse response = userService.create(request);
 
         assertEquals("resident@shield.dev", response.email());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("USER_CREATED"), eq("users"), eq(userId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("USER_CREATED"), eq("users"), eq(userId), any());
     }
 
     @Test

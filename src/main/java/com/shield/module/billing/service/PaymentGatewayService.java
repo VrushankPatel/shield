@@ -36,6 +36,7 @@ public class PaymentGatewayService {
     private static final String DEFAULT_PROVIDER = "MANUAL_SIMULATOR";
     private static final String DEFAULT_CURRENCY = "INR";
     private static final String WEBHOOK_SYSTEM_EMAIL = "gateway-webhook@shield.local";
+    private static final String ENTITY_PAYMENT_GATEWAY_TXN = "payment_gateway_txn";
 
     private final PaymentGatewayTransactionRepository paymentGatewayTransactionRepository;
     private final MaintenanceBillRepository maintenanceBillRepository;
@@ -90,11 +91,11 @@ public class PaymentGatewayService {
 
         PaymentGatewayTransactionEntity saved = paymentGatewayTransactionRepository.save(entity);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 "PAYMENT_GATEWAY_INITIATED",
-                "payment_gateway_txn",
+                ENTITY_PAYMENT_GATEWAY_TXN,
                 saved.getId(),
                 null);
 
@@ -127,11 +128,11 @@ public class PaymentGatewayService {
             PaymentGatewayTransactionEntity savedTransaction = paymentGatewayTransactionRepository.save(transaction);
             PaymentEntity payment = getOrCreatePayment(savedTransaction);
 
-            auditLogService.record(
+            auditLogService.logEvent(
                     principal.tenantId(),
                     principal.userId(),
                     "PAYMENT_GATEWAY_VERIFIED_SUCCESS",
-                    "payment_gateway_txn",
+                    ENTITY_PAYMENT_GATEWAY_TXN,
                     savedTransaction.getId(),
                     null);
 
@@ -149,11 +150,11 @@ public class PaymentGatewayService {
 
         PaymentGatewayTransactionEntity savedTransaction = paymentGatewayTransactionRepository.save(transaction);
 
-        auditLogService.record(
+        auditLogService.logEvent(
                 principal.tenantId(),
                 principal.userId(),
                 "PAYMENT_GATEWAY_VERIFIED_FAILED",
-                "payment_gateway_txn",
+                ENTITY_PAYMENT_GATEWAY_TXN,
                 savedTransaction.getId(),
                 null);
 

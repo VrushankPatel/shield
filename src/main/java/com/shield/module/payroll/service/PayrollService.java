@@ -47,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PayrollService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    private static final String ENTITY_PAYROLL = "payroll";
+    private static final String PAYROLL_NOT_FOUND_PREFIX = "Payroll not found: ";
 
     private final PayrollRepository payrollRepository;
     private final StaffRepository staffRepository;
@@ -101,26 +103,22 @@ public class PayrollService {
 
         for (StaffSalaryStructureEntity row : salaryRows) {
             PayrollComponentEntity component = componentsById.get(row.getPayrollComponentId());
-            if (component == null) {
-                continue;
-            }
+            if (component != null) {
+                BigDecimal prorated = prorate(row.getAmount(), presentDays, request.workingDays());
+                if (prorated.signum() > 0) {
+                    if (component.getComponentType() == PayrollComponentType.DEDUCTION) {
+                        componentDeductions = componentDeductions.add(prorated);
+                    } else {
+                        componentEarnings = componentEarnings.add(prorated);
+                    }
 
-            BigDecimal prorated = prorate(row.getAmount(), presentDays, request.workingDays());
-            if (prorated.signum() <= 0) {
-                continue;
+                    PayrollDetailEntity detail = new PayrollDetailEntity();
+                    detail.setTenantId(principal.tenantId());
+                    detail.setPayrollComponentId(row.getPayrollComponentId());
+                    detail.setAmount(prorated);
+                    generatedDetails.add(detail);
+                }
             }
-
-            if (component.getComponentType() == PayrollComponentType.DEDUCTION) {
-                componentDeductions = componentDeductions.add(prorated);
-            } else {
-                componentEarnings = componentEarnings.add(prorated);
-            }
-
-            PayrollDetailEntity detail = new PayrollDetailEntity();
-            detail.setTenantId(principal.tenantId());
-            detail.setPayrollComponentId(row.getPayrollComponentId());
-            detail.setAmount(prorated);
-            generatedDetails.add(detail);
         }
 
         BigDecimal grossSalary = salaryRows.isEmpty()
@@ -160,7 +158,7 @@ public class PayrollService {
         PayrollEntity saved = payrollRepository.save(entity);
         replaceDetails(saved.getId(), generatedDetails);
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_GENERATED", "payroll", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_GENERATED", ENTITY_PAYROLL, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -172,13 +170,13 @@ public class PayrollService {
     @Transactional(readOnly = true)
     public PayrollResponse getById(UUID id) {
         PayrollEntity entity = payrollRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_NOT_FOUND_PREFIX + id));
         return toResponse(entity);
     }
 
     public PayrollResponse process(PayrollProcessRequest request, ShieldPrincipal principal) {
         PayrollEntity entity = payrollRepository.findByIdAndDeletedFalse(request.payrollId())
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + request.payrollId()));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_NOT_FOUND_PREFIX + request.payrollId()));
 
         if (entity.getStatus() == PayrollStatus.PAID) {
             throw new BadRequestException("Paid payroll cannot be processed again");
@@ -191,7 +189,7 @@ public class PayrollService {
         entity.setStatus(PayrollStatus.PROCESSED);
 
         PayrollEntity saved = payrollRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_PROCESSED", "payroll", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_PROCESSED", ENTITY_PAYROLL, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -204,17 +202,13 @@ public class PayrollService {
         for (int i = 0; i < request.payrollIds().size(); i++) {
             UUID payrollId = request.payrollIds().get(i);
             PayrollEntity entity = payrollRepository.findByIdAndDeletedFalse(payrollId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + payrollId));
+                    .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_NOT_FOUND_PREFIX + payrollId));
 
             if (entity.getStatus() == PayrollStatus.PAID) {
                 throw new BadRequestException("Paid payroll cannot be processed again: " + payrollId);
             }
 
-            String paymentReference = referencePrefix == null
-                    ? (entity.getPaymentReference() == null || entity.getPaymentReference().isBlank()
-                            ? "PAY-" + payrollId.toString().substring(0, 8).toUpperCase()
-                            : entity.getPaymentReference())
-                    : referencePrefix + "-" + (i + 1);
+            String paymentReference = resolvePaymentReference(referencePrefix, entity.getPaymentReference(), payrollId, i);
 
             entity.setPaymentMethod(request.paymentMethod());
             entity.setPaymentReference(paymentReference);
@@ -223,7 +217,7 @@ public class PayrollService {
             entity.setStatus(PayrollStatus.PROCESSED);
 
             PayrollEntity saved = payrollRepository.save(entity);
-            auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_BULK_PROCESSED", "payroll", saved.getId(), null);
+            auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_BULK_PROCESSED", ENTITY_PAYROLL, saved.getId(), null);
             responses.add(toResponse(saved));
         }
         return responses;
@@ -231,7 +225,7 @@ public class PayrollService {
 
     public PayrollResponse approve(UUID id, ShieldPrincipal principal) {
         PayrollEntity entity = payrollRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_NOT_FOUND_PREFIX + id));
 
         if (entity.getStatus() != PayrollStatus.PROCESSED) {
             throw new BadRequestException("Only processed payroll can be approved");
@@ -243,7 +237,7 @@ public class PayrollService {
         }
 
         PayrollEntity saved = payrollRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYROLL_APPROVED", "payroll", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_APPROVED", ENTITY_PAYROLL, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -261,7 +255,7 @@ public class PayrollService {
     @Transactional(readOnly = true)
     public PayrollPayslipResponse getPayslip(UUID payrollId) {
         PayrollEntity payroll = payrollRepository.findByIdAndDeletedFalse(payrollId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payroll not found: " + payrollId));
+                .orElseThrow(() -> new ResourceNotFoundException(PAYROLL_NOT_FOUND_PREFIX + payrollId));
 
         List<PayrollDetailEntity> details = payrollDetailRepository.findAllByPayrollIdAndDeletedFalseOrderByCreatedAtAsc(payrollId);
         Map<UUID, PayrollComponentEntity> componentsById = loadComponents(details.stream()
@@ -364,6 +358,20 @@ public class PayrollService {
         String base = payslipBaseUrl.trim();
         String normalized = base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
         return normalized + "/" + payrollId + ".pdf";
+    }
+
+    private String resolvePaymentReference(
+            String referencePrefix,
+            String existingPaymentReference,
+            UUID payrollId,
+            int index) {
+        if (referencePrefix != null) {
+            return referencePrefix + "-" + (index + 1);
+        }
+        if (existingPaymentReference != null && !existingPaymentReference.isBlank()) {
+            return existingPaymentReference;
+        }
+        return "PAY-" + payrollId.toString().substring(0, 8).toUpperCase();
     }
 
     private BigDecimal sanitizeMoney(BigDecimal value) {

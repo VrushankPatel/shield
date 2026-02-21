@@ -31,6 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class DocumentService {
 
+    private static final String ENTITY_DOCUMENT_CATEGORY = "document_category";
+    private static final String ENTITY_DOCUMENT = "document";
+    private static final String DOCUMENT_CATEGORY_NOT_FOUND_PREFIX = "Document category not found: ";
+    private static final String DOCUMENT_NOT_FOUND_PREFIX = "Document not found: ";
+
     private final DocumentCategoryRepository documentCategoryRepository;
     private final DocumentRepository documentRepository;
     private final DocumentAccessLogRepository documentAccessLogRepository;
@@ -55,7 +60,7 @@ public class DocumentService {
         entity.setParentCategoryId(request.parentCategoryId());
 
         DocumentCategoryEntity saved = documentCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_CATEGORY_CREATED", "document_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOCUMENT_CATEGORY_CREATED", ENTITY_DOCUMENT_CATEGORY, saved.getId(), null);
         return toCategoryResponse(saved);
     }
 
@@ -67,30 +72,30 @@ public class DocumentService {
     @Transactional(readOnly = true)
     public DocumentCategoryResponse getCategory(UUID id) {
         DocumentCategoryEntity entity = documentCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_CATEGORY_NOT_FOUND_PREFIX + id));
         return toCategoryResponse(entity);
     }
 
     public DocumentCategoryResponse updateCategory(UUID id, DocumentCategoryUpdateRequest request, ShieldPrincipal principal) {
         DocumentCategoryEntity entity = documentCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_CATEGORY_NOT_FOUND_PREFIX + id));
 
         entity.setCategoryName(request.categoryName());
         entity.setDescription(request.description());
         entity.setParentCategoryId(request.parentCategoryId());
 
         DocumentCategoryEntity saved = documentCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_CATEGORY_UPDATED", "document_category", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOCUMENT_CATEGORY_UPDATED", ENTITY_DOCUMENT_CATEGORY, saved.getId(), null);
         return toCategoryResponse(saved);
     }
 
     public void deleteCategory(UUID id, ShieldPrincipal principal) {
         DocumentCategoryEntity entity = documentCategoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document category not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_CATEGORY_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         documentCategoryRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_CATEGORY_DELETED", "document_category", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOCUMENT_CATEGORY_DELETED", ENTITY_DOCUMENT_CATEGORY, entity.getId(), null);
     }
 
     public DocumentResponse createDocument(DocumentCreateRequest request, ShieldPrincipal principal) {
@@ -110,7 +115,7 @@ public class DocumentService {
         entity.setTags(request.tags());
 
         DocumentEntity saved = documentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_CREATED", "document", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOCUMENT_CREATED", ENTITY_DOCUMENT, saved.getId(), null);
         return toDocumentResponse(saved);
     }
 
@@ -152,14 +157,14 @@ public class DocumentService {
     @Transactional
     public DocumentResponse getDocument(UUID id, ShieldPrincipal principal) {
         DocumentEntity entity = documentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_NOT_FOUND_PREFIX + id));
         recordAccess(entity, principal, DocumentAccessType.VIEW);
         return toDocumentResponse(entity);
     }
 
     public DocumentDownloadResponse downloadDocument(UUID id, ShieldPrincipal principal) {
         DocumentEntity entity = documentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_NOT_FOUND_PREFIX + id));
         Instant downloadedAt = Instant.now();
         recordAccess(entity, principal, DocumentAccessType.DOWNLOAD, downloadedAt);
         return new DocumentDownloadResponse(entity.getId(), entity.getDocumentName(), entity.getFileUrl(), downloadedAt);
@@ -167,7 +172,7 @@ public class DocumentService {
 
     public DocumentResponse updateDocument(UUID id, DocumentUpdateRequest request, ShieldPrincipal principal) {
         DocumentEntity entity = documentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_NOT_FOUND_PREFIX + id));
 
         entity.setDocumentName(request.documentName());
         entity.setCategoryId(request.categoryId());
@@ -181,17 +186,17 @@ public class DocumentService {
         entity.setTags(request.tags());
 
         DocumentEntity saved = documentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_UPDATED", "document", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOCUMENT_UPDATED", ENTITY_DOCUMENT, saved.getId(), null);
         return toDocumentResponse(saved);
     }
 
     public void deleteDocument(UUID id, ShieldPrincipal principal) {
         DocumentEntity entity = documentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(DOCUMENT_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         documentRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_DELETED", "document", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOCUMENT_DELETED", ENTITY_DOCUMENT, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)

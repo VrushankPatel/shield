@@ -115,6 +115,6 @@ class DigitalIdCardServiceTest {
         assertEquals(false, response.valid());
         assertEquals(true, response.expired());
         assertEquals(false, response.active());
-        verify(auditLogService).record(eq(tenantId), eq(principal.userId()), eq("DIGITAL_ID_VERIFIED"), eq("digital_id_card"), eq(cardId), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(principal.userId()), eq("DIGITAL_ID_VERIFIED"), eq("digital_id_card"), eq(cardId), any());
     }
 }

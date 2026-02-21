@@ -91,7 +91,7 @@ public class PaymentOperationsService {
         invoice.setStatus(resolveInvoiceStatus(updatedOutstanding, invoice.getTotalAmount(), invoice.getDueDate()));
         invoiceRepository.save(invoice);
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYMENT_REFUNDED", "payment", paymentId, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYMENT_REFUNDED", "payment", paymentId, null);
         return toResponse(payment);
     }
 
@@ -135,7 +135,7 @@ public class PaymentOperationsService {
         invoice.setStatus(resolveInvoiceStatus(updatedOutstanding, invoice.getTotalAmount(), invoice.getDueDate()));
         invoiceRepository.save(invoice);
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "PAYMENT_CREATED", "payment", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYMENT_CREATED", "payment", saved.getId(), null);
         return toResponse(saved);
     }
 

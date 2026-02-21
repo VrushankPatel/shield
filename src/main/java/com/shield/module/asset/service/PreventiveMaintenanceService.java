@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PreventiveMaintenanceService {
 
+    private static final String ENTITY_PREVENTIVE_MAINTENANCE_SCHEDULE = "preventive_maintenance_schedule";
+
     private final PreventiveMaintenanceScheduleRepository preventiveMaintenanceScheduleRepository;
     private final AssetRepository assetRepository;
     private final AuditLogService auditLogService;
@@ -43,7 +45,7 @@ public class PreventiveMaintenanceService {
         entity.setActive(request.active() == null || request.active());
 
         PreventiveMaintenanceScheduleEntity saved = preventiveMaintenanceScheduleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_CREATED", "preventive_maintenance_schedule", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_CREATED", ENTITY_PREVENTIVE_MAINTENANCE_SCHEDULE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -72,7 +74,7 @@ public class PreventiveMaintenanceService {
         entity.setActive(request.active() == null || request.active());
 
         PreventiveMaintenanceScheduleEntity saved = preventiveMaintenanceScheduleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_UPDATED", "preventive_maintenance_schedule", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_UPDATED", ENTITY_PREVENTIVE_MAINTENANCE_SCHEDULE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -81,7 +83,7 @@ public class PreventiveMaintenanceService {
         PreventiveMaintenanceScheduleEntity entity = findById(id);
         entity.setDeleted(true);
         preventiveMaintenanceScheduleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_DELETED", "preventive_maintenance_schedule", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_DELETED", ENTITY_PREVENTIVE_MAINTENANCE_SCHEDULE, id, null);
     }
 
     @Transactional(readOnly = true)
@@ -104,7 +106,7 @@ public class PreventiveMaintenanceService {
         entity.setNextMaintenanceDate(calculateNextDate(today, entity.getFrequency()));
 
         PreventiveMaintenanceScheduleEntity saved = preventiveMaintenanceScheduleRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_EXECUTED", "preventive_maintenance_schedule", id, null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "PREVENTIVE_MAINTENANCE_EXECUTED", ENTITY_PREVENTIVE_MAINTENANCE_SCHEDULE, id, null);
         return toResponse(saved);
     }
 

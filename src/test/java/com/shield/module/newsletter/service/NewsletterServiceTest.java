@@ -69,7 +69,7 @@ class NewsletterServiceTest {
 
         assertEquals(id, response.id());
         assertEquals(NewsletterStatus.DRAFT, response.status());
-        verify(auditLogService).record(tenantId, userId, "NEWSLETTER_CREATED", "newsletter", id, null);
+        verify(auditLogService).logEvent(tenantId, userId, "NEWSLETTER_CREATED", "newsletter", id, null);
     }
 
     @Test
@@ -108,7 +108,7 @@ class NewsletterServiceTest {
 
         assertEquals(NewsletterStatus.PUBLISHED, response.status());
         assertEquals(userId, response.publishedBy());
-        verify(auditLogService).record(tenantId, userId, "NEWSLETTER_PUBLISHED", "newsletter", id, null);
+        verify(auditLogService).logEvent(tenantId, userId, "NEWSLETTER_PUBLISHED", "newsletter", id, null);
     }
 
     @Test
@@ -147,7 +147,7 @@ class NewsletterServiceTest {
         newsletterService.delete(id, principal(tenantId, userId));
 
         assertTrue(entity.isDeleted());
-        verify(auditLogService).record(tenantId, userId, "NEWSLETTER_DELETED", "newsletter", id, null);
+        verify(auditLogService).logEvent(tenantId, userId, "NEWSLETTER_DELETED", "newsletter", id, null);
     }
 
     private ShieldPrincipal principal(UUID tenantId, UUID userId) {

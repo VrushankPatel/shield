@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class WorkOrderService {
 
+    private static final String ENTITY_WORK_ORDER = "work_order";
+
     private final WorkOrderRepository workOrderRepository;
     private final ComplaintRepository complaintRepository;
     private final AuditLogService auditLogService;
@@ -46,7 +48,7 @@ public class WorkOrderService {
         entity.setCreatedBy(principal.userId());
 
         WorkOrderEntity saved = workOrderRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WORK_ORDER_CREATED", "work_order", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WORK_ORDER_CREATED", ENTITY_WORK_ORDER, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -75,7 +77,7 @@ public class WorkOrderService {
         }
 
         WorkOrderEntity saved = workOrderRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WORK_ORDER_UPDATED", "work_order", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WORK_ORDER_UPDATED", ENTITY_WORK_ORDER, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -84,7 +86,7 @@ public class WorkOrderService {
         WorkOrderEntity entity = findById(id);
         entity.setDeleted(true);
         workOrderRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "WORK_ORDER_DELETED", "work_order", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WORK_ORDER_DELETED", ENTITY_WORK_ORDER, entity.getId(), null);
     }
 
     public WorkOrderResponse start(UUID id) {
@@ -122,7 +124,7 @@ public class WorkOrderService {
             entity.setCompletionDate(LocalDate.now());
         }
         WorkOrderEntity saved = workOrderRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), auditAction, "work_order", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), auditAction, ENTITY_WORK_ORDER, saved.getId(), null);
         return toResponse(saved);
     }
 

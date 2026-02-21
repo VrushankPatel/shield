@@ -79,7 +79,7 @@ public class RoleService {
         role.setSystemRole(request.systemRole());
 
         RoleEntity saved = roleRepository.save(role);
-        auditLogService.record(tenantId, actorUserId, "ROLE_CREATED", "app_role", saved.getId(), null);
+        auditLogService.logEvent(tenantId, actorUserId, "ROLE_CREATED", "app_role", saved.getId(), null);
         return toRoleResponse(saved);
     }
 
@@ -89,7 +89,7 @@ public class RoleService {
         role.setDescription(request.description());
 
         RoleEntity saved = roleRepository.save(role);
-        auditLogService.record(saved.getTenantId(), actorUserId, "ROLE_UPDATED", "app_role", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), actorUserId, "ROLE_UPDATED", "app_role", saved.getId(), null);
         return toRoleResponse(saved);
     }
 
@@ -101,7 +101,7 @@ public class RoleService {
 
         role.setDeleted(true);
         roleRepository.save(role);
-        auditLogService.record(role.getTenantId(), actorUserId, "ROLE_DELETED", "app_role", role.getId(), null);
+        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_DELETED", "app_role", role.getId(), null);
     }
 
     public PagedResponse<PermissionResponse> listPermissions(Pageable pageable) {
@@ -127,7 +127,7 @@ public class RoleService {
             mapping.setPermissionId(permission.getId());
             rolePermissionRepository.save(mapping);
         }
-        auditLogService.record(role.getTenantId(), actorUserId, "ROLE_PERMISSIONS_ASSIGNED", "app_role", roleId, null);
+        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_PERMISSIONS_ASSIGNED", "app_role", roleId, null);
     }
 
     public void removePermission(UUID roleId, UUID permissionId, UUID actorUserId) {
@@ -136,7 +136,7 @@ public class RoleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role permission mapping not found"));
         mapping.setDeleted(true);
         rolePermissionRepository.save(mapping);
-        auditLogService.record(role.getTenantId(), actorUserId, "ROLE_PERMISSION_REMOVED", "app_role", roleId, null);
+        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_PERMISSION_REMOVED", "app_role", roleId, null);
     }
 
     public void assignRoleToUser(UUID userId, UUID roleId, UUID actorUserId) {
@@ -160,7 +160,7 @@ public class RoleService {
         assignment.setGrantedAt(Instant.now());
         userAdditionalRoleRepository.save(assignment);
 
-        auditLogService.record(user.getTenantId(), actorUserId, "USER_ROLE_ASSIGNED", "users", userId, null);
+        auditLogService.logEvent(user.getTenantId(), actorUserId, "USER_ROLE_ASSIGNED", "users", userId, null);
     }
 
     public void removeRoleFromUser(UUID userId, UUID roleId, UUID actorUserId) {
@@ -170,7 +170,7 @@ public class RoleService {
         assignment.setDeleted(true);
         userAdditionalRoleRepository.save(assignment);
 
-        auditLogService.record(user.getTenantId(), actorUserId, "USER_ROLE_REMOVED", "users", userId, null);
+        auditLogService.logEvent(user.getTenantId(), actorUserId, "USER_ROLE_REMOVED", "users", userId, null);
     }
 
     public UserPermissionsResponse getUserPermissions(UUID userId) {

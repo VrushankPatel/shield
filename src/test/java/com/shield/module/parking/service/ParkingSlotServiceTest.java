@@ -72,7 +72,7 @@ class ParkingSlotServiceTest {
         assertEquals("A-01", response.slotNumber());
         assertEquals(unitId, response.unitId());
         assertEquals(true, response.allocated());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("PARKING_SLOT_CREATED"), eq("parking_slot"), any(), any());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("PARKING_SLOT_CREATED"), eq("parking_slot"), any(), any());
     }
 
     @Test

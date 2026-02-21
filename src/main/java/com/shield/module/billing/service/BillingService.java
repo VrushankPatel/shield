@@ -43,7 +43,7 @@ public class BillingService {
         bill.setStatus(BillStatus.PENDING);
 
         MaintenanceBillEntity saved = maintenanceBillRepository.save(bill);
-        auditLogService.record(tenantId, null, "BILL_GENERATED", "maintenance_bill", saved.getId(), null);
+        auditLogService.logEvent(tenantId, null, "BILL_GENERATED", "maintenance_bill", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -81,7 +81,7 @@ public class BillingService {
         bill.setStatus(BillStatus.PAID);
         maintenanceBillRepository.save(bill);
 
-        auditLogService.record(tenantId, null, "PAYMENT_CREATED", "payment", savedPayment.getId(), null);
+        auditLogService.logEvent(tenantId, null, "PAYMENT_CREATED", "payment", savedPayment.getId(), null);
         return toResponse(savedPayment);
     }
 

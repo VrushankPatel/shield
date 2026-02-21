@@ -73,7 +73,7 @@ class AccountingServiceTest {
         assertEquals(entryId, response.id());
         assertEquals(tenantId, response.tenantId());
         assertEquals(LedgerType.INCOME, response.type());
-        verify(auditLogService).record(eq(tenantId), eq(null), eq("LEDGER_ENTRY_CREATED"), eq("ledger_entry"), eq(entryId), eq(null));
+        verify(auditLogService).logEvent(eq(tenantId), eq(null), eq("LEDGER_ENTRY_CREATED"), eq("ledger_entry"), eq(entryId), eq(null));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.shield.audit.filter;
 
+import com.shield.audit.service.ApiRequestLogCommand;
 import com.shield.audit.service.ApiRequestLogService;
 import com.shield.common.logging.CorrelationIdFilter;
 import com.shield.security.model.ShieldPrincipal;
@@ -64,7 +65,7 @@ public class ApiRequestLoggingFilter extends OncePerRequestFilter {
                     requestId = request.getHeader(CorrelationIdFilter.HEADER);
                 }
 
-                apiRequestLogService.record(
+                apiRequestLogService.logRequest(new ApiRequestLogCommand(
                         requestId,
                         tenantId,
                         userId,
@@ -74,7 +75,7 @@ public class ApiRequestLoggingFilter extends OncePerRequestFilter {
                         status,
                         duration,
                         resolveClientIp(request),
-                        truncate(request.getHeader("User-Agent"), MAX_USER_AGENT));
+                        truncate(request.getHeader("User-Agent"), MAX_USER_AGENT)));
             } catch (Exception ignored) {
                 // Logging failures must never break API flow.
             }

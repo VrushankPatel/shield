@@ -54,7 +54,7 @@ public class StaffLeaveService {
         entity.setStatus(StaffLeaveStatus.PENDING);
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_LEAVE_CREATED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_CREATED", "staff_leave", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -86,7 +86,7 @@ public class StaffLeaveService {
         entity.setReason(request.reason());
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_LEAVE_UPDATED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_UPDATED", "staff_leave", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -96,7 +96,7 @@ public class StaffLeaveService {
 
         entity.setDeleted(true);
         staffLeaveRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_LEAVE_DELETED", "staff_leave", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_DELETED", "staff_leave", entity.getId(), null);
     }
 
     public StaffLeaveResponse approve(UUID id, ShieldPrincipal principal) {
@@ -108,7 +108,7 @@ public class StaffLeaveService {
         entity.setApprovalDate(LocalDate.now());
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_LEAVE_APPROVED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_APPROVED", "staff_leave", saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -121,7 +121,7 @@ public class StaffLeaveService {
         entity.setApprovalDate(LocalDate.now());
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "STAFF_LEAVE_REJECTED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_REJECTED", "staff_leave", saved.getId(), null);
         return toResponse(saved);
     }
 

@@ -78,7 +78,7 @@ class FileStorageServiceTest {
         assertEquals("file-001", response.fileId());
         assertEquals("notes.txt", response.fileName());
         assertEquals(12, response.fileSize());
-        verify(auditLogService).record(tenantId, userId, "FILE_UPLOADED", "stored_file", storedId, null);
+        verify(auditLogService).logEvent(tenantId, userId, "FILE_UPLOADED", "stored_file", storedId, null);
     }
 
     @Test
@@ -182,6 +182,6 @@ class FileStorageServiceTest {
         assertEquals("download.txt", response.fileName());
         assertEquals("text/plain", response.contentType());
         assertArrayEquals(payload, response.content());
-        verify(auditLogService).record(tenantId, userId, "FILE_DOWNLOADED", "stored_file", entity.getId(), null);
+        verify(auditLogService).logEvent(tenantId, userId, "FILE_DOWNLOADED", "stored_file", entity.getId(), null);
     }
 }

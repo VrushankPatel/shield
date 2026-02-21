@@ -52,6 +52,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class AuthService {
 
+    private static final String ENTITY_USERS = "users";
+    private static final String CLAIM_USER_ID = "userId";
+
     private final UserRepository userRepository;
     private final TenantRepository tenantRepository;
     private final UnitRepository unitRepository;
@@ -123,7 +126,7 @@ public class AuthService {
                 null);
         sendVerificationEmail(saved.getEmail(), token);
 
-        auditLogService.record(saved.getTenantId(), saved.getId(), "AUTH_REGISTER", "users", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), saved.getId(), "AUTH_REGISTER", ENTITY_USERS, saved.getId(), null);
         return new RegisterResponse(saved.getId(), saved.getTenantId(), saved.getEmail(), true);
     }
 
@@ -137,7 +140,7 @@ public class AuthService {
         }
 
         AuthResponse response = issueAuthResponse(user);
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_LOGIN", ENTITY_USERS, user.getId(), null);
         return response;
     }
 
@@ -160,7 +163,7 @@ public class AuthService {
         String challengeToken = createToken(user, AuthTokenType.LOGIN_OTP, expiresAt, metadata);
 
         smsOtpSender.sendLoginOtp(user.getPhone(), otpCode, expiresAt);
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_SENT", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_SENT", ENTITY_USERS, user.getId(), null);
 
         return new LoginOtpSendResponse(challengeToken, maskPhone(user.getPhone()), expiresAt);
     }
@@ -194,7 +197,7 @@ public class AuthService {
         authTokenRepository.save(token);
 
         AuthResponse response = issueAuthResponse(user);
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_VERIFIED", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_VERIFIED", ENTITY_USERS, user.getId(), null);
         return response;
     }
 
@@ -212,7 +215,7 @@ public class AuthService {
             throw new UnauthorizedException("Invalid token type");
         }
 
-        UUID userId = UUID.fromString(claims.get("userId", String.class));
+        UUID userId = UUID.fromString(claims.get(CLAIM_USER_ID, String.class));
         String refreshTokenHash = hashToken(refreshToken);
         AuthTokenEntity activeSession = authTokenRepository
                 .findByTokenTypeAndTokenValueAndConsumedAtIsNullAndDeletedFalse(AuthTokenType.REFRESH_SESSION, refreshTokenHash)
@@ -232,7 +235,7 @@ public class AuthService {
         authTokenRepository.save(activeSession);
 
         AuthResponse response = issueAuthResponse(user);
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_REFRESH", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_REFRESH", ENTITY_USERS, user.getId(), null);
         return response;
     }
 
@@ -246,11 +249,11 @@ public class AuthService {
                             Instant.now().plus(passwordResetTtlMinutes, ChronoUnit.MINUTES),
                             null);
                     sendPasswordResetEmail(user.getEmail(), token);
-                    auditLogService.record(
+                    auditLogService.logEvent(
                             user.getTenantId(),
                             user.getId(),
                             "AUTH_FORGOT_PASSWORD_REQUESTED",
-                            "users",
+                            ENTITY_USERS,
                             user.getId(),
                             null);
                 });
@@ -270,7 +273,7 @@ public class AuthService {
         token.setConsumedAt(Instant.now());
         authTokenRepository.save(token);
 
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_PASSWORD_RESET", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_PASSWORD_RESET", ENTITY_USERS, user.getId(), null);
     }
 
     @Transactional
@@ -289,7 +292,7 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
         revokeRefreshSessions(user.getTenantId(), user.getId());
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_PASSWORD_CHANGED", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_PASSWORD_CHANGED", ENTITY_USERS, user.getId(), null);
     }
 
     @Transactional
@@ -305,7 +308,7 @@ public class AuthService {
         token.setConsumedAt(Instant.now());
         authTokenRepository.save(token);
 
-        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_EMAIL_VERIFIED", "users", user.getId(), null);
+        auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_EMAIL_VERIFIED", ENTITY_USERS, user.getId(), null);
     }
 
     @Transactional
@@ -324,10 +327,10 @@ public class AuthService {
             return;
         }
 
-        UUID userId = parseUuidClaim(claims.get("userId", String.class), "userId");
+        UUID userId = parseUuidClaim(claims.get(CLAIM_USER_ID, String.class), CLAIM_USER_ID);
         UUID tenantId = parseUuidClaim(claims.get("tenantId", String.class), "tenantId");
         revokeRefreshSessions(tenantId, userId);
-        auditLogService.record(tenantId, userId, "AUTH_LOGOUT", "users", userId, null);
+        auditLogService.logEvent(tenantId, userId, "AUTH_LOGOUT", ENTITY_USERS, userId, null);
     }
 
     private AuthResponse issueAuthResponse(UserEntity user) {

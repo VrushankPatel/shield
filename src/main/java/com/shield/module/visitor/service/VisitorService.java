@@ -90,7 +90,7 @@ public class VisitorService {
     public VisitorPassResponse createPass(VisitorPassCreateRequest request, ShieldPrincipal principal) {
         VisitorPassEntity pass = buildPassFromCreateRequest(request, principal.tenantId(), VisitorPassStatus.PENDING, null);
         VisitorPassEntity saved = visitorPassRepository.save(pass);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_PASS_CREATED", "visitor_pass", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_PASS_CREATED", "visitor_pass", saved.getId(), null);
         return toPassResponse(saved);
     }
 
@@ -109,7 +109,7 @@ public class VisitorService {
         UUID approvedBy = request.approvedBy() != null ? request.approvedBy() : principal.userId();
         VisitorPassEntity pass = buildPassFromCreateRequest(createRequest, principal.tenantId(), VisitorPassStatus.ACTIVE, approvedBy);
         VisitorPassEntity saved = visitorPassRepository.save(pass);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_PASS_PREAPPROVED", "visitor_pass", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_PASS_PREAPPROVED", "visitor_pass", saved.getId(), null);
         return toPassResponse(saved);
     }
 
@@ -139,7 +139,7 @@ public class VisitorService {
         }
 
         VisitorPassEntity saved = visitorPassRepository.save(pass);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_PASS_UPDATED", "visitor_pass", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_PASS_UPDATED", "visitor_pass", saved.getId(), null);
         return toPassResponse(saved);
     }
 
@@ -147,7 +147,7 @@ public class VisitorService {
         VisitorPassEntity pass = getPassEntity(id);
         pass.setDeleted(true);
         visitorPassRepository.save(pass);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_PASS_DELETED", "visitor_pass", pass.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_PASS_DELETED", "visitor_pass", pass.getId(), null);
     }
 
     public VisitorPassResponse cancelPass(UUID id, ShieldPrincipal principal) {
@@ -205,7 +205,7 @@ public class VisitorService {
             visitorPassRepository.save(pass);
         }
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_ENTRY_LOGGED", "visitor_entry_exit_log", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_ENTRY_LOGGED", "visitor_entry_exit_log", saved.getId(), null);
         return toVisitorLogResponse(saved);
     }
 
@@ -226,7 +226,7 @@ public class VisitorService {
             visitorPassRepository.save(pass);
         }
 
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_EXIT_LOGGED", "visitor_entry_exit_log", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_EXIT_LOGGED", "visitor_entry_exit_log", saved.getId(), null);
         return toVisitorLogResponse(saved);
     }
 
@@ -275,7 +275,7 @@ public class VisitorService {
         entity.setPhotoUrl(request.photoUrl());
 
         VisitorEntity saved = visitorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_CREATED", "visitor", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_CREATED", "visitor", saved.getId(), null);
         return toVisitorResponse(saved);
     }
 
@@ -300,7 +300,7 @@ public class VisitorService {
         entity.setPhotoUrl(request.photoUrl());
 
         VisitorEntity saved = visitorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_UPDATED", "visitor", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_UPDATED", "visitor", saved.getId(), null);
         return toVisitorResponse(saved);
     }
 
@@ -308,7 +308,7 @@ public class VisitorService {
         VisitorEntity entity = getVisitorEntity(id);
         entity.setDeleted(true);
         visitorRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "VISITOR_DELETED", "visitor", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_DELETED", "visitor", entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -338,7 +338,7 @@ public class VisitorService {
         entity.setRegisteredBy(request.registeredBy() != null ? request.registeredBy() : principal.userId());
 
         DomesticHelpEntity saved = domesticHelpRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_CREATED", "domestic_help_registry", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_CREATED", "domestic_help_registry", saved.getId(), null);
         return toDomesticHelpResponse(saved);
     }
 
@@ -364,7 +364,7 @@ public class VisitorService {
         entity.setPhotoUrl(request.photoUrl());
 
         DomesticHelpEntity saved = domesticHelpRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_UPDATED", "domestic_help_registry", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_UPDATED", "domestic_help_registry", saved.getId(), null);
         return toDomesticHelpResponse(saved);
     }
 
@@ -372,7 +372,7 @@ public class VisitorService {
         DomesticHelpEntity entity = getDomesticHelpEntity(id);
         entity.setDeleted(true);
         domesticHelpRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_DELETED", "domestic_help_registry", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_DELETED", "domestic_help_registry", entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -386,7 +386,7 @@ public class VisitorService {
         entity.setVerificationDate(LocalDate.now());
 
         DomesticHelpEntity saved = domesticHelpRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_VERIFIED", "domestic_help_registry", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_VERIFIED", "domestic_help_registry", saved.getId(), null);
         return toDomesticHelpResponse(saved);
     }
 
@@ -402,7 +402,7 @@ public class VisitorService {
         mapping.setActive(true);
 
         DomesticHelpUnitMappingEntity saved = domesticHelpUnitMappingRepository.save(mapping);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_ASSIGNED", "domestic_help_unit_mapping", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_ASSIGNED", "domestic_help_unit_mapping", saved.getId(), null);
         return toDomesticHelpUnitMappingResponse(saved);
     }
 
@@ -414,7 +414,7 @@ public class VisitorService {
         mapping.setActive(false);
         mapping.setDeleted(true);
         domesticHelpUnitMappingRepository.save(mapping);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_UNASSIGNED", "domestic_help_unit_mapping", mapping.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DOMESTIC_HELP_UNASSIGNED", "domestic_help_unit_mapping", mapping.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -438,7 +438,7 @@ public class VisitorService {
         entity.setActive(true);
 
         BlacklistEntity saved = blacklistRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BLACKLIST_CREATED", "blacklist", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BLACKLIST_CREATED", "blacklist", saved.getId(), null);
         return toBlacklistResponse(saved);
     }
 
@@ -459,7 +459,7 @@ public class VisitorService {
         entity.setReason(request.reason());
 
         BlacklistEntity saved = blacklistRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BLACKLIST_UPDATED", "blacklist", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BLACKLIST_UPDATED", "blacklist", saved.getId(), null);
         return toBlacklistResponse(saved);
     }
 
@@ -467,7 +467,7 @@ public class VisitorService {
         BlacklistEntity entity = getBlacklistEntity(id);
         entity.setDeleted(true);
         blacklistRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BLACKLIST_DELETED", "blacklist", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BLACKLIST_DELETED", "blacklist", entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -480,7 +480,7 @@ public class VisitorService {
         BlacklistEntity entity = getBlacklistEntity(id);
         entity.setActive(true);
         BlacklistEntity saved = blacklistRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BLACKLIST_ACTIVATED", "blacklist", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BLACKLIST_ACTIVATED", "blacklist", saved.getId(), null);
         return toBlacklistResponse(saved);
     }
 
@@ -488,7 +488,7 @@ public class VisitorService {
         BlacklistEntity entity = getBlacklistEntity(id);
         entity.setActive(false);
         BlacklistEntity saved = blacklistRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "BLACKLIST_DEACTIVATED", "blacklist", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "BLACKLIST_DEACTIVATED", "blacklist", saved.getId(), null);
         return toBlacklistResponse(saved);
     }
 
@@ -504,7 +504,7 @@ public class VisitorService {
         entity.setPhotoUrl(request.photoUrl());
 
         DeliveryLogEntity saved = deliveryLogRepository.save(entity);
-        auditLogService.record(principal.tenantId(), principal.userId(), "DELIVERY_LOG_CREATED", "delivery_log", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DELIVERY_LOG_CREATED", "delivery_log", saved.getId(), null);
         return toDeliveryLogResponse(saved);
     }
 
@@ -570,7 +570,7 @@ public class VisitorService {
             pass.setApprovedBy(actedBy);
         }
         VisitorPassEntity saved = visitorPassRepository.save(pass);
-        auditLogService.record(saved.getTenantId(), actedBy, action, "visitor_pass", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), actedBy, action, "visitor_pass", saved.getId(), null);
         return toPassResponse(saved);
     }
 

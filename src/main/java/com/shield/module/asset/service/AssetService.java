@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AssetService {
 
+    private static final String ENTITY_ASSET = "asset";
+    private static final String ASSET_NOT_FOUND = "Asset not found: ";
+
     private final AssetRepository assetRepository;
     private final AuditLogService auditLogService;
 
@@ -33,7 +36,7 @@ public class AssetService {
         applyValues(entity, request);
 
         AssetEntity saved = assetRepository.save(entity);
-        auditLogService.record(tenantId, null, "ASSET_CREATED", "asset", saved.getId(), null);
+        auditLogService.logEvent(tenantId, null, "ASSET_CREATED", ENTITY_ASSET, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -86,28 +89,28 @@ public class AssetService {
     @Transactional(readOnly = true)
     public AssetResponse getById(UUID id) {
         AssetEntity entity = assetRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ASSET_NOT_FOUND + id));
         return toResponse(entity);
     }
 
     public AssetResponse update(UUID id, AssetUpdateRequest request) {
         AssetEntity entity = assetRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ASSET_NOT_FOUND + id));
 
         applyValues(entity, request);
 
         AssetEntity saved = assetRepository.save(entity);
-        auditLogService.record(saved.getTenantId(), null, "ASSET_UPDATED", "asset", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), null, "ASSET_UPDATED", ENTITY_ASSET, saved.getId(), null);
         return toResponse(saved);
     }
 
     public void delete(UUID id) {
         AssetEntity entity = assetRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ASSET_NOT_FOUND + id));
 
         entity.setDeleted(true);
         assetRepository.save(entity);
-        auditLogService.record(entity.getTenantId(), null, "ASSET_DELETED", "asset", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), null, "ASSET_DELETED", ENTITY_ASSET, entity.getId(), null);
     }
 
     @Transactional(readOnly = true)
