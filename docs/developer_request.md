@@ -37,6 +37,10 @@ Behavior:
 Set these under GitHub repository:
 - `Settings -> Secrets and variables -> Actions`
 
+Optional GitHub Actions repository variables for Sonar targeting:
+- `SONAR_PROJECT_KEY` (default: `VrushankPatel_shield`)
+- `SONAR_ORGANIZATION` (default: `vrushankpatel`)
+
 ## 5. Container Registry Publishing
 GHCR publish uses GitHub Actions `GITHUB_TOKEN` with `packages:write` permission.
 No extra registry secret is needed in standard GitHub-hosted workflows.
