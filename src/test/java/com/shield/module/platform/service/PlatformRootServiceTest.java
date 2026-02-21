@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,7 @@ import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
+import com.shield.security.policy.PasswordPolicyService;
 import io.jsonwebtoken.Claims;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -73,6 +75,9 @@ class PlatformRootServiceTest {
     private RootContactVerificationService rootContactVerificationService;
 
     @Mock
+    private PasswordPolicyService passwordPolicyService;
+
+    @Mock
     private Claims claims;
 
     private PlatformRootService platformRootService;
@@ -87,7 +92,8 @@ class PlatformRootServiceTest {
                 passwordEncoder,
                 jwtService,
                 auditLogService,
-                rootContactVerificationService);
+                rootContactVerificationService,
+                passwordPolicyService);
 
         ReflectionTestUtils.setField(platformRootService, "accessTokenTtlMinutes", 30L);
         ReflectionTestUtils.setField(platformRootService, "refreshTokenTtlMinutes", 4320L);
@@ -297,6 +303,37 @@ class PlatformRootServiceTest {
                 "AdminStrong#123");
 
         assertThrows(BadRequestException.class, () -> platformRootService.createSocietyWithAdmin(principal, request));
+    }
+
+    @Test
+    void createSocietyWithAdminShouldRejectWeakAdminPassword() {
+        UUID rootId = UUID.randomUUID();
+
+        PlatformRootAccountEntity rootAccount = new PlatformRootAccountEntity();
+        rootAccount.setId(rootId);
+        rootAccount.setLoginId("root");
+        rootAccount.setTokenVersion(1L);
+        rootAccount.setPasswordChangeRequired(false);
+        rootAccount.setActive(true);
+
+        when(platformRootAccountRepository.findByIdAndDeletedFalse(rootId)).thenReturn(Optional.of(rootAccount));
+
+        ShieldPrincipal principal = new ShieldPrincipal(rootId, null, "root", "ROOT", "ROOT", 1L);
+        SocietyOnboardingRequest request = new SocietyOnboardingRequest(
+                "Sunshine Residency",
+                "Ahmedabad",
+                "Society Admin",
+                "admin@sunshine.dev",
+                "9999999998",
+                "weak");
+
+        doThrow(new BadRequestException("Tenant admin password does not meet security policy"))
+                .when(passwordPolicyService)
+                .validateOrThrow("weak", "Tenant admin password");
+
+        assertThrows(BadRequestException.class, () -> platformRootService.createSocietyWithAdmin(principal, request));
+        verify(tenantRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
     }
 
     @Test

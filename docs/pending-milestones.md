@@ -1,80 +1,72 @@
-# SHIELD Pending Milestones (Post-Endpoint and Security Patch)
+# SHIELD Pending Milestones (Updated 2026-02-21)
+
+## Status Legend
+- `COMPLETE`: implemented and verified by tests/docs.
+- `IN_PROGRESS`: partially delivered; remaining tasks listed.
+- `PENDING`: intentionally deferred.
 
 ## Milestone P1 - Authentication and Session Hardening
-### Goal
-Close remaining auth-security gaps for non-root users and standardize session controls.
+Status: `COMPLETE`
 
-### Deliverables
-- Implement user login lockout and cooldown policy (`AuthService`) with audit events.
-- Add suspicious login telemetry events (IP/user-agent mismatch, repeated failures).
-- Add refresh-token reuse detection for non-root auth flows where applicable.
-- Add integration tests for lockout and unlock workflows.
-- Add unit tests for lockout counters and cooldown edge cases.
-
-### Exit Criteria
-- Unauthorized brute-force attempts are throttled and lockout is enforced.
-- Regression tests pass in CI.
-- Audit trail confirms lockout events and unlock behavior.
+Delivered:
+- User login lockout and cooldown policy (`USER_LOCKOUT_MAX_FAILED_ATTEMPTS`, `USER_LOCKOUT_DURATION_MINUTES`).
+- Login failure telemetry persisted on `users` (`failed_login_attempts`, `locked_until`, login metadata columns).
+- Suspicious login audit event when login IP changes.
+- Unit tests for lockout and suspicious-login behaviors.
+- Integration test for lockout window and recovery flow.
 
 ## Milestone P2 - File and API Surface Hardening
-### Goal
-Secure upload and request edge behavior for production deployments.
+Status: `COMPLETE`
 
-### Deliverables
-- Enforce upload content-type allowlist and max-size policy in `FileStorageService`.
-- Add extensible malware-scan hook interface with logging fallback implementation.
-- Tighten CORS and security headers by environment in `SecurityConfig`.
-- Add integration tests for rejected file types/sizes and allowed uploads.
-
-### Exit Criteria
-- Disallowed file uploads are blocked with deterministic errors.
-- Security headers and CORS are verifiably applied in integration tests.
+Delivered:
+- File content-type allowlist and max-size policy.
+- Malware scan extension point (`FileMalwareScanner`) with logging placeholder implementation.
+- Strict file id/name normalization and validation.
+- Security headers + explicit CORS policy in `SecurityConfig`.
+- Integration tests for disallowed file types/sizes and CORS/security header behavior.
 
 ## Milestone P3 - Notification and External Integration Readiness
-### Goal
-Prepare real provider wiring without breaking current placeholder behavior.
+Status: `PENDING`
 
-### Deliverables
-- Keep WhatsApp sender interface-based with dummy logger as default.
-- Add email provider strategy wiring (SMTP/provider adapters) behind config flags.
-- Document all external secrets needed in `docs/developer_request.md`.
-- Add provider contract tests with fake/stub transports.
-
-### Exit Criteria
-- Default local mode works without secrets.
-- Provider-specific mode can be enabled only through env configuration.
+Pending by design (documented in `docs/developer_request.md`):
+- Real email/mobile OTP verification provider for root flows.
+- Real WhatsApp provider integration.
+- Real malware scanning engine adapter.
+- Real payment provider deep integration flows beyond current placeholder/verification paths.
 
 ## Milestone P4 - Operability and Reliability
-### Goal
-Make production operations repeatable and failure-safe.
+Status: `COMPLETE`
 
-### Deliverables
-- Backup/restore scripts and runbook for `db_files/postgres` and `db_files/redis`.
-- Capacity planning guide for generated topologies (2/4/8 instance variants).
-- Health/SLO runbook covering error budget, rollout, and rollback procedure.
-- Add readiness/liveness operational checks to deployment docs.
-
-### Exit Criteria
-- Operators can perform backup + restore from docs/scripts only.
-- Deployment playbook defines clear rollback criteria and commands.
+Delivered:
+- Backup script: `ops/backup.sh`.
+- Restore script: `ops/restore.sh`.
+- Deployment runbook updates for backup/restore, capacity guidance, rollout and rollback.
 
 ## Milestone P5 - Quality Gates and Performance Baseline
-### Goal
-Lock quality and performance targets into CI.
+Status: `COMPLETE`
 
-### Deliverables
-- Add strict JaCoCo threshold checks (`jacoco:check`) in CI.
-- Add OpenAPI drift check against controllers/spec generation.
-- Add baseline load test scenario (k6 or JMeter) for critical API flows.
-- Capture baseline throughput/latency report artifact per main build.
+Delivered:
+- JaCoCo coverage check gates in Maven verify lifecycle.
+- k6 smoke baseline script (`scripts/performance/k6-smoke.js`).
+- k6 authenticated business-flow baseline script (`scripts/performance/k6-authenticated-flow.js`).
+- CI job (`performance-baseline`) on main push with downloadable artifact.
+- OpenAPI drift check automation via integration test (`OpenApiContractDriftIT`) that verifies
+  contract/runtime mapping parity against `src/main/resources/openapi.yml`.
 
-### Exit Criteria
-- CI fails on coverage or contract drift regression.
-- Baseline performance report is generated and preserved in pipeline artifacts.
+## Milestone P6 - Security Policy Consolidation
+Status: `COMPLETE`
 
-## Recommended Execution Order
-1. P1 Authentication and Session Hardening
-2. P2 File and API Surface Hardening
-3. P4 Operability and Reliability
-4. P3 Notification and External Integration Readiness
-5. P5 Quality Gates and Performance Baseline
+Delivered:
+- Centralized password policy service and enforcement in:
+  - Auth register/reset/change password flows
+  - Root onboarding admin password flow
+  - User create/bulk import flow
+  - Bootstrap admin creation flow
+- Password policy variables wired into `application.yml`, `dev.env`, and `prod.env`.
+- Unit and integration tests for password-policy enforcement.
+- Security policy baseline documented in `docs/security-policy.md`.
+
+## Next Recommended Order
+1. P3 external integration implementation phase
+2. Capacity benchmarking and horizontal scaling SLO validation on target infra
+3. Secrets rotation automation and regular penetration test cadence

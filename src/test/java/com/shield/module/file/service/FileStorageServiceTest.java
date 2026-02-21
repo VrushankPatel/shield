@@ -40,6 +40,9 @@ class FileStorageServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
+    @Mock
+    private FileMalwareScanner fileMalwareScanner;
+
     @TempDir
     Path tempDir;
 
@@ -47,7 +50,14 @@ class FileStorageServiceTest {
 
     @BeforeEach
     void setUp() {
-        fileStorageService = new FileStorageService(storedFileRepository, auditLogService, tempDir.toString());
+        fileStorageService = new FileStorageService(
+                storedFileRepository,
+                auditLogService,
+                fileMalwareScanner,
+                tempDir.toString(),
+                1024L,
+                "application/pdf,image/jpeg,image/png,text/plain",
+                false);
         fileStorageService.initializeStorage();
     }
 
@@ -104,8 +114,10 @@ class FileStorageServiceTest {
 
     @Test
     void downloadShouldThrowForExpiredFile() {
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
         StoredFileEntity entity = new StoredFileEntity();
         entity.setId(UUID.randomUUID());
+        entity.setTenantId(principal.tenantId());
         entity.setFileId("exp-file");
         entity.setStatus(StoredFileStatus.ACTIVE);
         entity.setStoragePath(tempDir.resolve("missing.txt").toString());
@@ -113,7 +125,6 @@ class FileStorageServiceTest {
 
         when(storedFileRepository.findByFileIdAndDeletedFalse("exp-file")).thenReturn(Optional.of(entity));
         when(storedFileRepository.save(any(StoredFileEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
 
         assertThrows(ResourceNotFoundException.class, () -> fileStorageService.download(
                 "exp-file",
@@ -131,6 +142,7 @@ class FileStorageServiceTest {
 
         StoredFileEntity entity = new StoredFileEntity();
         entity.setId(UUID.randomUUID());
+        entity.setTenantId(tenantId);
         entity.setFileId("del-file");
         entity.setStatus(StoredFileStatus.ACTIVE);
         entity.setStoragePath(filePath.toString());
@@ -155,7 +167,7 @@ class FileStorageServiceTest {
                 new ShieldPrincipal(userId, tenantId, "x@shield.dev", "ADMIN"));
 
         assertNotNull(response.fileId());
-        assertTrue(response.uploadUrl().contains("fileName=Gate+pass+image.png"));
+        assertTrue(response.uploadUrl().contains("fileName=Gate_pass_image.png"));
         assertNotNull(response.expiresAt());
     }
 
@@ -169,6 +181,7 @@ class FileStorageServiceTest {
 
         StoredFileEntity entity = new StoredFileEntity();
         entity.setId(UUID.randomUUID());
+        entity.setTenantId(tenantId);
         entity.setFileId("ok-file");
         entity.setFileName("download.txt");
         entity.setContentType("text/plain");
@@ -183,5 +196,56 @@ class FileStorageServiceTest {
         assertEquals("text/plain", response.contentType());
         assertArrayEquals(payload, response.content());
         verify(auditLogService).logEvent(tenantId, userId, "FILE_DOWNLOADED", "stored_file", entity.getId(), null);
+    }
+
+    @Test
+    void uploadShouldRejectWhenContentTypeIsNotAllowed() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "payload.exe",
+                "application/x-msdownload",
+                "payload".getBytes());
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
+
+        assertThrows(BadRequestException.class, () -> fileStorageService.upload(file, null, "bad-type", principal));
+    }
+
+    @Test
+    void uploadShouldRejectWhenFileIsTooLarge() {
+        byte[] largePayload = new byte[2048];
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "oversized.txt",
+                "text/plain",
+                largePayload);
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
+
+        assertThrows(BadRequestException.class, () -> fileStorageService.upload(file, null, "too-large", principal));
+    }
+
+    @Test
+    void uploadShouldRejectWhenMalwareScannerFlagsTheFile() {
+        when(fileMalwareScanner.scan(any(), any(), any())).thenReturn(FileScanResult.rejected("EICAR_SIGNATURE"));
+
+        FileStorageService scannerEnabledStorage = new FileStorageService(
+                storedFileRepository,
+                auditLogService,
+                fileMalwareScanner,
+                tempDir.toString(),
+                1024L,
+                "application/pdf,image/jpeg,image/png,text/plain",
+                true);
+        scannerEnabledStorage.initializeStorage();
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "infected.txt",
+                "text/plain",
+                "virus".getBytes());
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
+
+        when(storedFileRepository.findByFileIdAndDeletedFalse("infected")).thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class, () -> scannerEnabledStorage.upload(file, null, "infected", principal));
     }
 }

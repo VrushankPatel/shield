@@ -8,6 +8,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.doThrow;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.exception.BadRequestException;
@@ -37,6 +39,7 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
+import com.shield.security.policy.PasswordPolicyService;
 import io.jsonwebtoken.Claims;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -46,15 +49,21 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -87,6 +96,15 @@ class AuthServiceTest {
     private AuditLogService auditLogService;
 
     @Mock
+    private PlatformTransactionManager transactionManager;
+
+    @Mock
+    private PasswordPolicyService passwordPolicyService;
+
+    @Mock
+    private TransactionStatus transactionStatus;
+
+    @Mock
     private Claims claims;
 
     private AuthService authService;
@@ -102,16 +120,27 @@ class AuthServiceTest {
                 mailSender,
                 smsOtpSender,
                 jwtService,
-                auditLogService);
+                auditLogService,
+                transactionManager,
+                passwordPolicyService);
+
+        lenient().when(transactionManager.getTransaction(any())).thenReturn(transactionStatus);
 
         ReflectionTestUtils.setField(authService, "accessTokenTtlMinutes", 30L);
         ReflectionTestUtils.setField(authService, "passwordResetTtlMinutes", 30L);
         ReflectionTestUtils.setField(authService, "emailVerificationTtlHours", 24L);
         ReflectionTestUtils.setField(authService, "loginOtpTtlMinutes", 5L);
         ReflectionTestUtils.setField(authService, "loginOtpMaxAttempts", 5);
+        ReflectionTestUtils.setField(authService, "userLockoutMaxFailedAttempts", 5);
+        ReflectionTestUtils.setField(authService, "userLockoutDurationMinutes", 30L);
         ReflectionTestUtils.setField(authService, "emailEnabled", false);
         ReflectionTestUtils.setField(authService, "appBaseUrl", "http://localhost:8080");
         ReflectionTestUtils.setField(authService, "emailFrom", "no-reply@shield.local");
+    }
+
+    @AfterEach
+    void clearRequestContext() {
+        RequestContextHolder.resetRequestAttributes();
     }
 
     @Test
@@ -327,6 +356,27 @@ class AuthServiceTest {
 
         verify(authTokenRepository).save(any(AuthTokenEntity.class));
         verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_REGISTER"), eq("users"), eq(userId), any());
+    }
+
+    @Test
+    void registerShouldRejectWeakPasswordBeforePersistence() {
+        UUID tenantId = UUID.randomUUID();
+        RegisterRequest request = new RegisterRequest(
+                tenantId,
+                null,
+                "Resident",
+                "resident@shield.dev",
+                "9999999999",
+                "weak",
+                UserRole.TENANT);
+
+        doThrow(new BadRequestException("Password does not meet security policy"))
+                .when(passwordPolicyService)
+                .validateOrThrow("weak", "Password");
+
+        assertThrows(BadRequestException.class, () -> authService.register(request));
+        verify(tenantRepository, never()).findById(any());
+        verify(userRepository, never()).save(any(UserEntity.class));
     }
 
     @Test
@@ -551,6 +601,91 @@ class AuthServiceTest {
 
         verify(authTokenRepository).saveAll(any());
         verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_LOGOUT"), eq("users"), eq(userId), any());
+    }
+
+    @Test
+    void loginShouldLockAccountAfterConfiguredFailedAttempts() {
+        ReflectionTestUtils.setField(authService, "userLockoutMaxFailedAttempts", 2);
+        ReflectionTestUtils.setField(authService, "userLockoutDurationMinutes", 5L);
+        setRequestContext("203.0.113.9", "JUnit-Agent");
+
+        UserEntity user = new UserEntity();
+        user.setId(UUID.randomUUID());
+        user.setTenantId(UUID.randomUUID());
+        user.setEmail("locked@shield.dev");
+        user.setPasswordHash("hash");
+        user.setRole(UserRole.TENANT);
+        user.setStatus(UserStatus.ACTIVE);
+
+        when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("locked@shield.dev")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("bad-pass", "hash")).thenReturn(false);
+
+        assertThrows(UnauthorizedException.class, () -> authService.login(new LoginRequest("locked@shield.dev", "bad-pass")));
+        assertThrows(UnauthorizedException.class, () -> authService.login(new LoginRequest("locked@shield.dev", "bad-pass")));
+
+        assertEquals(2, user.getFailedLoginAttempts());
+        assertNotNull(user.getLockedUntil());
+        verify(auditLogService).logEvent(
+                eq(user.getTenantId()),
+                eq(user.getId()),
+                eq("AUTH_LOGIN_LOCKED"),
+                eq("users"),
+                eq(user.getId()),
+                any());
+    }
+
+    @Test
+    void loginShouldRejectWhenAccountIsLockedEvenWithCorrectPassword() {
+        setRequestContext("198.51.100.10", "JUnit-Agent");
+
+        UserEntity user = new UserEntity();
+        user.setId(UUID.randomUUID());
+        user.setTenantId(UUID.randomUUID());
+        user.setEmail("locked-now@shield.dev");
+        user.setPasswordHash("hash");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setLockedUntil(Instant.now().plusSeconds(60));
+
+        when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("locked-now@shield.dev")).thenReturn(Optional.of(user));
+
+        assertThrows(UnauthorizedException.class, () -> authService.login(new LoginRequest("locked-now@shield.dev", "good-pass")));
+        verify(passwordEncoder, never()).matches(any(), any());
+    }
+
+    @Test
+    void loginShouldEmitSuspiciousAuditWhenIpChanges() {
+        setRequestContext("192.0.2.66", "JUnit-Agent");
+
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setEmail("admin@shield.dev");
+        user.setPasswordHash("hash");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setLastLoginIp("198.51.100.25");
+
+        when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("admin@shield.dev")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "hash")).thenReturn(true);
+        when(jwtService.generateAccessToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("access");
+        when(jwtService.generateRefreshToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("refresh");
+        when(jwtService.parseClaims("refresh")).thenReturn(claims);
+        when(claims.getExpiration()).thenReturn(Date.from(Instant.now().plusSeconds(1800)));
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authService.login(new LoginRequest("admin@shield.dev", "password123"));
+
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("AUTH_LOGIN_SUSPICIOUS"), eq("users"), eq(userId), any());
+    }
+
+    private void setRequestContext(String ipAddress, String userAgent) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr(ipAddress);
+        request.addHeader("User-Agent", userAgent);
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
     private static String hashToken(String rawToken) {

@@ -22,6 +22,7 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
+import com.shield.security.policy.PasswordPolicyService;
 import io.jsonwebtoken.Claims;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -67,6 +68,7 @@ public class PlatformRootService {
     private final JwtService jwtService;
     private final AuditLogService auditLogService;
     private final RootContactVerificationService rootContactVerificationService;
+    private final PasswordPolicyService passwordPolicyService;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -242,6 +244,7 @@ public class PlatformRootService {
             throw new BadRequestException("New password must be different from current password");
         }
 
+        passwordPolicyService.validateOrThrow(request.newPassword(), "Root password");
         boolean emailVerified = rootContactVerificationService.verifyEmailOwnership(request.email());
         boolean mobileVerified = rootContactVerificationService.verifyMobileOwnership(request.mobile());
 
@@ -278,6 +281,7 @@ public class PlatformRootService {
         if (rootAccount.isPasswordChangeRequired()) {
             throw new BadRequestException("Root password change is required before onboarding societies");
         }
+        passwordPolicyService.validateOrThrow(request.adminPassword(), "Tenant admin password");
 
         auditLogService.logEvent(
                 null,

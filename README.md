@@ -33,6 +33,7 @@ It is a multi-tenant Spring Boot backend for residential society operations with
 - Database SQL model: `docs/database-model.sql`
 - Database model guide: `docs/database-model.md`
 - Deployment guide: `docs/deployment.md`
+- Security policy: `docs/security-policy.md`
 - Developer integration inputs: `docs/developer_request.md`
 - Plan gap analysis: `docs/implementation-gap-analysis.md`
 - Pending milestones: `docs/pending-milestones.md`
@@ -110,6 +111,10 @@ Generated artifacts are under `system_topologies/generated/`.
 ## Scripts
 - `run.sh`: Generate and run/load-balanced deployment topologies.
 - `scripts/generate_db_artifacts.py`: Generate migration/doc artifacts from DB model JSON.
+- `scripts/performance/k6-smoke.js`: Baseline k6 smoke test scenario.
+- `scripts/performance/k6-authenticated-flow.js`: Authenticated business-flow baseline scenario.
+- `ops/backup.sh`: PostgreSQL + Redis backup helper.
+- `ops/restore.sh`: PostgreSQL + Redis restore helper.
 
 ## Build, Test, and Coverage
 Run tests:
@@ -124,6 +129,9 @@ Run full verification (unit + integration + coverage):
 mvn verify
 ```
 
+`mvn verify` enforces JaCoCo minimum thresholds via `jacoco:check`.
+`mvn verify` also runs OpenAPI drift validation (`OpenApiContractDriftIT`) against `src/main/resources/openapi.yml`.
+
 Build fat jar:
 
 ```bash
@@ -136,12 +144,14 @@ Artifact:
 ## CI Quality Artifacts
 CI publishes JaCoCo HTML coverage reports as downloadable artifact:
 - `jacoco-report`
+- `performance-baseline` (on `main` pushes, includes smoke + authenticated k6 summaries)
 
 Download from terminal with GitHub CLI:
 
 ```bash
 gh run list --workflow ci.yml --limit 5
 gh run download <run-id> -n jacoco-report
+gh run download <run-id> -n performance-baseline
 ```
 
 ## Production Secret Wiring
@@ -154,6 +164,9 @@ Runtime environment secrets (examples):
 - `PAYMENT_WEBHOOK_PROVIDER_SECRETS`
 - `ROOT_BOOTSTRAP_CREDENTIAL_FILE` (secure path for first-run root credential output)
 - `PAYMENT_WEBHOOK_REQUIRE_PROVIDER_SECRET` (recommended `true` in production)
+- `PASSWORD_POLICY_MIN_LENGTH`, `PASSWORD_POLICY_MAX_LENGTH`
+- `PASSWORD_POLICY_REQUIRE_UPPER`, `PASSWORD_POLICY_REQUIRE_LOWER`
+- `PASSWORD_POLICY_REQUIRE_DIGIT`, `PASSWORD_POLICY_REQUIRE_SPECIAL`
 
 GitHub Actions secrets:
 - `CODECOV_TOKEN`
@@ -169,6 +182,16 @@ For GitHub repository setup:
 - On first startup, if missing, root password is generated once and written to `ROOT_BOOTSTRAP_CREDENTIAL_FILE`.
 - First root login requires password change.
 - Password change bumps root token version and invalidates old sessions.
+- User login lockout is configurable:
+  - `USER_LOCKOUT_MAX_FAILED_ATTEMPTS`
+  - `USER_LOCKOUT_DURATION_MINUTES`
+- Browser/API security headers and CORS policy are configurable via env:
+  - `CORS_ALLOWED_ORIGINS`, `CORS_ALLOWED_METHODS`, `CORS_ALLOWED_HEADERS`, `CORS_EXPOSED_HEADERS`
+  - `SECURITY_HSTS_ENABLED`
+- File upload security policy is configurable:
+  - `SHIELD_FILES_MAX_SIZE_BYTES`
+  - `SHIELD_FILES_ALLOWED_CONTENT_TYPES`
+  - `SHIELD_FILES_MALWARE_SCAN_ENABLED`
 - Root login lockout policy is configurable:
   - `ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS`
   - `ROOT_LOCKOUT_DURATION_MINUTES`

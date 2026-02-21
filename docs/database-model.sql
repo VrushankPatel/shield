@@ -1,6 +1,6 @@
 -- SHIELD consolidated database model
 -- Generated from Flyway migrations in src/main/resources/db/migration
--- Generated at 2026-02-21T11:02:35Z
+-- Generated at 2026-02-21T13:36:41Z
 
 -- ===========================================================================
 -- Source: src/main/resources/db/migration/V1__init_schema.sql
@@ -2304,4 +2304,52 @@ CREATE TABLE unit_ownership_history (
 CREATE INDEX idx_unit_ownership_history_tenant ON unit_ownership_history (tenant_id);
 CREATE INDEX idx_unit_ownership_history_unit ON unit_ownership_history (tenant_id, unit_id);
 CREATE INDEX idx_unit_ownership_history_changed_at ON unit_ownership_history (tenant_id, changed_at);
+
+-- ===========================================================================
+-- Source: src/main/resources/db/migration/V32__platform_root_refresh_sessions.sql
+-- ===========================================================================
+CREATE TABLE platform_root_session (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    root_account_id UUID NOT NULL REFERENCES platform_root_account(id),
+    token_hash VARCHAR(128) NOT NULL UNIQUE,
+    token_version BIGINT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    consumed_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    version BIGINT NOT NULL DEFAULT 0,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_platform_root_session_account
+    ON platform_root_session (root_account_id, consumed_at, deleted);
+
+-- ===========================================================================
+-- Source: src/main/resources/db/migration/V33__login_rate_limit_bucket.sql
+-- ===========================================================================
+CREATE TABLE login_rate_limit_bucket (
+    bucket_key VARCHAR(255) PRIMARY KEY,
+    request_count INTEGER NOT NULL,
+    window_start TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_login_rate_limit_bucket_window_start
+    ON login_rate_limit_bucket (window_start);
+
+-- ===========================================================================
+-- Source: src/main/resources/db/migration/V34__user_login_lockout_and_telemetry.sql
+-- ===========================================================================
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS last_failed_login_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS last_failed_login_ip VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS last_login_ip VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS last_login_user_agent VARCHAR(512);
+
+CREATE INDEX IF NOT EXISTS idx_users_locked_until
+    ON users (locked_until)
+    WHERE deleted = FALSE;
 

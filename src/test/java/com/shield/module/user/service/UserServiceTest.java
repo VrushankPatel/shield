@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +23,7 @@ import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.mapper.UserMapper;
 import com.shield.module.user.repository.UserRepository;
+import com.shield.security.policy.PasswordPolicyService;
 import com.shield.tenant.context.TenantContext;
 import java.time.Instant;
 import java.util.List;
@@ -52,11 +54,14 @@ class UserServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
+    @Mock
+    private PasswordPolicyService passwordPolicyService;
+
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, userMapper, passwordEncoder, auditLogService);
+        userService = new UserService(userRepository, userMapper, passwordEncoder, auditLogService, passwordPolicyService);
     }
 
     @AfterEach
@@ -119,6 +124,27 @@ class UserServiceTest {
                 UserRole.TENANT);
 
         when(userRepository.existsByTenantIdAndEmailIgnoreCaseAndDeletedFalse(tenantId, request.email())).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> userService.create(request));
+    }
+
+    @Test
+    void createShouldFailWhenPasswordPolicyRejectsPassword() {
+        UUID tenantId = UUID.randomUUID();
+        TenantContext.setTenantId(tenantId);
+
+        UserCreateRequest request = new UserCreateRequest(
+                UUID.randomUUID(),
+                "Resident",
+                "resident@shield.dev",
+                "9999999999",
+                "weak",
+                UserRole.TENANT);
+
+        when(userRepository.existsByTenantIdAndEmailIgnoreCaseAndDeletedFalse(tenantId, request.email())).thenReturn(false);
+        doThrow(new BadRequestException("User password does not meet security policy"))
+                .when(passwordPolicyService)
+                .validateOrThrow("weak", "User password");
 
         assertThrows(BadRequestException.class, () -> userService.create(request));
     }

@@ -1,6 +1,7 @@
 package com.shield.integration;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -18,6 +19,7 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -242,6 +244,26 @@ class ConfigAndFilesFlowsIT extends IntegrationTestBase {
 
         given()
                 .header("Authorization", "Bearer " + adminTokenOne)
+                .multiPart("file", "payload.exe", "potential payload".getBytes(StandardCharsets.UTF_8), "application/x-msdownload")
+                .when()
+                .post("/files/upload")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("message", containsString("contentType is not allowed"));
+
+        byte[] oversizedContent = new byte[5000];
+        Arrays.fill(oversizedContent, (byte) 1);
+        given()
+                .header("Authorization", "Bearer " + adminTokenOne)
+                .multiPart("file", "oversized.txt", oversizedContent, "text/plain")
+                .when()
+                .post("/files/upload")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("message", containsString("File size exceeds maximum"));
+
+        given()
+                .header("Authorization", "Bearer " + adminTokenOne)
                 .when()
                 .delete("/files/{fileId}", fileId)
                 .then()
@@ -260,6 +282,32 @@ class ConfigAndFilesFlowsIT extends IntegrationTestBase {
                 .get("/files/{fileId}", reservedFileId)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
+    void securityHeadersAndCorsShouldBeAppliedToRequests() {
+        given()
+                .basePath("")
+                .header("Origin", "http://localhost:3000")
+                .when()
+                .get("/actuator/health")
+                .then()
+                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .header("X-Content-Type-Options", equalTo("nosniff"))
+                .header("X-Frame-Options", equalTo("DENY"))
+                .header("Referrer-Policy", equalTo("no-referrer"))
+                .header("Content-Security-Policy", containsString("default-src 'self'"));
+
+        given()
+                .basePath("")
+                .header("Origin", "http://localhost:3000")
+                .header("Access-Control-Request-Method", "GET")
+                .when()
+                .options("/actuator/health")
+                .then()
+                .statusCode(anyOf(equalTo(HttpStatus.OK.value()), equalTo(HttpStatus.NO_CONTENT.value())))
+                .header("Access-Control-Allow-Origin", equalTo("http://localhost:3000"))
+                .header("Access-Control-Allow-Credentials", equalTo("true"));
     }
 
     private TenantEntity createTenant(String name) {

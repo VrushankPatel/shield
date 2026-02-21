@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record GeneratePresignedUrlRequest(
         @NotBlank @Size(max = 255) String fileName,
-        @Size(max = 150) String contentType,
+        @NotBlank @Size(max = 150) String contentType,
         @Min(1) @Max(1440) Integer expiresInMinutes
 ) {
 }

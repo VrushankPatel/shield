@@ -22,8 +22,11 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,18 +39,31 @@ public class FileStorageService {
 
     private static final int DEFAULT_PRESIGNED_EXPIRY_MINUTES = 15;
     private static final String ENTITY_STORED_FILE = "stored_file";
+    private static final long DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
     private final StoredFileRepository storedFileRepository;
     private final AuditLogService auditLogService;
+    private final FileMalwareScanner fileMalwareScanner;
     private final Path storageRootPath;
+    private final long maxFileSizeBytes;
+    private final Set<String> allowedContentTypes;
+    private final boolean malwareScanEnabled;
 
     public FileStorageService(
             StoredFileRepository storedFileRepository,
             AuditLogService auditLogService,
-            @Value("${shield.files.storage-path:./storage/files}") String storagePath) {
+            FileMalwareScanner fileMalwareScanner,
+            @Value("${shield.files.storage-path:./storage/files}") String storagePath,
+            @Value("${shield.files.max-size-bytes:10485760}") long maxFileSizeBytes,
+            @Value("${shield.files.allowed-content-types:application/pdf,image/jpeg,image/png,text/plain}") String allowedContentTypes,
+            @Value("${shield.files.malware-scan-enabled:false}") boolean malwareScanEnabled) {
         this.storedFileRepository = storedFileRepository;
         this.auditLogService = auditLogService;
+        this.fileMalwareScanner = fileMalwareScanner;
         this.storageRootPath = Paths.get(storagePath).toAbsolutePath().normalize();
+        this.maxFileSizeBytes = maxFileSizeBytes <= 0 ? DEFAULT_MAX_FILE_SIZE_BYTES : maxFileSizeBytes;
+        this.allowedContentTypes = parseAllowedContentTypes(allowedContentTypes);
+        this.malwareScanEnabled = malwareScanEnabled;
     }
 
     @PostConstruct
@@ -70,23 +86,26 @@ public class FileStorageService {
         }
 
         String fileId = normalizeFileId(requestedFileId);
+        String sanitizedName = sanitizeFileName(file.getOriginalFilename());
+        String normalizedContentType = normalizeContentType(file.getContentType());
+        validateUploadPolicy(file.getSize(), normalizedContentType, sanitizedName);
         if (storedFileRepository.findByFileIdAndDeletedFalse(fileId).isPresent()) {
             throw new BadRequestException("File id already exists: " + fileId);
         }
 
-        String sanitizedName = sanitizeFileName(file.getOriginalFilename());
         Path tenantDirectory = resolveTenantDirectory(principal.tenantId());
         Path targetFile = tenantDirectory.resolve(fileId + "_" + sanitizedName);
 
         try {
             byte[] content = file.getBytes();
+            runMalwareScanIfEnabled(sanitizedName, normalizedContentType, content);
             Files.write(targetFile, content);
 
             StoredFileEntity entity = new StoredFileEntity();
             entity.setTenantId(principal.tenantId());
             entity.setFileId(fileId);
             entity.setFileName(sanitizedName);
-            entity.setContentType(file.getContentType());
+            entity.setContentType(normalizedContentType);
             entity.setFileSize(content.length);
             entity.setStoragePath(targetFile.toString());
             entity.setUploadedBy(principal.userId());
@@ -125,13 +144,13 @@ public class FileStorageService {
     }
 
     @Transactional(readOnly = true)
-    public StoredFileResponse getMetadata(String fileId) {
-        StoredFileEntity entity = findActiveFile(fileId);
+    public StoredFileResponse getMetadata(String fileId, ShieldPrincipal principal) {
+        StoredFileEntity entity = findActiveFile(principal.tenantId(), fileId);
         return toResponse(entity);
     }
 
     public FileDownloadPayload download(String fileId, ShieldPrincipal principal) {
-        StoredFileEntity entity = findActiveFile(fileId);
+        StoredFileEntity entity = findActiveFile(principal.tenantId(), fileId);
 
         if (entity.getExpiresAt() != null && entity.getExpiresAt().isBefore(Instant.now())) {
             entity.setStatus(StoredFileStatus.EXPIRED);
@@ -159,7 +178,7 @@ public class FileStorageService {
     }
 
     public void delete(String fileId, ShieldPrincipal principal) {
-        StoredFileEntity entity = findActiveFile(fileId);
+        StoredFileEntity entity = findActiveFile(principal.tenantId(), fileId);
         entity.setDeleted(true);
         entity.setStatus(StoredFileStatus.DELETED);
 
@@ -184,13 +203,17 @@ public class FileStorageService {
             GeneratePresignedUrlRequest request,
             ShieldPrincipal principal) {
 
+        String sanitizedFileName = sanitizeFileName(request.fileName());
+        String normalizedContentType = normalizeContentType(request.contentType());
+        validateContentType(normalizedContentType);
+
         int ttlMinutes = request.expiresInMinutes() == null
                 ? DEFAULT_PRESIGNED_EXPIRY_MINUTES
                 : request.expiresInMinutes();
 
         String fileId = generateFileId();
         Instant expiresAt = Instant.now().plus(ttlMinutes, ChronoUnit.MINUTES);
-        String encodedName = URLEncoder.encode(request.fileName(), StandardCharsets.UTF_8);
+        String encodedName = URLEncoder.encode(sanitizedFileName, StandardCharsets.UTF_8);
         String uploadUrl = "/api/v1/files/upload?fileId=" + fileId + "&fileName=" + encodedName;
 
         auditLogService.logEvent(
@@ -204,9 +227,13 @@ public class FileStorageService {
         return new GeneratePresignedUrlResponse(fileId, uploadUrl, expiresAt);
     }
 
-    private StoredFileEntity findActiveFile(String fileId) {
+    private StoredFileEntity findActiveFile(UUID tenantId, String fileId) {
         StoredFileEntity entity = storedFileRepository.findByFileIdAndDeletedFalse(fileId)
                 .orElseThrow(() -> new ResourceNotFoundException("Stored file not found: " + fileId));
+
+        if (!entity.getTenantId().equals(tenantId)) {
+            throw new ResourceNotFoundException("Stored file not found: " + fileId);
+        }
 
         if (entity.getStatus() == StoredFileStatus.DELETED) {
             throw new ResourceNotFoundException("Stored file not found: " + fileId);
@@ -230,8 +257,13 @@ public class FileStorageService {
         }
 
         String sanitized = Paths.get(originalFileName).getFileName().toString().trim();
+        sanitized = sanitized.replaceAll("[\\r\\n\\t]", "_");
+        sanitized = sanitized.replaceAll("[^A-Za-z0-9._-]", "_");
         if (sanitized.isBlank()) {
             return "file.bin";
+        }
+        if (sanitized.length() > 255) {
+            return sanitized.substring(sanitized.length() - 255);
         }
         return sanitized;
     }
@@ -245,7 +277,67 @@ public class FileStorageService {
         if (normalized.length() > 120) {
             throw new BadRequestException("fileId must be <= 120 characters");
         }
+        if (!normalized.matches("[A-Za-z0-9_-]+")) {
+            throw new BadRequestException("fileId contains invalid characters");
+        }
         return normalized;
+    }
+
+    private String normalizeContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new BadRequestException("contentType is required");
+        }
+        return contentType.toLowerCase(Locale.ROOT).trim();
+    }
+
+    private void validateUploadPolicy(long fileSize, String contentType, String fileName) {
+        validateContentType(contentType);
+        if (fileSize <= 0) {
+            throw new BadRequestException("File is empty");
+        }
+        if (fileSize > maxFileSizeBytes) {
+            throw new BadRequestException("File size exceeds maximum allowed bytes: " + maxFileSizeBytes);
+        }
+        if (fileName.isBlank()) {
+            throw new BadRequestException("fileName is required");
+        }
+    }
+
+    private void validateContentType(String contentType) {
+        if (!allowedContentTypes.contains(contentType)) {
+            throw new BadRequestException("contentType is not allowed: " + contentType);
+        }
+    }
+
+    private Set<String> parseAllowedContentTypes(String configuredTypes) {
+        Set<String> parsed = new LinkedHashSet<>();
+        if (configuredTypes != null) {
+            String[] split = configuredTypes.split(",");
+            for (String value : split) {
+                String normalized = value.trim().toLowerCase(Locale.ROOT);
+                if (!normalized.isBlank()) {
+                    parsed.add(normalized);
+                }
+            }
+        }
+        if (parsed.isEmpty()) {
+            parsed.add("application/pdf");
+            parsed.add("image/jpeg");
+            parsed.add("image/png");
+            parsed.add("text/plain");
+        }
+        return parsed;
+    }
+
+    private void runMalwareScanIfEnabled(String fileName, String contentType, byte[] content) {
+        if (!malwareScanEnabled) {
+            return;
+        }
+
+        FileScanResult result = fileMalwareScanner.scan(fileName, contentType, content);
+        if (!result.safe()) {
+            throw new BadRequestException("File rejected by malware policy: " + result.reason());
+        }
     }
 
     private String generateFileId() {

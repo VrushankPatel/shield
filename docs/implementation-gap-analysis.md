@@ -1,62 +1,54 @@
-# SHIELD Implementation Gap Analysis (2026-02-21)
+# SHIELD Implementation Gap Analysis (Updated 2026-02-21)
 
 ## Baseline Compared
-This assessment compares current implementation to the full SHIELD scope:
-- Modular multi-tenant Spring Boot API platform
-- Domain coverage across identity, billing, accounting, visitor, asset, amenities, meeting, staff/payroll, utility, marketplace, helpdesk, emergency, documents, analytics, notifications
-- Security, CI/CD, observability, and production hardening expectations
+This report compares the current implementation against the full SHIELD scope across:
+- Domain APIs and workflows
+- Security hardening
+- Operability/runbooks
+- CI quality gates and performance baseline
 
-## What Is Now Closed
-The following previously open gaps are now implemented:
-- Missing endpoints:
-  - `GET /api/v1/visitor-logs/export`
-  - `GET /api/v1/water-level-logs/chart-data`
-  - `PUT /api/v1/ticket-comments/{id}`
-  - `DELETE /api/v1/ticket-comments/{id}`
-- Root session hardening:
-  - Server-side refresh session table with consume-on-use rotation
-  - Refresh reuse blocked, and sessions revoked on root password change
-- Bootstrap credential hardening:
-  - Root generated credential no longer logged in plaintext; written to configured file path
-- Webhook hardening:
-  - Fail-open behavior removed by strict signature mode when secret is required
-- Login throttling hardening:
-  - In-memory rate limiting replaced with DB-backed bucket storage for multi-instance behavior
-- Production JWT secret hardening:
-  - Startup guard prevents default secret usage in production profiles
+## Recently Closed Gaps
+- Non-root login hardening:
+  - Configurable login lockout and cooldown.
+  - Failed/suspicious login telemetry.
+  - Lockout integration tests and unit coverage.
+- File/API hardening:
+  - Upload content-type allowlist and max-size enforcement.
+  - Malware scan extension hook with placeholder scanner.
+  - Explicit CORS and secure response headers.
+  - Integration tests for upload rejection and header behavior.
+- Operability:
+  - Backup/restore scripts for PostgreSQL and Redis data.
+  - Deployment guide updated with capacity, rollout, and rollback guidance.
+- CI quality/performance:
+  - JaCoCo `check` thresholds in Maven verify.
+  - k6 smoke baseline script and CI artifact job on `main` push.
+  - k6 authenticated flow baseline script and CI artifact upload.
+  - OpenAPI drift guard (`OpenApiContractDriftIT`) validating runtime mappings against contract.
+- Security policy consolidation:
+  - Centralized password policy enforcement across auth/root/user/bootstrap flows.
+  - Password policy runtime variables in env templates.
+  - Security baseline codified in `docs/security-policy.md`.
 
-## Remaining Functional/Design Gaps
-### Placeholder flows (intentional, pending external integration)
-- Root contact verification is still dummy-allow:
-  - `/Users/vrushank/Desktop/WORKSPACE/shield/src/main/java/com/shield/module/platform/verification/DummyRootContactVerificationService.java`
-- WhatsApp sender remains logging placeholder:
-  - `/Users/vrushank/Desktop/WORKSPACE/shield/src/main/java/com/shield/module/notification/service/LoggingWhatsappNotificationSender.java`
-- AI meeting summary is placeholder text:
-  - `/Users/vrushank/Desktop/WORKSPACE/shield/src/main/java/com/shield/module/meeting/service/MeetingService.java`
-- File presigned URL flow is local placeholder:
-  - `/Users/vrushank/Desktop/WORKSPACE/shield/src/main/java/com/shield/module/file/service/FileStorageService.java`
+## Remaining Functional and Non-Functional Gaps
+### External integrations (intentionally pending)
+- Root contact OTP verification provider wiring.
+- WhatsApp provider implementation.
+- Real malware engine adapter.
+- Deeper payment provider integrations.
 
-### Architecture-level deltas from broader variant specs
-- `tenant_id` column isolation is implemented; database-per-tenant orchestration is not implemented
-- Redis service exists in runtime topology, but high-value cache/session use-cases remain limited
-- Performance/load profile artifacts (k6/JMeter baseline) are not yet formalized
+### Performance/capacity (partially pending)
+- k6 scripts are baseline-level and not yet a full production stress/soak benchmark suite.
+- Target-environment load profile and SLO cutoffs still require dedicated execution.
 
-## Remaining Hardening Risks
-### High/medium
-- End-user auth lockout/suspicious login handling for non-root accounts is still incomplete
-- File upload pipeline still needs strict content-type allowlist, size policy, and AV hook points
-- Security headers/CORS profile needs explicit hardening per environment
-- Secrets lifecycle (rotation/expiry policy + operator runbook) still requires formalization
+## Security/Reliability Residual Risk
+- Placeholder integrations remain non-production for regulated flows (OTP/WhatsApp/advanced payment/webhook models).
+- Existing k6 baselines are smoke-level only; full-scale endurance and soak workloads are still required.
 
-## Operational Gaps
-- Backup/restore runbook for `db_files` PostgreSQL/Redis data is missing
-- Capacity guidance by deployment shape (2/4/8 nodes with proxy) is not yet documented
-- CI quality gates are broad, but strict minimum coverage threshold enforcement is still pending
+## Reference Tracking
+- Pending milestones: `docs/pending-milestones.md`
+- Operator inputs: `docs/developer_request.md`
+- Deployment runbook: `docs/deployment.md`
 
-## Linked Execution Plan
-Concrete delivery milestones are tracked in:
-- `/Users/vrushank/Desktop/WORKSPACE/shield/docs/pending-milestones.md`
-
-## Final Verdict
-Platform is feature-rich and materially hardened, but not fully production-complete against the full original SHIELD bar.  
-Primary remaining work is around external integrations, deeper auth/file hardening, and operational SRE readiness.
+## Current Verdict
+Core platform functionality and major hardening work are implemented. Remaining work is concentrated in intentionally deferred external-provider integrations plus CI contract/performance maturity tasks.

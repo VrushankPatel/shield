@@ -73,9 +73,34 @@ Mandatory:
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 
+User auth hardening:
+- `USER_LOCKOUT_MAX_FAILED_ATTEMPTS`
+- `USER_LOCKOUT_DURATION_MINUTES`
+
 Root account hardening:
 - `ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS`
 - `ROOT_LOCKOUT_DURATION_MINUTES`
+
+Password policy:
+- `PASSWORD_POLICY_MIN_LENGTH`
+- `PASSWORD_POLICY_MAX_LENGTH`
+- `PASSWORD_POLICY_REQUIRE_UPPER`
+- `PASSWORD_POLICY_REQUIRE_LOWER`
+- `PASSWORD_POLICY_REQUIRE_DIGIT`
+- `PASSWORD_POLICY_REQUIRE_SPECIAL`
+
+API/browser security surface:
+- `CORS_ALLOWED_ORIGINS`
+- `CORS_ALLOWED_METHODS`
+- `CORS_ALLOWED_HEADERS`
+- `CORS_EXPOSED_HEADERS`
+- `CORS_ALLOW_CREDENTIALS`
+- `SECURITY_HSTS_ENABLED`
+
+File ingestion policy:
+- `SHIELD_FILES_MAX_SIZE_BYTES`
+- `SHIELD_FILES_ALLOWED_CONTENT_TYPES`
+- `SHIELD_FILES_MALWARE_SCAN_ENABLED`
 
 Email integration:
 - `NOTIFICATION_EMAIL_ENABLED`
@@ -92,24 +117,72 @@ See `docs/developer_request.md` for full operator checklist.
 
 ## 6. Root Onboarding Security
 - Platform root login id is fixed as `root`.
-- If no root password exists at startup, SHIELD generates a strong password and logs it once.
+- If no root password exists at startup, SHIELD generates a strong password and writes it once to `ROOT_BOOTSTRAP_CREDENTIAL_FILE`.
 - First login forces root password change.
 - Root password change invalidates older root sessions.
 - Root login now applies configurable lockout after repeated failed attempts.
+- User login APIs apply configurable lockout and suspicious-login audit telemetry.
 
-## 7. CI/CD and Registry Publishing
+## 7. Backup and Restore Runbook
+Backup (PostgreSQL dump + Redis snapshot):
+
+```bash
+./ops/backup.sh --env-file prod.env --output-dir ./backups
+```
+
+Restore from backup directory:
+
+```bash
+./ops/restore.sh --env-file prod.env --backup-dir ./backups/<timestamp> --yes
+```
+
+Notes:
+- Backups operate on docker-compose services from `docker-compose.yml`.
+- Redis restore is optional and skipped if `redis-data.tgz` is missing.
+- Use immutable backup folders and store off-host copies.
+
+## 8. Capacity Planning (Generated Topologies)
+- `2` app instances + proxy: suitable for pilot societies and UAT traffic.
+- `4` app instances + proxy: recommended default production footprint.
+- `8` app instances + proxy: high-density societies or multi-society single-cluster hosting.
+
+Guidance:
+- Keep one PostgreSQL primary per deployment stack.
+- Keep Redis persistence enabled (`appendonly yes`).
+- Increase DB resources before increasing app replicas if DB CPU exceeds sustained `70%`.
+
+## 9. Rollout and Rollback
+Rollout:
+1. Build and publish image from `main`.
+2. Pull new image and run `docker compose --env-file prod.env up -d --build`.
+3. Verify `/actuator/health`, `/actuator/prometheus`, login and one business flow.
+
+Rollback:
+1. Re-deploy previous known-good image tag.
+2. If schema changed, restore latest verified backup with `ops/restore.sh`.
+3. Re-run smoke checks and confirm error rate returns to baseline.
+
+## 10. CI/CD and Registry Publishing
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 - Build
 - Unit + integration tests
 - Coverage upload (Codecov)
+- Coverage threshold checks (JaCoCo `check`)
 - Docker image build and push to GHCR
 - SonarCloud analysis (when `SONAR_TOKEN` is configured)
+- k6 smoke + authenticated baselines on `main` push (performance artifact)
 
 Download JaCoCo coverage artifact using GitHub CLI:
 
 ```bash
 gh run list --workflow ci.yml --limit 5
 gh run download <run-id> -n jacoco-report
+```
+
+Download performance baseline artifact:
+
+```bash
+gh run download <run-id> -n performance-baseline
 ```
 
 Published image tags:

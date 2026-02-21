@@ -39,7 +39,13 @@ public abstract class IntegrationTestBase {
         registry.add("shield.security.jwt.secret", () -> "integration-test-secret-key-minimum-32-bytes");
         registry.add("shield.auth.login-rate-limit.requests", () -> 1000);
         registry.add("shield.auth.login-rate-limit.window-seconds", () -> 1);
+        registry.add("shield.auth.user-lockout.max-failed-attempts", () -> 3);
+        registry.add("shield.auth.user-lockout.duration-minutes", () -> 1);
         registry.add("shield.files.storage-path", () -> System.getProperty("java.io.tmpdir") + "/shield-it-files");
+        registry.add("shield.files.max-size-bytes", () -> 4096);
+        registry.add("shield.files.allowed-content-types", () -> "application/pdf,image/jpeg,image/png,text/plain");
+        registry.add("shield.files.malware-scan-enabled", () -> false);
+        registry.add("shield.security.cors.allowed-origins", () -> "http://localhost:3000,http://localhost:19006");
         registry.add("shield.payment.webhook.provider-secrets", () -> "STRIPE=stripe_test_secret");
     }
 

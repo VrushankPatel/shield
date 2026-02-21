@@ -27,7 +27,9 @@ import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
+import com.shield.security.policy.PasswordPolicyService;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
@@ -35,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HexFormat;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -45,7 +48,12 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +72,8 @@ public class AuthService {
     private final SmsOtpSender smsOtpSender;
     private final JwtService jwtService;
     private final AuditLogService auditLogService;
+    private final PlatformTransactionManager transactionManager;
+    private final PasswordPolicyService passwordPolicyService;
 
     @Value("${shield.security.jwt.access-token-ttl-minutes}")
     private long accessTokenTtlMinutes;
@@ -80,6 +90,12 @@ public class AuthService {
     @Value("${shield.auth.login-otp-max-attempts:5}")
     private int loginOtpMaxAttempts;
 
+    @Value("${shield.auth.user-lockout.max-failed-attempts:5}")
+    private int userLockoutMaxFailedAttempts;
+
+    @Value("${shield.auth.user-lockout.duration-minutes:30}")
+    private long userLockoutDurationMinutes;
+
     @Value("${shield.notification.email.enabled:false}")
     private boolean emailEnabled;
 
@@ -91,6 +107,7 @@ public class AuthService {
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
+        passwordPolicyService.validateOrThrow(request.password(), "Password");
         TenantEntity tenant = tenantRepository.findById(request.tenantId())
                 .filter(existing -> !existing.isDeleted())
                 .orElseThrow(() -> new BadRequestException("Invalid tenant id"));
@@ -132,13 +149,30 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        LoginRequestMetadata requestMetadata = resolveRequestMetadata();
         UserEntity user = userRepository.findByEmailIgnoreCaseAndDeletedFalse(request.email())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
+        if (isCurrentlyLocked(user)) {
+            auditLogService.logEvent(
+                    user.getTenantId(),
+                    user.getId(),
+                    "AUTH_LOGIN_LOCKED",
+                    ENTITY_USERS,
+                    user.getId(),
+                    buildLoginAuditPayload(requestMetadata, Map.of(
+                            "reason", "LOCKED_WINDOW",
+                            "lockedUntil", String.valueOf(user.getLockedUntil()))));
+            throw new UnauthorizedException("Account is temporarily locked. Try again later");
+        }
+
         if (user.getStatus() != UserStatus.ACTIVE || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            String failureReason = user.getStatus() != UserStatus.ACTIVE ? "USER_INACTIVE" : "PASSWORD_MISMATCH";
+            registerFailedLoginAttempt(user, requestMetadata, failureReason);
             throw new UnauthorizedException("Invalid credentials");
         }
 
+        registerSuccessfulLogin(user, requestMetadata);
         AuthResponse response = issueAuthResponse(user);
         auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_LOGIN", ENTITY_USERS, user.getId(), null);
         return response;
@@ -146,10 +180,25 @@ public class AuthService {
 
     @Transactional
     public LoginOtpSendResponse sendLoginOtp(LoginOtpSendRequest request) {
+        LoginRequestMetadata requestMetadata = resolveRequestMetadata();
         UserEntity user = userRepository.findByEmailIgnoreCaseAndDeletedFalse(request.email())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
+        if (isCurrentlyLocked(user)) {
+            auditLogService.logEvent(
+                    user.getTenantId(),
+                    user.getId(),
+                    "AUTH_LOGIN_LOCKED",
+                    ENTITY_USERS,
+                    user.getId(),
+                    buildLoginAuditPayload(requestMetadata, Map.of(
+                            "reason", "LOCKED_WINDOW",
+                            "lockedUntil", String.valueOf(user.getLockedUntil()))));
+            throw new UnauthorizedException("Account is temporarily locked. Try again later");
+        }
+
         if (user.getStatus() != UserStatus.ACTIVE) {
+            registerFailedLoginAttempt(user, requestMetadata, "USER_INACTIVE");
             throw new UnauthorizedException("Invalid credentials");
         }
 
@@ -170,9 +219,23 @@ public class AuthService {
 
     @Transactional
     public AuthResponse verifyLoginOtp(LoginOtpVerifyRequest request) {
+        LoginRequestMetadata requestMetadata = resolveRequestMetadata();
         AuthTokenEntity token = resolveValidToken(request.challengeToken(), AuthTokenType.LOGIN_OTP);
         UserEntity user = userRepository.findByIdAndDeletedFalse(token.getUserId())
                 .orElseThrow(() -> new UnauthorizedException("Invalid OTP challenge"));
+
+        if (isCurrentlyLocked(user)) {
+            auditLogService.logEvent(
+                    user.getTenantId(),
+                    user.getId(),
+                    "AUTH_LOGIN_LOCKED",
+                    ENTITY_USERS,
+                    user.getId(),
+                    buildLoginAuditPayload(requestMetadata, Map.of(
+                            "reason", "LOCKED_WINDOW",
+                            "lockedUntil", String.valueOf(user.getLockedUntil()))));
+            throw new UnauthorizedException("Account is temporarily locked. Try again later");
+        }
 
         Map<String, String> metadata = parseOtpMetadata(token.getMetadata());
         String otpHash = metadata.get("otpHash");
@@ -190,12 +253,14 @@ public class AuthService {
                 token.setConsumedAt(Instant.now());
             }
             authTokenRepository.save(token);
+            registerFailedLoginAttempt(user, requestMetadata, "OTP_MISMATCH");
             throw new UnauthorizedException("Invalid OTP");
         }
 
         token.setConsumedAt(Instant.now());
         authTokenRepository.save(token);
 
+        registerSuccessfulLogin(user, requestMetadata);
         AuthResponse response = issueAuthResponse(user);
         auditLogService.logEvent(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_VERIFIED", ENTITY_USERS, user.getId(), null);
         return response;
@@ -261,6 +326,7 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
+        passwordPolicyService.validateOrThrow(request.newPassword(), "New password");
         AuthTokenEntity token = resolveValidToken(request.token(), AuthTokenType.PASSWORD_RESET);
         UserEntity user = userRepository.findById(token.getUserId())
                 .filter(existing -> !existing.isDeleted())
@@ -289,6 +355,7 @@ public class AuthService {
             throw new BadRequestException("New password must be different from current password");
         }
 
+        passwordPolicyService.validateOrThrow(request.newPassword(), "New password");
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
         revokeRefreshSessions(user.getTenantId(), user.getId());
@@ -370,6 +437,86 @@ public class AuthService {
         Instant now = Instant.now();
         activeSessions.forEach(token -> token.setConsumedAt(now));
         authTokenRepository.saveAll(activeSessions);
+    }
+
+    private boolean isCurrentlyLocked(UserEntity user) {
+        return user.getLockedUntil() != null && user.getLockedUntil().isAfter(Instant.now());
+    }
+
+    private void registerFailedLoginAttempt(UserEntity user, LoginRequestMetadata requestMetadata, String reason) {
+        Instant now = Instant.now();
+        int maxFailedAttempts = Math.max(1, userLockoutMaxFailedAttempts);
+        long lockoutDurationMinutes = Math.max(1L, userLockoutDurationMinutes);
+        executeInNewTransaction(() -> {
+            UserEntity persistentUser = userRepository.findByIdAndDeletedFalse(user.getId()).orElse(user);
+            int updatedAttempts = persistentUser.getFailedLoginAttempts() + 1;
+
+            persistentUser.setFailedLoginAttempts(updatedAttempts);
+            persistentUser.setLastFailedLoginAt(now);
+            persistentUser.setLastFailedLoginIp(requestMetadata.clientIp());
+
+            Instant lockedUntil = null;
+            if (updatedAttempts >= maxFailedAttempts) {
+                lockedUntil = now.plus(lockoutDurationMinutes, ChronoUnit.MINUTES);
+                persistentUser.setLockedUntil(lockedUntil);
+            }
+
+            userRepository.save(persistentUser);
+            Map<String, String> failurePayload = new LinkedHashMap<>();
+            failurePayload.put("reason", reason);
+            failurePayload.put("failedAttempts", String.valueOf(updatedAttempts));
+            failurePayload.put("maxAllowedAttempts", String.valueOf(maxFailedAttempts));
+            failurePayload.put("lockedUntil", lockedUntil == null ? "none" : lockedUntil.toString());
+            auditLogService.logEvent(
+                    persistentUser.getTenantId(),
+                    persistentUser.getId(),
+                    "AUTH_LOGIN_FAILED",
+                    ENTITY_USERS,
+                    persistentUser.getId(),
+                    buildLoginAuditPayload(requestMetadata, failurePayload));
+
+            if (lockedUntil != null) {
+                auditLogService.logEvent(
+                        persistentUser.getTenantId(),
+                        persistentUser.getId(),
+                        "AUTH_LOGIN_LOCKED",
+                        ENTITY_USERS,
+                        persistentUser.getId(),
+                        buildLoginAuditPayload(requestMetadata, Map.of(
+                                "reason", "FAILED_ATTEMPTS_EXCEEDED",
+                                "failedAttempts", String.valueOf(updatedAttempts),
+                                "lockedUntil", String.valueOf(lockedUntil))));
+            }
+        });
+    }
+
+    private void registerSuccessfulLogin(UserEntity user, LoginRequestMetadata requestMetadata) {
+        String previousIp = user.getLastLoginIp();
+        boolean suspiciousLogin = previousIp != null
+                && !previousIp.isBlank()
+                && requestMetadata.clientIp() != null
+                && !requestMetadata.clientIp().isBlank()
+                && !previousIp.equals(requestMetadata.clientIp());
+
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+        user.setLastLoginAt(Instant.now());
+        user.setLastLoginIp(requestMetadata.clientIp());
+        user.setLastLoginUserAgent(requestMetadata.userAgent());
+        userRepository.save(user);
+
+        if (suspiciousLogin) {
+            auditLogService.logEvent(
+                    user.getTenantId(),
+                    user.getId(),
+                    "AUTH_LOGIN_SUSPICIOUS",
+                    ENTITY_USERS,
+                    user.getId(),
+                    buildLoginAuditPayload(requestMetadata, Map.of(
+                            "reason", "IP_ADDRESS_CHANGED",
+                            "previousIp", previousIp,
+                            "currentIp", requestMetadata.clientIp())));
+        }
     }
 
     private String createToken(UserEntity user, AuthTokenType tokenType, Instant expiresAt, String metadata) {
@@ -518,5 +665,64 @@ public class AuthService {
         } catch (Exception ex) {
             throw new IllegalStateException("Unable to hash token", ex);
         }
+    }
+
+    private LoginRequestMetadata resolveRequestMetadata() {
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (requestAttributes == null) {
+            return new LoginRequestMetadata("unknown", "unknown");
+        }
+
+        HttpServletRequest request = requestAttributes.getRequest();
+        String clientIp = extractClientIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent == null || userAgent.isBlank()) {
+            userAgent = "unknown";
+        }
+        if (userAgent.length() > 512) {
+            userAgent = userAgent.substring(0, 512);
+        }
+        return new LoginRequestMetadata(clientIp, userAgent);
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            String[] parts = forwardedFor.split(",");
+            if (parts.length > 0 && !parts[0].trim().isBlank()) {
+                return parts[0].trim();
+            }
+        }
+
+        String remoteAddr = request.getRemoteAddr();
+        if (remoteAddr == null || remoteAddr.isBlank()) {
+            return "unknown";
+        }
+        return remoteAddr;
+    }
+
+    private String buildLoginAuditPayload(LoginRequestMetadata requestMetadata, Map<String, String> attributes) {
+        Map<String, String> payload = new LinkedHashMap<>();
+        payload.put("clientIp", requestMetadata.clientIp());
+        payload.put("userAgent", requestMetadata.userAgent());
+        payload.putAll(attributes);
+
+        StringBuilder buffer = new StringBuilder();
+        for (Map.Entry<String, String> entry : payload.entrySet()) {
+            if (buffer.length() > 0) {
+                buffer.append(';');
+            }
+            buffer.append(entry.getKey()).append('=').append(entry.getValue());
+        }
+        return buffer.toString();
+    }
+
+    private record LoginRequestMetadata(String clientIp, String userAgent) {
+    }
+
+    private void executeInNewTransaction(Runnable operation) {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        template.executeWithoutResult(status -> operation.run());
     }
 }

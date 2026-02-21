@@ -15,6 +15,7 @@ import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.mapper.UserMapper;
 import com.shield.module.user.repository.UserRepository;
+import com.shield.security.policy.PasswordPolicyService;
 import com.shield.tenant.context.TenantContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+    private final PasswordPolicyService passwordPolicyService;
 
     public UserResponse create(UserCreateRequest request) {
         UUID tenantId = TenantContext.getRequiredTenantId();
@@ -143,6 +145,7 @@ public class UserService {
             throw new BadRequestException("Email already exists in tenant");
         }
 
+        passwordPolicyService.validateOrThrow(request.password(), "User password");
         UserEntity entity = new UserEntity();
         entity.setTenantId(tenantId);
         entity.setUnitId(request.unitId());

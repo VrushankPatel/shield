@@ -8,16 +8,23 @@ import com.shield.security.filter.RestAccessDeniedHandler;
 import com.shield.security.filter.RestAuthenticationEntryPoint;
 import com.shield.tenant.filter.TenantContextFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -32,12 +39,49 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
+    @Value("${shield.security.cors.allowed-origins:http://localhost:3000,http://localhost:19006}")
+    private String corsAllowedOrigins;
+
+    @Value("${shield.security.cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")
+    private String corsAllowedMethods;
+
+    @Value("${shield.security.cors.allowed-headers:Authorization,Content-Type,X-Correlation-Id}")
+    private String corsAllowedHeaders;
+
+    @Value("${shield.security.cors.exposed-headers:X-Correlation-Id}")
+    private String corsExposedHeaders;
+
+    @Value("${shield.security.cors.allow-credentials:true}")
+    private boolean corsAllowCredentials;
+
+    @Value("${shield.security.headers.content-security-policy:default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'}")
+    private String contentSecurityPolicy;
+
+    @Value("${shield.security.headers.hsts-enabled:false}")
+    private boolean hstsEnabled;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> {
+                    headers.frameOptions(frameOptions -> frameOptions.deny());
+                    headers.contentTypeOptions(contentTypeOptions -> {
+                    });
+                    headers.referrerPolicy(referrerPolicy -> referrerPolicy
+                            .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER));
+                    headers.permissionsPolicy(policy -> policy
+                            .policy("geolocation=(), microphone=(), camera=(), payment=()"));
+                    headers.contentSecurityPolicy(csp -> csp.policyDirectives(contentSecurityPolicy));
+                    if (hstsEnabled) {
+                        headers.httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .preload(true)
+                                .maxAgeInSeconds(31536000));
+                    }
+                })
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(restAuthenticationEntryPoint)
                         .accessDeniedHandler(restAccessDeniedHandler))
@@ -74,5 +118,30 @@ public class SecurityConfig {
                 .addFilterAfter(apiRequestLoggingFilter, TenantContextFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(parseCsv(corsAllowedOrigins));
+        configuration.setAllowedMethods(parseCsv(corsAllowedMethods));
+        configuration.setAllowedHeaders(parseCsv(corsAllowedHeaders));
+        configuration.setExposedHeaders(parseCsv(corsExposedHeaders));
+        configuration.setAllowCredentials(corsAllowCredentials);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    private List<String> parseCsv(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .toList();
     }
 }

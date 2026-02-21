@@ -19,16 +19,30 @@ set -a && source prod.env && set +a
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 
+## 2.1 Password Policy Controls
+SHIELD enforces a centralized password policy for user/root/admin password operations.
+
+Configurable environment variables:
+- `PASSWORD_POLICY_MIN_LENGTH` (default `12`)
+- `PASSWORD_POLICY_MAX_LENGTH` (default `128`)
+- `PASSWORD_POLICY_REQUIRE_UPPER` (default `true`)
+- `PASSWORD_POLICY_REQUIRE_LOWER` (default `true`)
+- `PASSWORD_POLICY_REQUIRE_DIGIT` (default `true`)
+- `PASSWORD_POLICY_REQUIRE_SPECIAL` (default `true`)
+
 ## 3. Platform Root Account Behavior
 No manual seed password is required.
 
 Behavior:
-- On first startup, if root password is missing, SHIELD generates one and logs it once.
+- On first startup, if root password is missing, SHIELD generates one and stores it once at `ROOT_BOOTSTRAP_CREDENTIAL_FILE`.
 - Root login id is fixed as `root`.
 - First root login requires password change (`/api/v1/platform/root/change-password`).
 - Root login lockout is controlled by:
   - `ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS`
   - `ROOT_LOCKOUT_DURATION_MINUTES`
+- User login lockout is controlled by:
+  - `USER_LOCKOUT_MAX_FAILED_ATTEMPTS`
+  - `USER_LOCKOUT_DURATION_MINUTES`
 
 ## 4. CI/CD Secrets (GitHub Actions)
 - `CODECOV_TOKEN` for Codecov upload
@@ -81,3 +95,12 @@ Current implementation supports placeholder toggles/providers:
 - `NOTIFICATION_WHATSAPP_PROVIDER`
 
 Both channels currently use dummy provider implementations until real integrations are configured.
+
+## 9. External Integrations Pending (Intentional)
+The following remain intentionally pending and must be implemented in a dedicated external-integration phase:
+- Real OTP verification provider for root email/mobile verification
+- Real WhatsApp provider integration
+- Real malware scanning engine integration for file uploads
+- Real payment gateway settlement callbacks beyond signature verification
+
+Until then, SHIELD keeps interface-based placeholder implementations enabled by default.

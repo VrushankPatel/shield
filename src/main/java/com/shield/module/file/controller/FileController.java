@@ -67,7 +67,8 @@ public class FileController {
 
     @GetMapping("/{fileId}")
     public ResponseEntity<ApiResponse<StoredFileResponse>> getMetadata(@PathVariable @Size(max = 120) String fileId) {
-        return ResponseEntity.ok(ApiResponse.ok("File metadata fetched", fileStorageService.getMetadata(fileId)));
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("File metadata fetched", fileStorageService.getMetadata(fileId, principal)));
     }
 
     @GetMapping("/{fileId}/download")

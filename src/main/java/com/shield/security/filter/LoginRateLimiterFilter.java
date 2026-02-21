@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,11 +25,11 @@ public class LoginRateLimiterFilter extends OncePerRequestFilter {
 
     public LoginRateLimiterFilter(
             ObjectMapper objectMapper,
-            LoginRateLimiterStore rateLimiterStore,
+            ObjectProvider<LoginRateLimiterStore> rateLimiterStoreProvider,
             @Value("${shield.auth.login-rate-limit.requests}") int maxRequests,
             @Value("${shield.auth.login-rate-limit.window-seconds}") int windowSeconds) {
         this.objectMapper = objectMapper;
-        this.rateLimiterStore = rateLimiterStore;
+        this.rateLimiterStore = rateLimiterStoreProvider.getIfAvailable();
         this.maxRequests = maxRequests;
         this.windowSeconds = Math.max(1, windowSeconds);
     }
@@ -38,6 +39,10 @@ public class LoginRateLimiterFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         if (!isLoginRequest(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        if (rateLimiterStore == null) {
             filterChain.doFilter(request, response);
             return;
         }

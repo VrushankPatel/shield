@@ -6,6 +6,7 @@ import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
+import com.shield.security.policy.PasswordPolicyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ public class BootstrapAdminRunner implements CommandLineRunner {
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final PasswordPolicyService passwordPolicyService;
 
     @Value("${shield.bootstrap.enabled:false}")
     private boolean bootstrapEnabled;
@@ -57,6 +59,7 @@ public class BootstrapAdminRunner implements CommandLineRunner {
             log.warn("Bootstrap skipped. Required properties missing for tenant/admin setup.");
             return;
         }
+        passwordPolicyService.validateOrThrow(adminPassword, "Bootstrap admin password");
 
         TenantEntity tenant = new TenantEntity();
         tenant.setName(tenantName);

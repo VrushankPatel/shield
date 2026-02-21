@@ -1,6 +1,7 @@
 package com.shield.integration;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.shield.integration.support.IntegrationTestBase;
@@ -17,6 +18,7 @@ import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -125,6 +127,60 @@ class AuthSessionSecurityIT extends IntegrationTestBase {
 
         assertRefreshRejected(preResetRefreshToken, "/auth/refresh");
         loginForTokens(user.getEmail(), PASSWORD_V3);
+    }
+
+    @Test
+    void userLoginShouldLockAfterRepeatedFailuresAndAllowRecoveryAfterCooldown() {
+        TenantEntity tenant = createTenant("Auth Lockout Society");
+        UnitEntity unit = createUnit(tenant.getId(), "S-102");
+        UserEntity user = createUser(tenant.getId(), unit.getId(), "Lockout User", "lockout.user@shield.dev", PASSWORD_V1);
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            given()
+                    .contentType("application/json")
+                    .body(Map.of("email", user.getEmail(), "password", "Wrong#Password1"))
+                    .when()
+                    .post("/auth/login")
+                    .then()
+                    .statusCode(HttpStatus.UNAUTHORIZED.value());
+        }
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("email", user.getEmail(), "password", PASSWORD_V1))
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .body("message", containsString("temporarily locked"));
+
+        UserEntity lockedUser = userRepository.findByIdAndDeletedFalse(user.getId()).orElseThrow();
+        lockedUser.setLockedUntil(Instant.now().minusSeconds(2));
+        lockedUser.setFailedLoginAttempts(0);
+        userRepository.save(lockedUser);
+
+        loginForTokens(user.getEmail(), PASSWORD_V1);
+    }
+
+    @Test
+    void changePasswordShouldRejectWeakPasswordByPolicy() {
+        TenantEntity tenant = createTenant("Password Policy Society");
+        UnitEntity unit = createUnit(tenant.getId(), "S-103");
+        UserEntity user = createUser(tenant.getId(), unit.getId(), "Policy User", "policy.user@shield.dev", PASSWORD_V1);
+
+        Map<String, String> tokens = loginForTokens(user.getEmail(), PASSWORD_V1);
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokens.get("accessToken"))
+                .body(Map.of(
+                        "currentPassword", PASSWORD_V1,
+                        "newPassword", "abcdefgh"))
+                .when()
+                .post("/auth/change-password")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("message", containsString("security policy"));
     }
 
     private Map<String, String> loginForTokens(String email, String password) {
