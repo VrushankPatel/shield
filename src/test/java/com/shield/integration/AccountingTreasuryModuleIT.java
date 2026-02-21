@@ -323,6 +323,104 @@ class AccountingTreasuryModuleIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
+    @Test
+    void ledgerEndpointsShouldBeTenantScopedForListAndSummary() {
+        TenantEntity tenantOne = createTenant("M4 Ledger One");
+        UnitEntity unitOne = createUnit(tenantOne.getId(), "L-101");
+        UserEntity adminOne = createUser(tenantOne.getId(), unitOne.getId(), "Ledger One", "m4.ledger1@shield.dev", UserRole.ADMIN);
+
+        TenantEntity tenantTwo = createTenant("M4 Ledger Two");
+        UnitEntity unitTwo = createUnit(tenantTwo.getId(), "L-202");
+        UserEntity adminTwo = createUser(tenantTwo.getId(), unitTwo.getId(), "Ledger Two", "m4.ledger2@shield.dev", UserRole.ADMIN);
+
+        String tokenOne = login(adminOne.getEmail(), PASSWORD);
+        String tokenTwo = login(adminTwo.getEmail(), PASSWORD);
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokenOne)
+                .body(Map.of(
+                        "type", "INCOME",
+                        "category", "MAINTENANCE",
+                        "amount", 3000,
+                        "reference", "LED-INC-1",
+                        "description", "Maintenance collections",
+                        "entryDate", "2026-02-21"))
+                .when()
+                .post("/ledger")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokenOne)
+                .body(Map.of(
+                        "type", "EXPENSE",
+                        "category", "REPAIR",
+                        "amount", 1200,
+                        "reference", "LED-EXP-1",
+                        "description", "Motor repair",
+                        "entryDate", "2026-02-21"))
+                .when()
+                .post("/ledger")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokenTwo)
+                .body(Map.of(
+                        "type", "INCOME",
+                        "category", "PARKING",
+                        "amount", 9999,
+                        "reference", "LED-INC-2",
+                        "description", "Parking collections",
+                        "entryDate", "2026-02-21"))
+                .when()
+                .post("/ledger")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .when()
+                .get("/ledger")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content", hasSize(2))
+                .body("data.content[0].tenantId", equalTo(tenantOne.getId().toString()))
+                .body("data.content[1].tenantId", equalTo(tenantOne.getId().toString()));
+
+        given()
+                .header("Authorization", "Bearer " + tokenTwo)
+                .when()
+                .get("/ledger")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content", hasSize(1))
+                .body("data.content[0].tenantId", equalTo(tenantTwo.getId().toString()));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .when()
+                .get("/ledger/summary")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalIncome", equalTo(3000.0f))
+                .body("data.totalExpense", equalTo(1200.0f))
+                .body("data.balance", equalTo(1800.0f));
+
+        given()
+                .header("Authorization", "Bearer " + tokenTwo)
+                .when()
+                .get("/ledger/summary")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalIncome", equalTo(9999.0f))
+                .body("data.totalExpense", equalTo(0))
+                .body("data.balance", equalTo(9999.0f));
+    }
+
     private TenantEntity createTenant(String name) {
         TenantEntity entity = new TenantEntity();
         entity.setName(name);

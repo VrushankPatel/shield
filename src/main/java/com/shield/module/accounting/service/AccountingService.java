@@ -43,15 +43,17 @@ public class AccountingService {
 
     @Transactional(readOnly = true)
     public PagedResponse<LedgerResponse> list(Pageable pageable) {
-        return PagedResponse.from(ledgerEntryRepository.findAllByDeletedFalse(pageable).map(this::toResponse));
+        UUID tenantId = TenantContext.getRequiredTenantId();
+        return PagedResponse.from(ledgerEntryRepository.findAllByTenantIdAndDeletedFalse(tenantId, pageable).map(this::toResponse));
     }
 
     @Transactional(readOnly = true)
     public LedgerSummaryResponse summary() {
+        UUID tenantId = TenantContext.getRequiredTenantId();
         BigDecimal income = BigDecimal.ZERO;
         BigDecimal expense = BigDecimal.ZERO;
 
-        for (Object[] row : ledgerEntryRepository.summarizeByType()) {
+        for (Object[] row : ledgerEntryRepository.summarizeByTenantId(tenantId)) {
             LedgerType type = (LedgerType) row[0];
             BigDecimal amount = (BigDecimal) row[1];
             if (type == LedgerType.INCOME) {

@@ -19,6 +19,8 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntryEntity, 
 
     Page<LedgerEntryEntity> findAllByDeletedFalse(Pageable pageable);
 
+    Page<LedgerEntryEntity> findAllByTenantIdAndDeletedFalse(UUID tenantId, Pageable pageable);
+
     List<LedgerEntryEntity> findAllByDeletedFalseOrderByEntryDateDesc();
 
     Page<LedgerEntryEntity> findAllByAccountHeadIdAndDeletedFalse(UUID accountHeadId, Pageable pageable);
@@ -34,6 +36,15 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntryEntity, 
             group by e.type
             """)
     List<Object[]> summarizeByType();
+
+    @Query("""
+            select e.type, coalesce(sum(e.amount), 0)
+            from LedgerEntryEntity e
+            where e.deleted = false
+              and e.tenantId = :tenantId
+            group by e.type
+            """)
+    List<Object[]> summarizeByTenantId(UUID tenantId);
 
     @Query("""
             select coalesce(sum(e.amount), 0)
