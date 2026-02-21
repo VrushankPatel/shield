@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class StaffAttendanceController {
 
+    private static final String STAFF_ATTENDANCE_FETCHED = "Staff attendance fetched";
+
     private final StaffService staffService;
 
     @PostMapping("/check-in")
@@ -52,12 +54,12 @@ public class StaffAttendanceController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<StaffAttendanceResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Staff attendance fetched", staffService.listAttendance(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(STAFF_ATTENDANCE_FETCHED, staffService.listAttendance(pageable)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<StaffAttendanceResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok("Staff attendance fetched", staffService.getAttendanceById(id)));
+        return ResponseEntity.ok(ApiResponse.ok(STAFF_ATTENDANCE_FETCHED, staffService.getAttendanceById(id)));
     }
 
     @PutMapping("/{id}")
@@ -73,7 +75,7 @@ public class StaffAttendanceController {
     public ResponseEntity<ApiResponse<PagedResponse<StaffAttendanceResponse>>> listByStaff(
             @PathVariable UUID staffId,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Staff attendance fetched", staffService.listAttendanceByStaff(staffId, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(STAFF_ATTENDANCE_FETCHED, staffService.listAttendanceByStaff(staffId, pageable)));
     }
 
     @GetMapping("/date/{date}")

@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserService {
 
+    private static final String ENTITY_USERS = "users";
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -74,7 +76,7 @@ public class UserService {
         entity.setStatus(request.status());
 
         UserEntity saved = userRepository.save(entity);
-        auditLogService.logEvent(saved.getTenantId(), saved.getId(), "USER_UPDATED", "users", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), saved.getId(), "USER_UPDATED", ENTITY_USERS, saved.getId(), null);
         return userMapper.toResponse(saved);
     }
 
@@ -84,7 +86,7 @@ public class UserService {
 
         entity.setDeleted(true);
         userRepository.save(entity);
-        auditLogService.logEvent(entity.getTenantId(), entity.getId(), "USER_DELETED", "users", entity.getId(), null);
+        auditLogService.logEvent(entity.getTenantId(), entity.getId(), "USER_DELETED", ENTITY_USERS, entity.getId(), null);
     }
 
     public UserBulkImportResponse bulkImport(UserBulkImportRequest request) {
@@ -141,7 +143,7 @@ public class UserService {
         entity.setStatus(UserStatus.ACTIVE);
 
         UserEntity saved = userRepository.save(entity);
-        auditLogService.logEvent(tenantId, saved.getId(), "USER_CREATED", "users", saved.getId(), null);
+        auditLogService.logEvent(tenantId, saved.getId(), "USER_CREATED", ENTITY_USERS, saved.getId(), null);
         return saved;
     }
 

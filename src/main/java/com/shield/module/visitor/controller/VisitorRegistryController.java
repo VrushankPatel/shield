@@ -28,25 +28,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class VisitorRegistryController {
 
+    private static final String VISITORS_FETCHED = "Visitors fetched";
+
     private final VisitorService visitorService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<VisitorResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitors fetched", visitorService.listVisitors(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITORS_FETCHED, visitorService.listVisitors(pageable)));
     }
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PagedResponse<VisitorResponse>>> search(
             @RequestParam(name = "q", required = false) String query,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitors fetched", visitorService.searchVisitors(query, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITORS_FETCHED, visitorService.searchVisitors(query, pageable)));
     }
 
     @GetMapping("/phone/{phone}")
     public ResponseEntity<ApiResponse<PagedResponse<VisitorResponse>>> byPhone(
             @PathVariable String phone,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitors fetched", visitorService.listVisitorsByPhone(phone, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITORS_FETCHED, visitorService.listVisitorsByPhone(phone, pageable)));
     }
 
     @GetMapping("/{id}")

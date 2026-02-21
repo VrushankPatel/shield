@@ -102,9 +102,9 @@ class EmergencyServiceTest {
 
     @Test
     void listAlertsByDateRangeShouldValidateRange() {
-        assertThrows(BadRequestException.class, () -> emergencyService.listAlertsByDateRange(
-                Instant.now(),
-                Instant.now().minusSeconds(60),
-                org.springframework.data.domain.PageRequest.of(0, 10)));
+        Instant from = Instant.now();
+        Instant to = Instant.now().minusSeconds(60);
+        org.springframework.data.domain.PageRequest pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        assertThrows(BadRequestException.class, () -> emergencyService.listAlertsByDateRange(from, to, pageable));
     }
 }

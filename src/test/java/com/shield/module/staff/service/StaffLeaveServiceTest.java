@@ -86,16 +86,15 @@ class StaffLeaveServiceTest {
         when(staffRepository.findByIdAndDeletedFalse(staffId)).thenReturn(Optional.of(staff));
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        StaffLeaveCreateRequest request = new StaffLeaveCreateRequest(
+                staffId,
+                StaffLeaveType.SICK,
+                LocalDate.of(2026, 3, 10),
+                LocalDate.of(2026, 3, 12),
+                4,
+                "Medical");
 
-        assertThrows(BadRequestException.class, () -> staffLeaveService.create(
-                new StaffLeaveCreateRequest(
-                        staffId,
-                        StaffLeaveType.SICK,
-                        LocalDate.of(2026, 3, 10),
-                        LocalDate.of(2026, 3, 12),
-                        4,
-                        "Medical"),
-                principal));
+        assertThrows(BadRequestException.class, () -> staffLeaveService.create(request, principal));
     }
 
     @Test
@@ -108,16 +107,14 @@ class StaffLeaveServiceTest {
         when(staffLeaveRepository.findByIdAndDeletedFalse(leaveId)).thenReturn(Optional.of(leave));
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        StaffLeaveUpdateRequest request = new StaffLeaveUpdateRequest(
+                StaffLeaveType.CASUAL,
+                LocalDate.of(2026, 3, 1),
+                LocalDate.of(2026, 3, 1),
+                1,
+                "Changed");
 
-        assertThrows(BadRequestException.class, () -> staffLeaveService.update(
-                leaveId,
-                new StaffLeaveUpdateRequest(
-                        StaffLeaveType.CASUAL,
-                        LocalDate.of(2026, 3, 1),
-                        LocalDate.of(2026, 3, 1),
-                        1,
-                        "Changed"),
-                principal));
+        assertThrows(BadRequestException.class, () -> staffLeaveService.update(leaveId, request, principal));
     }
 
     @Test

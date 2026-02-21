@@ -97,36 +97,19 @@ public class PayrollService {
                 .map(StaffSalaryStructureEntity::getPayrollComponentId)
                 .collect(Collectors.toSet()));
 
-        List<PayrollDetailEntity> generatedDetails = new ArrayList<>();
-        BigDecimal componentEarnings = ZERO;
-        BigDecimal componentDeductions = ZERO;
-
-        for (StaffSalaryStructureEntity row : salaryRows) {
-            PayrollComponentEntity component = componentsById.get(row.getPayrollComponentId());
-            if (component != null) {
-                BigDecimal prorated = prorate(row.getAmount(), presentDays, request.workingDays());
-                if (prorated.signum() > 0) {
-                    if (component.getComponentType() == PayrollComponentType.DEDUCTION) {
-                        componentDeductions = componentDeductions.add(prorated);
-                    } else {
-                        componentEarnings = componentEarnings.add(prorated);
-                    }
-
-                    PayrollDetailEntity detail = new PayrollDetailEntity();
-                    detail.setTenantId(principal.tenantId());
-                    detail.setPayrollComponentId(row.getPayrollComponentId());
-                    detail.setAmount(prorated);
-                    generatedDetails.add(detail);
-                }
-            }
-        }
+        GeneratedPayrollDetails generated = buildGeneratedDetails(
+                salaryRows,
+                componentsById,
+                principal.tenantId(),
+                presentDays,
+                request.workingDays());
 
         BigDecimal grossSalary = salaryRows.isEmpty()
                 ? prorate(staff.getBasicSalary(), presentDays, request.workingDays())
-                : componentEarnings;
+                : generated.componentEarnings();
 
         BigDecimal adHocDeductions = sanitizeMoney(request.totalDeductions());
-        BigDecimal deductions = componentDeductions.add(adHocDeductions);
+        BigDecimal deductions = generated.componentDeductions().add(adHocDeductions);
         BigDecimal netSalary = grossSalary.subtract(deductions);
         if (netSalary.signum() < 0) {
             netSalary = ZERO;
@@ -156,7 +139,7 @@ public class PayrollService {
         entity.setPaymentDate(entity.getStatus() == PayrollStatus.PROCESSED ? LocalDate.now() : null);
 
         PayrollEntity saved = payrollRepository.save(entity);
-        replaceDetails(saved.getId(), generatedDetails);
+        replaceDetails(saved.getId(), generated.generatedDetails());
 
         auditLogService.logEvent(principal.tenantId(), principal.userId(), "PAYROLL_GENERATED", ENTITY_PAYROLL, saved.getId(), null);
         return toResponse(saved);
@@ -334,6 +317,43 @@ public class PayrollService {
                 .collect(Collectors.toMap(PayrollComponentEntity::getId, Function.identity()));
     }
 
+    private GeneratedPayrollDetails buildGeneratedDetails(
+            List<StaffSalaryStructureEntity> salaryRows,
+            Map<UUID, PayrollComponentEntity> componentsById,
+            UUID tenantId,
+            int presentDays,
+            int workingDays) {
+        List<PayrollDetailEntity> generatedDetails = new ArrayList<>();
+        BigDecimal componentEarnings = ZERO;
+        BigDecimal componentDeductions = ZERO;
+
+        for (StaffSalaryStructureEntity row : salaryRows) {
+            PayrollComponentEntity component = componentsById.get(row.getPayrollComponentId());
+            if (component == null) {
+                continue;
+            }
+
+            BigDecimal prorated = prorate(row.getAmount(), presentDays, workingDays);
+            if (prorated.signum() <= 0) {
+                continue;
+            }
+
+            if (component.getComponentType() == PayrollComponentType.DEDUCTION) {
+                componentDeductions = componentDeductions.add(prorated);
+            } else {
+                componentEarnings = componentEarnings.add(prorated);
+            }
+
+            PayrollDetailEntity detail = new PayrollDetailEntity();
+            detail.setTenantId(tenantId);
+            detail.setPayrollComponentId(row.getPayrollComponentId());
+            detail.setAmount(prorated);
+            generatedDetails.add(detail);
+        }
+
+        return new GeneratedPayrollDetails(generatedDetails, componentEarnings, componentDeductions);
+    }
+
     private void replaceDetails(UUID payrollId, List<PayrollDetailEntity> freshDetails) {
         List<PayrollDetailEntity> existingDetails = payrollDetailRepository.findAllByPayrollIdAndDeletedFalse(payrollId);
         if (!existingDetails.isEmpty()) {
@@ -426,5 +446,11 @@ public class PayrollService {
                 entity.getPaymentReference(),
                 entity.getStatus(),
                 entity.getPayslipUrl());
+    }
+
+    private record GeneratedPayrollDetails(
+            List<PayrollDetailEntity> generatedDetails,
+            BigDecimal componentEarnings,
+            BigDecimal componentDeductions) {
     }
 }

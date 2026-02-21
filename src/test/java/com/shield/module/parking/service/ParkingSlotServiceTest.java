@@ -94,8 +94,9 @@ class ParkingSlotServiceTest {
         when(unitRepository.findByIdAndDeletedFalse(unitB)).thenReturn(Optional.of(unit));
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), slot.getTenantId(), "admin@shield.dev", "ADMIN");
+        ParkingSlotAllocateRequest request = new ParkingSlotAllocateRequest(unitB);
 
-        assertThrows(BadRequestException.class, () -> parkingSlotService.allocate(slotId, new ParkingSlotAllocateRequest(unitB), principal));
+        assertThrows(BadRequestException.class, () -> parkingSlotService.allocate(slotId, request, principal));
     }
 
     @Test
@@ -131,9 +132,8 @@ class ParkingSlotServiceTest {
         slot.setAllocated(true);
 
         when(parkingSlotRepository.findByIdAndDeletedFalse(slotId)).thenReturn(Optional.of(slot));
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN");
 
-        assertThrows(BadRequestException.class, () -> parkingSlotService.delete(
-                slotId,
-                new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN")));
+        assertThrows(BadRequestException.class, () -> parkingSlotService.delete(slotId, principal));
     }
 }

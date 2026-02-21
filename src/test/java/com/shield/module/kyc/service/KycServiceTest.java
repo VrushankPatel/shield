@@ -103,11 +103,9 @@ class KycServiceTest {
         when(kycDocumentRepository.findByIdAndDeletedFalse(documentId)).thenReturn(Optional.of(entity));
 
         ShieldPrincipal principal = new ShieldPrincipal(userId, tenantId, "resident@shield.dev", "TENANT");
+        KycDocumentUpdateRequest request = new KycDocumentUpdateRequest(KycDocumentType.PAN, "ABCDE1234F", "url");
 
-        assertThrows(BadRequestException.class, () -> kycService.update(
-                documentId,
-                new KycDocumentUpdateRequest(KycDocumentType.PAN, "ABCDE1234F", "url"),
-                principal));
+        assertThrows(BadRequestException.class, () -> kycService.update(documentId, request, principal));
     }
 
     @Test

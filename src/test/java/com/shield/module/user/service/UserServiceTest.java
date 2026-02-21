@@ -126,14 +126,15 @@ class UserServiceTest {
     void updateShouldThrowWhenUserMissing() {
         UUID userId = UUID.randomUUID();
         when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> userService.update(userId, new UserUpdateRequest(
+        UserUpdateRequest request = new UserUpdateRequest(
                 UUID.randomUUID(),
                 "Name",
                 "name@shield.dev",
                 "9999999999",
                 UserRole.OWNER,
-                UserStatus.ACTIVE)));
+                UserStatus.ACTIVE);
+
+        assertThrows(ResourceNotFoundException.class, () -> userService.update(userId, request));
     }
 
     @Test

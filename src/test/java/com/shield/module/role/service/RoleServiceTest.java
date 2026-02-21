@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,10 +121,9 @@ class RoleServiceTest {
     @Test
     void createRoleShouldRejectDuplicateCodeWithinTenant() {
         roleService.listRoles(Pageable.ofSize(20));
+        RoleCreateRequest request = new RoleCreateRequest("ADMIN", "Duplicate Admin", "Duplicate", false);
 
-        assertThrows(BadRequestException.class, () -> roleService.createRole(
-                new RoleCreateRequest("ADMIN", "Duplicate Admin", "Duplicate", false),
-                UUID.randomUUID()));
+        assertThrows(BadRequestException.class, () -> roleService.createRole(request, UUID.randomUUID()));
     }
 
     @Test
@@ -253,14 +251,14 @@ class RoleServiceTest {
             Collection<UUID> roleIds = invocation.getArgument(0);
             return rolePermissionStore.stream()
                     .filter(mapping -> !mapping.isDeleted() && roleIds.contains(mapping.getRoleId()))
-                    .collect(Collectors.toList());
+                    .toList();
         });
 
         when(permissionRepository.findAllByIdInAndDeletedFalse(anyCollection())).thenAnswer(invocation -> {
             Collection<UUID> permissionIds = invocation.getArgument(0);
             return permissionStore.stream()
                     .filter(permission -> !permission.isDeleted() && permissionIds.contains(permission.getId()))
-                    .collect(Collectors.toList());
+                    .toList();
         });
 
         when(userAdditionalRoleRepository.findByUserIdAndRoleIdAndDeletedFalse(any(UUID.class), any(UUID.class))).thenAnswer(invocation -> {
@@ -275,7 +273,7 @@ class RoleServiceTest {
             UUID userId = invocation.getArgument(0);
             return userRoleStore.stream()
                     .filter(mapping -> !mapping.isDeleted() && userId.equals(mapping.getUserId()))
-                    .collect(Collectors.toList());
+                    .toList();
         });
     }
 

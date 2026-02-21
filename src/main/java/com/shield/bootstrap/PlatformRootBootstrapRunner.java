@@ -15,7 +15,7 @@ public class PlatformRootBootstrapRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        platformRootService.ensureRootAccountAndGeneratePasswordIfMissing().ifPresent(generatedPassword ->
-                log.warn("Platform root password generated. loginId='root', temporaryPassword='{}'. Change it immediately via /api/v1/platform/root/change-password", generatedPassword));
+        platformRootService.ensureRootAccountAndGeneratePasswordIfMissing().ifPresent(generatedSecret ->
+                log.warn("Platform root credential generated. loginId='root', temporaryCredential='{}'. Change it immediately via /api/v1/platform/root/change-password", generatedSecret));
     }
 }

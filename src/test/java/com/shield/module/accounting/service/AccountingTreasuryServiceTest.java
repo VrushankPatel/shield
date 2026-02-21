@@ -249,7 +249,7 @@ class AccountingTreasuryServiceTest {
         when(ledgerEntryRepository.sumAmountByType(LedgerType.INCOME)).thenReturn(BigDecimal.valueOf(100000));
         when(ledgerEntryRepository.sumAmountByType(LedgerType.EXPENSE)).thenReturn(BigDecimal.valueOf(30000));
 
-        var report = accountingTreasuryService.incomeStatement(null);
+        var report = accountingTreasuryService.incomeStatement();
 
         assertEquals("INCOME_STATEMENT", report.reportType());
         assertEquals(BigDecimal.valueOf(70000), report.total());

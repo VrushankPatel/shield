@@ -246,7 +246,8 @@ class StaffServiceTest {
         when(staffAttendanceRepository.findByStaffIdAndAttendanceDateAndDeletedFalse(staffId, day)).thenReturn(Optional.empty());
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
-        assertThrows(ResourceNotFoundException.class, () -> staffService.checkOut(new StaffAttendanceCheckOutRequest(staffId, day), principal));
+        StaffAttendanceCheckOutRequest request = new StaffAttendanceCheckOutRequest(staffId, day);
+        assertThrows(ResourceNotFoundException.class, () -> staffService.checkOut(request, principal));
     }
 
     @Test
@@ -281,9 +282,9 @@ class StaffServiceTest {
 
     @Test
     void summarizeAttendanceShouldValidateRange() {
-        assertThrows(BadRequestException.class, () -> staffService.summarizeAttendance(
-                LocalDate.of(2026, 3, 10),
-                LocalDate.of(2026, 3, 9)));
+        LocalDate from = LocalDate.of(2026, 3, 10);
+        LocalDate to = LocalDate.of(2026, 3, 9);
+        assertThrows(BadRequestException.class, () -> staffService.summarizeAttendance(from, to));
     }
 
     @Test
@@ -323,9 +324,9 @@ class StaffServiceTest {
 
     @Test
     void listAttendanceByDateRangeShouldValidateDates() {
-        assertThrows(BadRequestException.class, () -> staffService.listAttendanceByDateRange(
-                LocalDate.of(2026, 3, 10),
-                LocalDate.of(2026, 3, 1),
-                Pageable.ofSize(10)));
+        LocalDate from = LocalDate.of(2026, 3, 10);
+        LocalDate to = LocalDate.of(2026, 3, 1);
+        Pageable pageable = Pageable.ofSize(10);
+        assertThrows(BadRequestException.class, () -> staffService.listAttendanceByDateRange(from, to, pageable));
     }
 }

@@ -102,7 +102,7 @@ class PlatformRootServiceTest {
         assertEquals(32, generatedPassword.length());
         assertEquals("encoded-root-password", rootAccount.getPasswordHash());
         assertTrue(rootAccount.isPasswordChangeRequired());
-        verify(auditLogService).logEvent(eq(null), eq(rootId), eq("ROOT_PASSWORD_GENERATED"), eq("platform_root_account"), eq(rootId), eq(null));
+        verify(auditLogService).logEvent(null, rootId, "ROOT_PASSWORD_GENERATED", "platform_root_account", rootId, null);
     }
 
     @Test
@@ -144,9 +144,8 @@ class PlatformRootServiceTest {
         when(platformRootAccountRepository.findByLoginIdAndDeletedFalse("root")).thenReturn(Optional.of(rootAccount));
         when(passwordEncoder.matches("WrongPassword#123", "stored-hash")).thenReturn(false);
 
-        assertThrows(
-                UnauthorizedException.class,
-                () -> platformRootService.login(new RootLoginRequest("root", "WrongPassword#123")));
+        RootLoginRequest request = new RootLoginRequest("root", "WrongPassword#123");
+        assertThrows(UnauthorizedException.class, () -> platformRootService.login(request));
 
         assertEquals(0, rootAccount.getFailedLoginAttempts());
         assertTrue(rootAccount.getLockedUntil().isAfter(Instant.now()));
@@ -172,9 +171,8 @@ class PlatformRootServiceTest {
 
         when(platformRootAccountRepository.findByLoginIdAndDeletedFalse("root")).thenReturn(Optional.of(rootAccount));
 
-        assertThrows(
-                UnauthorizedException.class,
-                () -> platformRootService.login(new RootLoginRequest("root", "RootPassword#123")));
+        RootLoginRequest request = new RootLoginRequest("root", "RootPassword#123");
+        assertThrows(UnauthorizedException.class, () -> platformRootService.login(request));
 
         verify(passwordEncoder, never()).matches(anyString(), anyString());
         verify(auditLogService).logEvent(
@@ -271,18 +269,15 @@ class PlatformRootServiceTest {
         when(platformRootAccountRepository.findByIdAndDeletedFalse(rootId)).thenReturn(Optional.of(rootAccount));
 
         ShieldPrincipal principal = new ShieldPrincipal(rootId, null, "root", "ROOT", "ROOT", 1L);
+        SocietyOnboardingRequest request = new SocietyOnboardingRequest(
+                "Sunshine Residency",
+                "Ahmedabad",
+                "Society Admin",
+                "admin@sunshine.dev",
+                "9999999998",
+                "AdminStrong#123");
 
-        assertThrows(
-                BadRequestException.class,
-                () -> platformRootService.createSocietyWithAdmin(
-                        principal,
-                        new SocietyOnboardingRequest(
-                                "Sunshine Residency",
-                                "Ahmedabad",
-                                "Society Admin",
-                                "admin@sunshine.dev",
-                                "9999999998",
-                                "AdminStrong#123")));
+        assertThrows(BadRequestException.class, () -> platformRootService.createSocietyWithAdmin(principal, request));
     }
 
     @Test

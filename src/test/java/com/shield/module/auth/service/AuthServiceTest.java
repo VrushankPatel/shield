@@ -198,7 +198,8 @@ class AuthServiceTest {
         user.setPhone(null);
 
         when(userRepository.findByEmailIgnoreCaseAndDeletedFalse("admin@shield.dev")).thenReturn(Optional.of(user));
-        assertThrows(BadRequestException.class, () -> authService.sendLoginOtp(new LoginOtpSendRequest("admin@shield.dev")));
+        LoginOtpSendRequest request = new LoginOtpSendRequest("admin@shield.dev");
+        assertThrows(BadRequestException.class, () -> authService.sendLoginOtp(request));
     }
 
     @Test
@@ -262,7 +263,8 @@ class AuthServiceTest {
         when(passwordEncoder.matches("000000", "otp-hash")).thenReturn(false);
         when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThrows(UnauthorizedException.class, () -> authService.verifyLoginOtp(new LoginOtpVerifyRequest("challenge-token", "000000")));
+        LoginOtpVerifyRequest request = new LoginOtpVerifyRequest("challenge-token", "000000");
+        assertThrows(UnauthorizedException.class, () -> authService.verifyLoginOtp(request));
 
         assertNotNull(token.getConsumedAt());
         verify(authTokenRepository).save(token);
@@ -475,9 +477,9 @@ class AuthServiceTest {
         when(passwordEncoder.matches("wrong-current", "stored-hash")).thenReturn(false);
 
         ShieldPrincipal principal = new ShieldPrincipal(userId, tenantId, "user@shield.dev", "TENANT");
+        ChangePasswordRequest request = new ChangePasswordRequest("wrong-current", "new-pass-123");
 
-        assertThrows(UnauthorizedException.class,
-                () -> authService.changePassword(principal, new ChangePasswordRequest("wrong-current", "new-pass-123")));
+        assertThrows(UnauthorizedException.class, () -> authService.changePassword(principal, request));
     }
 
     @Test

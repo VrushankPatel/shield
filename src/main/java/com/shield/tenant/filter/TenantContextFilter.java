@@ -20,10 +20,10 @@ public class TenantContextFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof ShieldPrincipal principal) {
-                if (principal.tenantId() != null) {
-                    TenantContext.setTenantId(principal.tenantId());
-                }
+            if (authentication != null
+                    && authentication.getPrincipal() instanceof ShieldPrincipal principal
+                    && principal.tenantId() != null) {
+                TenantContext.setTenantId(principal.tenantId());
             }
             filterChain.doFilter(request, response);
         } finally {

@@ -27,11 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class VisitorLogController {
 
+    private static final String VISITOR_LOGS_FETCHED = "Visitor logs fetched";
+
     private final VisitorService visitorService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<VisitorLogResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitor logs fetched", visitorService.listVisitorLogs(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITOR_LOGS_FETCHED, visitorService.listVisitorLogs(pageable)));
     }
 
     @GetMapping("/{id}")
@@ -59,7 +61,7 @@ public class VisitorLogController {
     public ResponseEntity<ApiResponse<PagedResponse<VisitorLogResponse>>> byPass(
             @PathVariable UUID passId,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitor logs fetched", visitorService.listVisitorLogsByPass(passId, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITOR_LOGS_FETCHED, visitorService.listVisitorLogsByPass(passId, pageable)));
     }
 
     @GetMapping("/date-range")
@@ -67,7 +69,7 @@ public class VisitorLogController {
             @RequestParam("from") Instant from,
             @RequestParam("to") Instant to,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitor logs fetched", visitorService.listVisitorLogsByDateRange(from, to, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITOR_LOGS_FETCHED, visitorService.listVisitorLogsByDateRange(from, to, pageable)));
     }
 
     @GetMapping("/currently-inside")

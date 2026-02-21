@@ -54,6 +54,7 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
     private LoggingSmsOtpSender loggingSmsOtpSender;
 
     @Test
+    @SuppressWarnings("java:S5961")
     void identityLifecycleShouldSupportRegistrationVerificationAndResidentOperations() {
         TenantEntity tenantOne = createTenant("Identity Society One");
         UnitEntity unitOne = createUnit(tenantOne.getId(), "A-101", UnitStatus.ACTIVE);

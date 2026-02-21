@@ -98,19 +98,18 @@ class MarketplaceServiceTest {
         when(marketplaceCategoryRepository.findByIdAndDeletedFalse(categoryId)).thenReturn(Optional.empty());
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "tenant@shield.dev", "TENANT");
+        MarketplaceListingCreateRequest request = new MarketplaceListingCreateRequest(
+                categoryId,
+                "SELL",
+                "Microwave",
+                "Unused",
+                BigDecimal.valueOf(2000),
+                false,
+                null,
+                null,
+                null);
 
-        assertThrows(ResourceNotFoundException.class, () -> marketplaceService.createListing(
-                new MarketplaceListingCreateRequest(
-                        categoryId,
-                        "SELL",
-                        "Microwave",
-                        "Unused",
-                        BigDecimal.valueOf(2000),
-                        false,
-                        null,
-                        null,
-                        null),
-                principal));
+        assertThrows(ResourceNotFoundException.class, () -> marketplaceService.createListing(request, principal));
     }
 
     @Test
@@ -123,20 +122,18 @@ class MarketplaceServiceTest {
         when(marketplaceListingRepository.findByIdAndDeletedFalse(listingId)).thenReturn(Optional.of(listing));
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "tenant@shield.dev", "TENANT");
+        MarketplaceListingUpdateRequest request = new MarketplaceListingUpdateRequest(
+                null,
+                "SELL",
+                "Updated title",
+                "Updated",
+                BigDecimal.valueOf(1500),
+                true,
+                null,
+                null,
+                Instant.parse("2026-12-31T00:00:00Z"));
 
-        assertThrows(UnauthorizedException.class, () -> marketplaceService.updateListing(
-                listingId,
-                new MarketplaceListingUpdateRequest(
-                        null,
-                        "SELL",
-                        "Updated title",
-                        "Updated",
-                        BigDecimal.valueOf(1500),
-                        true,
-                        null,
-                        null,
-                        Instant.parse("2026-12-31T00:00:00Z")),
-                principal));
+        assertThrows(UnauthorizedException.class, () -> marketplaceService.updateListing(listingId, request, principal));
     }
 
     @Test
@@ -256,11 +253,9 @@ class MarketplaceServiceTest {
         UUID listingId = UUID.randomUUID();
         when(marketplaceListingRepository.findByIdAndDeletedFalse(listingId)).thenReturn(Optional.empty());
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "buyer@shield.dev", "TENANT");
+        MarketplaceInquiryCreateRequest request = new MarketplaceInquiryCreateRequest("Interested");
 
-        assertThrows(ResourceNotFoundException.class, () -> marketplaceService.createInquiry(
-                listingId,
-                new MarketplaceInquiryCreateRequest("Interested"),
-                principal));
+        assertThrows(ResourceNotFoundException.class, () -> marketplaceService.createInquiry(listingId, request, principal));
     }
 
     @Test

@@ -26,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class StaffLeaveService {
 
+    private static final String ENTITY_STAFF_LEAVE = "staff_leave";
+    private static final String STAFF_LEAVE_NOT_FOUND_PREFIX = "Staff leave not found: ";
+
     private final StaffLeaveRepository staffLeaveRepository;
     private final StaffRepository staffRepository;
     private final AuditLogService auditLogService;
@@ -54,7 +57,7 @@ public class StaffLeaveService {
         entity.setStatus(StaffLeaveStatus.PENDING);
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_CREATED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_CREATED", ENTITY_STAFF_LEAVE, saved.getId(), null);
         return toResponse(saved);
     }
 
@@ -66,13 +69,13 @@ public class StaffLeaveService {
     @Transactional(readOnly = true)
     public StaffLeaveResponse getById(UUID id) {
         StaffLeaveEntity entity = staffLeaveRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff leave not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STAFF_LEAVE_NOT_FOUND_PREFIX + id));
         return toResponse(entity);
     }
 
     public StaffLeaveResponse update(UUID id, StaffLeaveUpdateRequest request, ShieldPrincipal principal) {
         StaffLeaveEntity entity = staffLeaveRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff leave not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STAFF_LEAVE_NOT_FOUND_PREFIX + id));
 
         if (entity.getStatus() != StaffLeaveStatus.PENDING) {
             throw new BadRequestException("Only pending leave requests can be updated");
@@ -86,42 +89,42 @@ public class StaffLeaveService {
         entity.setReason(request.reason());
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_UPDATED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_UPDATED", ENTITY_STAFF_LEAVE, saved.getId(), null);
         return toResponse(saved);
     }
 
     public void delete(UUID id, ShieldPrincipal principal) {
         StaffLeaveEntity entity = staffLeaveRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff leave not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STAFF_LEAVE_NOT_FOUND_PREFIX + id));
 
         entity.setDeleted(true);
         staffLeaveRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_DELETED", "staff_leave", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_DELETED", ENTITY_STAFF_LEAVE, entity.getId(), null);
     }
 
     public StaffLeaveResponse approve(UUID id, ShieldPrincipal principal) {
         StaffLeaveEntity entity = staffLeaveRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff leave not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STAFF_LEAVE_NOT_FOUND_PREFIX + id));
 
         entity.setStatus(StaffLeaveStatus.APPROVED);
         entity.setApprovedBy(principal.userId());
         entity.setApprovalDate(LocalDate.now());
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_APPROVED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_APPROVED", ENTITY_STAFF_LEAVE, saved.getId(), null);
         return toResponse(saved);
     }
 
     public StaffLeaveResponse reject(UUID id, ShieldPrincipal principal) {
         StaffLeaveEntity entity = staffLeaveRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff leave not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(STAFF_LEAVE_NOT_FOUND_PREFIX + id));
 
         entity.setStatus(StaffLeaveStatus.REJECTED);
         entity.setApprovedBy(principal.userId());
         entity.setApprovalDate(LocalDate.now());
 
         StaffLeaveEntity saved = staffLeaveRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_REJECTED", "staff_leave", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_LEAVE_REJECTED", ENTITY_STAFF_LEAVE, saved.getId(), null);
         return toResponse(saved);
     }
 

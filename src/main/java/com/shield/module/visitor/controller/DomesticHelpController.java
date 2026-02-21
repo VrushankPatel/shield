@@ -29,16 +29,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DomesticHelpController {
 
+    private static final String DOMESTIC_HELP_FETCHED = "Domestic help fetched";
+
     private final VisitorService visitorService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<DomesticHelpResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Domestic help fetched", visitorService.listDomesticHelp(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DOMESTIC_HELP_FETCHED, visitorService.listDomesticHelp(pageable)));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DomesticHelpResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok("Domestic help fetched", visitorService.getDomesticHelp(id)));
+        return ResponseEntity.ok(ApiResponse.ok(DOMESTIC_HELP_FETCHED, visitorService.getDomesticHelp(id)));
     }
 
     @PostMapping
@@ -70,7 +72,7 @@ public class DomesticHelpController {
     public ResponseEntity<ApiResponse<PagedResponse<DomesticHelpResponse>>> byType(
             @PathVariable String type,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Domestic help fetched", visitorService.listDomesticHelpByType(type, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DOMESTIC_HELP_FETCHED, visitorService.listDomesticHelpByType(type, pageable)));
     }
 
     @PostMapping("/{id}/verify")
@@ -85,7 +87,7 @@ public class DomesticHelpController {
     public ResponseEntity<ApiResponse<PagedResponse<DomesticHelpResponse>>> byUnit(
             @PathVariable UUID unitId,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Domestic help fetched", visitorService.listDomesticHelpByUnit(unitId, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DOMESTIC_HELP_FETCHED, visitorService.listDomesticHelpByUnit(unitId, pageable)));
     }
 
     @PostMapping("/{id}/assign-unit")

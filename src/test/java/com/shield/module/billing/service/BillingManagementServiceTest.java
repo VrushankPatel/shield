@@ -436,8 +436,8 @@ class BillingManagementServiceTest {
 
     @Test
     void listInvoicesByStatusShouldRejectInvalidStatusValue() {
-        assertThrows(BadRequestException.class,
-                () -> billingManagementService.listInvoicesByStatus("something-else", PageRequest.of(0, 10)));
+        PageRequest pageable = PageRequest.of(0, 10);
+        assertThrows(BadRequestException.class, () -> billingManagementService.listInvoicesByStatus("something-else", pageable));
     }
 
     @Test

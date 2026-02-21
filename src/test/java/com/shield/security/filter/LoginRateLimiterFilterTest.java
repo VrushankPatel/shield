@@ -1,6 +1,7 @@
 package com.shield.security.filter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,7 +29,7 @@ class LoginRateLimiterFilterTest {
 
         filter.doFilter(firstRequest, firstResponse, firstChain);
         assertEquals(200, firstResponse.getStatus());
-        assertTrue(firstChain.getRequest() != null);
+        assertNotNull(firstChain.getRequest());
 
         MockHttpServletRequest secondRequest = new MockHttpServletRequest("POST", "/api/v1/auth/login/otp/send");
         secondRequest.setRemoteAddr("127.0.0.1");
@@ -52,7 +53,7 @@ class LoginRateLimiterFilterTest {
 
         filter.doFilter(request, response, chain);
         assertEquals(200, response.getStatus());
-        assertTrue(chain.getRequest() != null);
+        assertNotNull(chain.getRequest());
     }
 
     @Test
@@ -66,7 +67,7 @@ class LoginRateLimiterFilterTest {
 
         filter.doFilter(firstRequest, firstResponse, firstChain);
         assertEquals(200, firstResponse.getStatus());
-        assertTrue(firstChain.getRequest() != null);
+        assertNotNull(firstChain.getRequest());
 
         MockHttpServletRequest secondRequest = new MockHttpServletRequest("POST", "/api/v1/platform/root/login");
         secondRequest.setRemoteAddr("127.0.0.1");

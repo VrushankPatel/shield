@@ -42,6 +42,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class RoleService {
 
+    private static final String ENTITY_APP_ROLE = "app_role";
+    private static final String ENTITY_USERS = "users";
+    private static final String MODULE_IDENTITY = "IDENTITY";
+    private static final String PERMISSION_USER_READ = "USER_READ";
+    private static final String PERMISSION_USER_WRITE = "USER_WRITE";
+    private static final String PERMISSION_UNIT_READ = "UNIT_READ";
+    private static final String PERMISSION_UNIT_WRITE = "UNIT_WRITE";
+    private static final String PERMISSION_ANNOUNCEMENT_READ = "ANNOUNCEMENT_READ";
+    private static final String PERMISSION_ANNOUNCEMENT_MANAGE = "ANNOUNCEMENT_MANAGE";
+    private static final String PERMISSION_VISITOR_MANAGE = "VISITOR_MANAGE";
+    private static final String PERMISSION_COMPLAINT_CREATE = "COMPLAINT_CREATE";
+    private static final String PERMISSION_ASSET_MANAGE = "ASSET_MANAGE";
+    private static final String PERMISSION_AMENITY_BOOK = "AMENITY_BOOK";
+    private static final String PERMISSION_AMENITY_MANAGE = "AMENITY_MANAGE";
+    private static final String PERMISSION_BILLING_MANAGE = "BILLING_MANAGE";
+    private static final String PERMISSION_MEETING_MANAGE = "MEETING_MANAGE";
+    private static final String PERMISSION_DIGITAL_ID_VERIFY = "DIGITAL_ID_VERIFY";
+
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RolePermissionRepository rolePermissionRepository;
@@ -79,7 +97,7 @@ public class RoleService {
         role.setSystemRole(request.systemRole());
 
         RoleEntity saved = roleRepository.save(role);
-        auditLogService.logEvent(tenantId, actorUserId, "ROLE_CREATED", "app_role", saved.getId(), null);
+        auditLogService.logEvent(tenantId, actorUserId, "ROLE_CREATED", ENTITY_APP_ROLE, saved.getId(), null);
         return toRoleResponse(saved);
     }
 
@@ -89,7 +107,7 @@ public class RoleService {
         role.setDescription(request.description());
 
         RoleEntity saved = roleRepository.save(role);
-        auditLogService.logEvent(saved.getTenantId(), actorUserId, "ROLE_UPDATED", "app_role", saved.getId(), null);
+        auditLogService.logEvent(saved.getTenantId(), actorUserId, "ROLE_UPDATED", ENTITY_APP_ROLE, saved.getId(), null);
         return toRoleResponse(saved);
     }
 
@@ -101,7 +119,7 @@ public class RoleService {
 
         role.setDeleted(true);
         roleRepository.save(role);
-        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_DELETED", "app_role", role.getId(), null);
+        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_DELETED", ENTITY_APP_ROLE, role.getId(), null);
     }
 
     public PagedResponse<PermissionResponse> listPermissions(Pageable pageable) {
@@ -127,7 +145,7 @@ public class RoleService {
             mapping.setPermissionId(permission.getId());
             rolePermissionRepository.save(mapping);
         }
-        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_PERMISSIONS_ASSIGNED", "app_role", roleId, null);
+        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_PERMISSIONS_ASSIGNED", ENTITY_APP_ROLE, roleId, null);
     }
 
     public void removePermission(UUID roleId, UUID permissionId, UUID actorUserId) {
@@ -136,7 +154,7 @@ public class RoleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role permission mapping not found"));
         mapping.setDeleted(true);
         rolePermissionRepository.save(mapping);
-        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_PERMISSION_REMOVED", "app_role", roleId, null);
+        auditLogService.logEvent(role.getTenantId(), actorUserId, "ROLE_PERMISSION_REMOVED", ENTITY_APP_ROLE, roleId, null);
     }
 
     public void assignRoleToUser(UUID userId, UUID roleId, UUID actorUserId) {
@@ -160,7 +178,7 @@ public class RoleService {
         assignment.setGrantedAt(Instant.now());
         userAdditionalRoleRepository.save(assignment);
 
-        auditLogService.logEvent(user.getTenantId(), actorUserId, "USER_ROLE_ASSIGNED", "users", userId, null);
+        auditLogService.logEvent(user.getTenantId(), actorUserId, "USER_ROLE_ASSIGNED", ENTITY_USERS, userId, null);
     }
 
     public void removeRoleFromUser(UUID userId, UUID roleId, UUID actorUserId) {
@@ -170,7 +188,7 @@ public class RoleService {
         assignment.setDeleted(true);
         userAdditionalRoleRepository.save(assignment);
 
-        auditLogService.logEvent(user.getTenantId(), actorUserId, "USER_ROLE_REMOVED", "users", userId, null);
+        auditLogService.logEvent(user.getTenantId(), actorUserId, "USER_ROLE_REMOVED", ENTITY_USERS, userId, null);
     }
 
     public UserPermissionsResponse getUserPermissions(UUID userId) {
@@ -264,6 +282,12 @@ public class RoleService {
     }
 
     private void ensureDefaults(UUID tenantId) {
+        Map<String, RoleEntity> roleByCode = ensureDefaultRoles(tenantId);
+        Map<String, PermissionEntity> permissionByCode = ensureDefaultPermissions(tenantId);
+        ensureDefaultRolePermissionMapping(tenantId, roleByCode, permissionByCode);
+    }
+
+    private Map<String, RoleEntity> ensureDefaultRoles(UUID tenantId) {
         List<RoleEntity> existingRoles = roleRepository.findAllByTenantIdAndDeletedFalse(tenantId);
         Map<String, RoleEntity> roleByCode = existingRoles.stream()
                 .collect(Collectors.toMap(role -> role.getCode().toUpperCase(), role -> role, (left, right) -> left, LinkedHashMap::new));
@@ -282,7 +306,10 @@ public class RoleService {
             RoleEntity saved = roleRepository.save(role);
             roleByCode.put(saved.getCode().toUpperCase(), saved);
         }
+        return roleByCode;
+    }
 
+    private Map<String, PermissionEntity> ensureDefaultPermissions(UUID tenantId) {
         List<PermissionEntity> existingPermissions = permissionRepository.findAllByTenantIdAndDeletedFalse(tenantId);
         Map<String, PermissionEntity> permissionByCode = existingPermissions.stream()
                 .collect(Collectors.toMap(permission -> permission.getCode().toUpperCase(), permission -> permission,
@@ -300,47 +327,54 @@ public class RoleService {
             PermissionEntity saved = permissionRepository.save(permission);
             permissionByCode.put(saved.getCode().toUpperCase(), saved);
         }
+        return permissionByCode;
+    }
 
+    private void ensureDefaultRolePermissionMapping(
+            UUID tenantId,
+            Map<String, RoleEntity> roleByCode,
+            Map<String, PermissionEntity> permissionByCode) {
         Map<String, List<String>> defaultMapping = defaultRolePermissionMapping();
         for (Map.Entry<String, List<String>> entry : defaultMapping.entrySet()) {
             RoleEntity role = roleByCode.get(entry.getKey());
-            if (role == null) {
-                continue;
-            }
-            for (String permissionCode : entry.getValue()) {
-                PermissionEntity permission = permissionByCode.get(permissionCode);
-                if (permission == null) {
-                    continue;
+            if (role != null) {
+                for (String permissionCode : entry.getValue()) {
+                    PermissionEntity permission = permissionByCode.get(permissionCode);
+                    if (permission != null) {
+                        assignRolePermissionIfMissing(tenantId, role.getId(), permission.getId());
+                    }
                 }
-                boolean exists = rolePermissionRepository.findByRoleIdAndPermissionIdAndDeletedFalse(role.getId(), permission.getId()).isPresent();
-                if (exists) {
-                    continue;
-                }
-                RolePermissionEntity mapping = new RolePermissionEntity();
-                mapping.setTenantId(tenantId);
-                mapping.setRoleId(role.getId());
-                mapping.setPermissionId(permission.getId());
-                rolePermissionRepository.save(mapping);
             }
+        }
+    }
+
+    private void assignRolePermissionIfMissing(UUID tenantId, UUID roleId, UUID permissionId) {
+        boolean exists = rolePermissionRepository.findByRoleIdAndPermissionIdAndDeletedFalse(roleId, permissionId).isPresent();
+        if (!exists) {
+            RolePermissionEntity mapping = new RolePermissionEntity();
+            mapping.setTenantId(tenantId);
+            mapping.setRoleId(roleId);
+            mapping.setPermissionId(permissionId);
+            rolePermissionRepository.save(mapping);
         }
     }
 
     private List<PermissionSeed> defaultPermissionSeeds() {
         return List.of(
-                new PermissionSeed("USER_READ", "IDENTITY", "Read users"),
-                new PermissionSeed("USER_WRITE", "IDENTITY", "Create and update users"),
-                new PermissionSeed("UNIT_READ", "IDENTITY", "Read units"),
-                new PermissionSeed("UNIT_WRITE", "IDENTITY", "Create and update units"),
-                new PermissionSeed("ANNOUNCEMENT_READ", "COMMUNICATION", "Read announcements"),
-                new PermissionSeed("ANNOUNCEMENT_MANAGE", "COMMUNICATION", "Manage announcements"),
-                new PermissionSeed("VISITOR_MANAGE", "VISITOR", "Manage visitor flow"),
-                new PermissionSeed("COMPLAINT_CREATE", "COMPLAINT", "Create complaints"),
-                new PermissionSeed("ASSET_MANAGE", "ASSET", "Manage assets"),
-                new PermissionSeed("AMENITY_BOOK", "AMENITIES", "Book amenities"),
-                new PermissionSeed("AMENITY_MANAGE", "AMENITIES", "Manage amenities"),
-                new PermissionSeed("BILLING_MANAGE", "BILLING", "Manage bills and payments"),
-                new PermissionSeed("MEETING_MANAGE", "MEETING", "Manage meetings"),
-                new PermissionSeed("DIGITAL_ID_VERIFY", "IDENTITY", "Verify digital IDs")
+                new PermissionSeed(PERMISSION_USER_READ, MODULE_IDENTITY, "Read users"),
+                new PermissionSeed(PERMISSION_USER_WRITE, MODULE_IDENTITY, "Create and update users"),
+                new PermissionSeed(PERMISSION_UNIT_READ, MODULE_IDENTITY, "Read units"),
+                new PermissionSeed(PERMISSION_UNIT_WRITE, MODULE_IDENTITY, "Create and update units"),
+                new PermissionSeed(PERMISSION_ANNOUNCEMENT_READ, "COMMUNICATION", "Read announcements"),
+                new PermissionSeed(PERMISSION_ANNOUNCEMENT_MANAGE, "COMMUNICATION", "Manage announcements"),
+                new PermissionSeed(PERMISSION_VISITOR_MANAGE, "VISITOR", "Manage visitor flow"),
+                new PermissionSeed(PERMISSION_COMPLAINT_CREATE, "COMPLAINT", "Create complaints"),
+                new PermissionSeed(PERMISSION_ASSET_MANAGE, "ASSET", "Manage assets"),
+                new PermissionSeed(PERMISSION_AMENITY_BOOK, "AMENITIES", "Book amenities"),
+                new PermissionSeed(PERMISSION_AMENITY_MANAGE, "AMENITIES", "Manage amenities"),
+                new PermissionSeed(PERMISSION_BILLING_MANAGE, "BILLING", "Manage bills and payments"),
+                new PermissionSeed(PERMISSION_MEETING_MANAGE, "MEETING", "Manage meetings"),
+                new PermissionSeed(PERMISSION_DIGITAL_ID_VERIFY, MODULE_IDENTITY, "Verify digital IDs")
         );
     }
 
@@ -353,15 +387,15 @@ public class RoleService {
 
         mapping.put("ADMIN", allPermissionCodes);
         mapping.put("COMMITTEE", List.of(
-                "USER_READ", "USER_WRITE", "UNIT_READ", "UNIT_WRITE", "ANNOUNCEMENT_MANAGE",
-                "VISITOR_MANAGE", "COMPLAINT_CREATE", "ASSET_MANAGE", "AMENITY_MANAGE",
-                "BILLING_MANAGE", "MEETING_MANAGE", "DIGITAL_ID_VERIFY"));
+                PERMISSION_USER_READ, PERMISSION_USER_WRITE, PERMISSION_UNIT_READ, PERMISSION_UNIT_WRITE, PERMISSION_ANNOUNCEMENT_MANAGE,
+                PERMISSION_VISITOR_MANAGE, PERMISSION_COMPLAINT_CREATE, PERMISSION_ASSET_MANAGE, PERMISSION_AMENITY_MANAGE,
+                PERMISSION_BILLING_MANAGE, PERMISSION_MEETING_MANAGE, PERMISSION_DIGITAL_ID_VERIFY));
         mapping.put("OWNER", List.of(
-                "USER_READ", "UNIT_READ", "ANNOUNCEMENT_READ", "COMPLAINT_CREATE", "AMENITY_BOOK"));
+                PERMISSION_USER_READ, PERMISSION_UNIT_READ, PERMISSION_ANNOUNCEMENT_READ, PERMISSION_COMPLAINT_CREATE, PERMISSION_AMENITY_BOOK));
         mapping.put("TENANT", List.of(
-                "USER_READ", "UNIT_READ", "ANNOUNCEMENT_READ", "COMPLAINT_CREATE", "AMENITY_BOOK"));
+                PERMISSION_USER_READ, PERMISSION_UNIT_READ, PERMISSION_ANNOUNCEMENT_READ, PERMISSION_COMPLAINT_CREATE, PERMISSION_AMENITY_BOOK));
         mapping.put("SECURITY", List.of(
-                "ANNOUNCEMENT_READ", "VISITOR_MANAGE", "DIGITAL_ID_VERIFY"));
+                PERMISSION_ANNOUNCEMENT_READ, PERMISSION_VISITOR_MANAGE, PERMISSION_DIGITAL_ID_VERIFY));
 
         return mapping;
     }

@@ -36,19 +36,19 @@ public class JwtService {
     }
 
     public String generateAccessToken(UUID userId, UUID tenantId, String email, String role) {
-        return generateToken(userId, tenantId, email, role, accessTokenTtlMinutes, "access", "USER", 0L);
+        return generateToken(new TokenRequest(userId, tenantId, email, role, accessTokenTtlMinutes, "access", "USER", 0L));
     }
 
     public String generateRefreshToken(UUID userId, UUID tenantId, String email, String role) {
-        return generateToken(userId, tenantId, email, role, refreshTokenTtlMinutes, "refresh", "USER", 0L);
+        return generateToken(new TokenRequest(userId, tenantId, email, role, refreshTokenTtlMinutes, "refresh", "USER", 0L));
     }
 
     public String generateRootAccessToken(UUID rootAccountId, String loginId, long tokenVersion) {
-        return generateToken(rootAccountId, null, loginId, "ROOT", accessTokenTtlMinutes, "access", "ROOT", tokenVersion);
+        return generateToken(new TokenRequest(rootAccountId, null, loginId, "ROOT", accessTokenTtlMinutes, "access", "ROOT", tokenVersion));
     }
 
     public String generateRootRefreshToken(UUID rootAccountId, String loginId, long tokenVersion) {
-        return generateToken(rootAccountId, null, loginId, "ROOT", refreshTokenTtlMinutes, "refresh", "ROOT", tokenVersion);
+        return generateToken(new TokenRequest(rootAccountId, null, loginId, "ROOT", refreshTokenTtlMinutes, "refresh", "ROOT", tokenVersion));
     }
 
     public Claims parseClaims(String token) {
@@ -75,36 +75,39 @@ public class JwtService {
         return value.substring(7);
     }
 
-    private String generateToken(
-            UUID userId,
-            UUID tenantId,
-            String email,
-            String role,
-            long ttlMinutes,
-            String tokenType,
-            String principalType,
-            long tokenVersion) {
+    private String generateToken(TokenRequest request) {
 
         Instant now = Instant.now();
-        Instant expiration = now.plus(ttlMinutes, ChronoUnit.MINUTES);
+        Instant expiration = now.plus(request.ttlMinutes(), ChronoUnit.MINUTES);
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId.toString());
-        if (tenantId != null) {
-            claims.put("tenantId", tenantId.toString());
+        claims.put("userId", request.userId().toString());
+        if (request.tenantId() != null) {
+            claims.put("tenantId", request.tenantId().toString());
         }
-        claims.put("role", role);
-        claims.put("tokenType", tokenType);
-        claims.put("principalType", principalType);
-        claims.put("tokenVersion", tokenVersion);
+        claims.put("role", request.role());
+        claims.put("tokenType", request.tokenType());
+        claims.put("principalType", request.principalType());
+        claims.put("tokenVersion", request.tokenVersion());
         claims.put("jti", UUID.randomUUID().toString());
 
         return Jwts.builder()
-                .subject(email)
+                .subject(request.subject())
                 .claims(claims)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(signingKey)
                 .compact();
+    }
+
+    private record TokenRequest(
+            UUID userId,
+            UUID tenantId,
+            String subject,
+            String role,
+            long ttlMinutes,
+            String tokenType,
+            String principalType,
+            long tokenVersion) {
     }
 }

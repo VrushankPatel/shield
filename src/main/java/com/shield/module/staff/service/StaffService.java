@@ -32,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class StaffService {
 
+    private static final String ENTITY_STAFF_ATTENDANCE = "staff_attendance";
+
     private final StaffRepository staffRepository;
     private final StaffAttendanceRepository staffAttendanceRepository;
     private final AuditLogService auditLogService;
@@ -148,7 +150,7 @@ public class StaffService {
         entity.setMarkedBy(principal.userId());
 
         StaffAttendanceEntity saved = staffAttendanceRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CHECK_IN", "staff_attendance", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CHECK_IN", ENTITY_STAFF_ATTENDANCE, saved.getId(), null);
         return toAttendanceResponse(saved);
     }
 
@@ -169,7 +171,7 @@ public class StaffService {
         entity.setMarkedBy(principal.userId());
 
         StaffAttendanceEntity saved = staffAttendanceRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CHECK_OUT", "staff_attendance", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_CHECK_OUT", ENTITY_STAFF_ATTENDANCE, saved.getId(), null);
         return toAttendanceResponse(saved);
     }
 
@@ -210,7 +212,7 @@ public class StaffService {
         }
 
         StaffAttendanceEntity saved = staffAttendanceRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_ATTENDANCE_UPDATED", "staff_attendance", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "STAFF_ATTENDANCE_UPDATED", ENTITY_STAFF_ATTENDANCE, saved.getId(), null);
         return toAttendanceResponse(saved);
     }
 

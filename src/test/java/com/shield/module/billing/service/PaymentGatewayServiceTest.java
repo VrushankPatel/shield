@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -212,9 +211,9 @@ class PaymentGatewayServiceTest {
 
         assertEquals(PaymentGatewayTransactionStatus.FAILED, response.status());
         verify(paymentWebhookSignatureVerifier).assertValidSignature(
-                eq("STRIPE"),
-                eq("{\"event\":\"payment_failed\"}"),
-                eq("sig_test"));
+                "STRIPE",
+                "{\"event\":\"payment_failed\"}",
+                "sig_test");
     }
 
     @Test
@@ -256,9 +255,9 @@ class PaymentGatewayServiceTest {
 
         assertEquals(PaymentGatewayTransactionStatus.FAILED, response.status());
         verify(paymentWebhookSignatureVerifier).assertValidSignature(
-                eq("STRIPE"),
-                eq("{\"event\":\"payment_failed\"}"),
-                eq("sig_from_header"));
+                "STRIPE",
+                "{\"event\":\"payment_failed\"}",
+                "sig_from_header");
     }
 
     @Test
@@ -273,15 +272,14 @@ class PaymentGatewayServiceTest {
         when(paymentGatewayTransactionRepository.findByTransactionRefAndDeletedFalse("PGTXN-MISMATCH"))
                 .thenReturn(Optional.of(transaction));
 
-        assertThrows(BadRequestException.class, () -> paymentGatewayService.callbackWebhook(
-                "stripe",
-                new PaymentCallbackRequest(
-                        "PGTXN-MISMATCH",
-                        null,
-                        null,
-                        "FAILED",
-                        "{}",
-                        null),
-                "sig"));
+        PaymentCallbackRequest callbackRequest = new PaymentCallbackRequest(
+                "PGTXN-MISMATCH",
+                null,
+                null,
+                "FAILED",
+                "{}",
+                null);
+
+        assertThrows(BadRequestException.class, () -> paymentGatewayService.callbackWebhook("stripe", callbackRequest, "sig"));
     }
 }

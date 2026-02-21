@@ -111,6 +111,7 @@ class HelpdeskServiceTest {
         when(helpdeskTicketRepository.findByIdAndDeletedFalse(ticketId)).thenReturn(Optional.of(entity));
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "tenant@shield.dev", "TENANT");
-        assertThrows(BadRequestException.class, () -> helpdeskService.rateTicket(ticketId, new HelpdeskTicketRateRequest(5), principal));
+        HelpdeskTicketRateRequest request = new HelpdeskTicketRateRequest(5);
+        assertThrows(BadRequestException.class, () -> helpdeskService.rateTicket(ticketId, request, principal));
     }
 }

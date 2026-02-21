@@ -610,7 +610,7 @@ public class AccountingTreasuryService {
         return responses;
     }
 
-    public FinancialReportResponse incomeStatement(String financialYear) {
+    public FinancialReportResponse incomeStatement() {
         BigDecimal income = safeAmount(ledgerEntryRepository.sumAmountByType(LedgerType.INCOME));
         BigDecimal expense = safeAmount(ledgerEntryRepository.sumAmountByType(LedgerType.EXPENSE));
         BigDecimal net = income.subtract(expense);
@@ -625,7 +625,7 @@ public class AccountingTreasuryService {
                 Instant.now());
     }
 
-    public FinancialReportResponse balanceSheet(String financialYear) {
+    public FinancialReportResponse balanceSheet() {
         BigDecimal totalAssets = fundCategoryRepository.findAllByDeletedFalseOrderByCategoryNameAsc().stream()
                 .map(FundCategoryEntity::getCurrentBalance)
                 .reduce(ZERO, BigDecimal::add);
@@ -645,7 +645,7 @@ public class AccountingTreasuryService {
                 Instant.now());
     }
 
-    public FinancialReportResponse cashFlow(String financialYear) {
+    public FinancialReportResponse cashFlow() {
         BigDecimal inflow = safeAmount(ledgerEntryRepository.sumAmountByType(LedgerType.INCOME));
         BigDecimal outflow = safeAmount(vendorPaymentRepository.sumAmountByStatus(VendorPaymentStatus.COMPLETED));
         BigDecimal netFlow = inflow.subtract(outflow);
@@ -685,9 +685,9 @@ public class AccountingTreasuryService {
 
     @Transactional(readOnly = true)
     public String exportCaFormat(String financialYear) {
-        FinancialReportResponse income = incomeStatement(financialYear);
-        FinancialReportResponse cashFlow = cashFlow(financialYear);
-        FinancialReportResponse balance = balanceSheet(financialYear);
+        FinancialReportResponse income = incomeStatement();
+        FinancialReportResponse cashFlow = cashFlow();
+        FinancialReportResponse balance = balanceSheet();
 
         StringBuilder builder = new StringBuilder("report,line,amount\n");
         appendReportLines(builder, income);

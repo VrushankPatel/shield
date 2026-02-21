@@ -26,11 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DeliveryLogController {
 
+    private static final String DELIVERY_LOGS_FETCHED = "Delivery logs fetched";
+
     private final VisitorService visitorService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<DeliveryLogResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Delivery logs fetched", visitorService.listDeliveryLogs(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DELIVERY_LOGS_FETCHED, visitorService.listDeliveryLogs(pageable)));
     }
 
     @GetMapping("/{id}")
@@ -50,7 +52,7 @@ public class DeliveryLogController {
     public ResponseEntity<ApiResponse<PagedResponse<DeliveryLogResponse>>> byUnit(
             @PathVariable UUID unitId,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Delivery logs fetched", visitorService.listDeliveryLogsByUnit(unitId, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DELIVERY_LOGS_FETCHED, visitorService.listDeliveryLogsByUnit(unitId, pageable)));
     }
 
     @GetMapping("/date-range")
@@ -58,13 +60,13 @@ public class DeliveryLogController {
             @RequestParam("from") Instant from,
             @RequestParam("to") Instant to,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Delivery logs fetched", visitorService.listDeliveryLogsByDateRange(from, to, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DELIVERY_LOGS_FETCHED, visitorService.listDeliveryLogsByDateRange(from, to, pageable)));
     }
 
     @GetMapping("/partner/{partner}")
     public ResponseEntity<ApiResponse<PagedResponse<DeliveryLogResponse>>> byPartner(
             @PathVariable String partner,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Delivery logs fetched", visitorService.listDeliveryLogsByPartner(partner, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(DELIVERY_LOGS_FETCHED, visitorService.listDeliveryLogsByPartner(partner, pageable)));
     }
 }

@@ -18,18 +18,18 @@ public class FinancialReportController {
     private final AccountingTreasuryService accountingTreasuryService;
 
     @GetMapping("/income-statement")
-    public ResponseEntity<ApiResponse<FinancialReportResponse>> incomeStatement(@RequestParam(required = false) String financialYear) {
-        return ResponseEntity.ok(ApiResponse.ok("Income statement fetched", accountingTreasuryService.incomeStatement(financialYear)));
+    public ResponseEntity<ApiResponse<FinancialReportResponse>> incomeStatement() {
+        return ResponseEntity.ok(ApiResponse.ok("Income statement fetched", accountingTreasuryService.incomeStatement()));
     }
 
     @GetMapping("/balance-sheet")
-    public ResponseEntity<ApiResponse<FinancialReportResponse>> balanceSheet(@RequestParam(required = false) String financialYear) {
-        return ResponseEntity.ok(ApiResponse.ok("Balance sheet fetched", accountingTreasuryService.balanceSheet(financialYear)));
+    public ResponseEntity<ApiResponse<FinancialReportResponse>> balanceSheet() {
+        return ResponseEntity.ok(ApiResponse.ok("Balance sheet fetched", accountingTreasuryService.balanceSheet()));
     }
 
     @GetMapping("/cash-flow")
-    public ResponseEntity<ApiResponse<FinancialReportResponse>> cashFlow(@RequestParam(required = false) String financialYear) {
-        return ResponseEntity.ok(ApiResponse.ok("Cash flow fetched", accountingTreasuryService.cashFlow(financialYear)));
+    public ResponseEntity<ApiResponse<FinancialReportResponse>> cashFlow() {
+        return ResponseEntity.ok(ApiResponse.ok("Cash flow fetched", accountingTreasuryService.cashFlow()));
     }
 
     @GetMapping("/trial-balance")

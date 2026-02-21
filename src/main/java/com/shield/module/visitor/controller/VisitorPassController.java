@@ -29,11 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class VisitorPassController {
 
+    private static final String VISITOR_PASSES_FETCHED = "Visitor passes fetched";
+
     private final VisitorService visitorService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<VisitorPassResponse>>> list(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitor passes fetched", visitorService.listPasses(pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITOR_PASSES_FETCHED, visitorService.listPasses(pageable)));
     }
 
     @GetMapping("/{id}")
@@ -84,14 +86,14 @@ public class VisitorPassController {
     public ResponseEntity<ApiResponse<PagedResponse<VisitorPassResponse>>> byUnit(
             @PathVariable UUID unitId,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitor passes fetched", visitorService.listPassesByUnit(unitId, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITOR_PASSES_FETCHED, visitorService.listPassesByUnit(unitId, pageable)));
     }
 
     @GetMapping("/date/{date}")
     public ResponseEntity<ApiResponse<PagedResponse<VisitorPassResponse>>> byDate(
             @PathVariable LocalDate date,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok("Visitor passes fetched", visitorService.listPassesByDate(date, pageable)));
+        return ResponseEntity.ok(ApiResponse.ok(VISITOR_PASSES_FETCHED, visitorService.listPassesByDate(date, pageable)));
     }
 
     @GetMapping("/active")

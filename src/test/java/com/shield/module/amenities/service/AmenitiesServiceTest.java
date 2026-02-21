@@ -169,19 +169,21 @@ class AmenitiesServiceTest {
                 new ShieldPrincipal(UUID.randomUUID(), tenantId, "test@shield.dev", "ADMIN"),
                 null));
 
-        assertThrows(BadRequestException.class, () -> amenitiesService.createBooking(
-                amenityId,
-                new AmenityBookingCreateRequest(
-                        UUID.randomUUID(),
-                        null,
-                        Instant.now().plusSeconds(3600),
-                        Instant.now().plusSeconds(7200),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null)));
+        Instant start = Instant.now().plusSeconds(3600);
+        Instant end = Instant.now().plusSeconds(7200);
+        AmenityBookingCreateRequest request = new AmenityBookingCreateRequest(
+                UUID.randomUUID(),
+                null,
+                start,
+                end,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        assertThrows(BadRequestException.class, () -> amenitiesService.createBooking(amenityId, request));
     }
 
     @Test

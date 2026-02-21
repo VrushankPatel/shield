@@ -116,11 +116,8 @@ class PaymentOperationsServiceTest {
 
         when(invoiceRepository.findByIdAndDeletedFalse(invoiceId)).thenReturn(Optional.of(invoice));
 
-        assertThrows(
-                BadRequestException.class,
-                () -> paymentOperationsService.createCashPayment(
-                        new PaymentCashRequest(invoiceId, BigDecimal.valueOf(300), "CASH-TXN-2"),
-                        principal));
+        PaymentCashRequest request = new PaymentCashRequest(invoiceId, BigDecimal.valueOf(300), "CASH-TXN-2");
+        assertThrows(BadRequestException.class, () -> paymentOperationsService.createCashPayment(request, principal));
     }
 
     @Test
@@ -166,9 +163,8 @@ class PaymentOperationsServiceTest {
 
         when(paymentRepository.findByIdAndDeletedFalse(paymentId)).thenReturn(Optional.of(payment));
 
-        assertThrows(
-                BadRequestException.class,
-                () -> paymentOperationsService.refund(paymentId, new PaymentRefundRequest("Duplicate"), principal));
+        PaymentRefundRequest request = new PaymentRefundRequest("Duplicate");
+        assertThrows(BadRequestException.class, () -> paymentOperationsService.refund(paymentId, request, principal));
     }
 
     @Test
@@ -183,9 +179,8 @@ class PaymentOperationsServiceTest {
 
         when(paymentRepository.findByIdAndDeletedFalse(paymentId)).thenReturn(Optional.of(payment));
 
-        assertThrows(
-                BadRequestException.class,
-                () -> paymentOperationsService.refund(paymentId, new PaymentRefundRequest("Unsupported"), principal));
+        PaymentRefundRequest request = new PaymentRefundRequest("Unsupported");
+        assertThrows(BadRequestException.class, () -> paymentOperationsService.refund(paymentId, request, principal));
     }
 
     @Test

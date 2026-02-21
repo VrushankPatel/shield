@@ -111,11 +111,13 @@ class SalaryStructureServiceTest {
                 LocalDate.of(2026, 1, 1))).thenReturn(true);
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        SalaryStructureCreateRequest request = new SalaryStructureCreateRequest(
+                componentId,
+                BigDecimal.valueOf(30000),
+                true,
+                LocalDate.of(2026, 1, 1));
 
-        assertThrows(BadRequestException.class, () -> salaryStructureService.create(
-                staffId,
-                new SalaryStructureCreateRequest(componentId, BigDecimal.valueOf(30000), true, LocalDate.of(2026, 1, 1)),
-                principal));
+        assertThrows(BadRequestException.class, () -> salaryStructureService.create(staffId, request, principal));
     }
 
     @Test

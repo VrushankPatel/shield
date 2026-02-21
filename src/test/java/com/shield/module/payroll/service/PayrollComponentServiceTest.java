@@ -65,10 +65,9 @@ class PayrollComponentServiceTest {
                 .thenReturn(true);
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        PayrollComponentCreateRequest request = new PayrollComponentCreateRequest("Basic", PayrollComponentType.EARNING, true);
 
-        assertThrows(BadRequestException.class, () -> payrollComponentService.create(
-                new PayrollComponentCreateRequest("Basic", PayrollComponentType.EARNING, true),
-                principal));
+        assertThrows(BadRequestException.class, () -> payrollComponentService.create(request, principal));
     }
 
     @Test
@@ -82,10 +81,8 @@ class PayrollComponentServiceTest {
                 .thenReturn(true);
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        PayrollComponentUpdateRequest request = new PayrollComponentUpdateRequest("HRA", PayrollComponentType.EARNING, true);
 
-        assertThrows(BadRequestException.class, () -> payrollComponentService.update(
-                componentId,
-                new PayrollComponentUpdateRequest("HRA", PayrollComponentType.EARNING, true),
-                principal));
+        assertThrows(BadRequestException.class, () -> payrollComponentService.update(componentId, request, principal));
     }
 }

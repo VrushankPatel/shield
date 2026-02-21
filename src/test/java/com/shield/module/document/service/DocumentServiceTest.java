@@ -98,9 +98,9 @@ class DocumentServiceTest {
 
     @Test
     void listExpiringDocumentsShouldRejectInvalidRange() {
-        assertThrows(BadRequestException.class, () -> documentService.listExpiringDocuments(
-                LocalDate.now().plusDays(2),
-                LocalDate.now(),
-                PageRequest.of(0, 10)));
+        LocalDate from = LocalDate.now().plusDays(2);
+        LocalDate to = LocalDate.now();
+        PageRequest pageable = PageRequest.of(0, 10);
+        assertThrows(BadRequestException.class, () -> documentService.listExpiringDocuments(from, to, pageable));
     }
 }

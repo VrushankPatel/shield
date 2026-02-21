@@ -94,7 +94,8 @@ class AssetServiceTest {
         UUID id = UUID.randomUUID();
         when(assetRepository.findByIdAndDeletedFalse(id)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> assetService.update(id, new AssetUpdateRequest(
+        LocalDate today = LocalDate.now();
+        AssetUpdateRequest request = new AssetUpdateRequest(
                 "A1B",
                 "Lobby bulb",
                 null,
@@ -103,16 +104,18 @@ class AssetServiceTest {
                 "A",
                 "GROUND",
                 AssetStatus.ACTIVE,
-                LocalDate.now(),
-                LocalDate.now(),
-                LocalDate.now().plusMonths(6),
+                today,
+                today,
+                today.plusMonths(6),
                 true,
                 UUID.randomUUID(),
-                LocalDate.now(),
-                LocalDate.now().plusMonths(6),
+                today,
+                today.plusMonths(6),
                 null,
                 null,
-                "ASSET-QR-1")));
+                "ASSET-QR-1");
+
+        assertThrows(ResourceNotFoundException.class, () -> assetService.update(id, request));
     }
 
     @Test

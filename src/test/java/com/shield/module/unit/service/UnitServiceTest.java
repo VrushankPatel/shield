@@ -114,13 +114,14 @@ class UnitServiceTest {
     void updateShouldThrowWhenUnitMissing() {
         UUID unitId = UUID.randomUUID();
         when(unitRepository.findByIdAndDeletedFalse(unitId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> unitService.update(unitId, new UnitUpdateRequest(
+        UnitUpdateRequest request = new UnitUpdateRequest(
                 "A-102",
                 "A",
                 "FLAT",
                 BigDecimal.valueOf(1000),
-                UnitStatus.OCCUPIED)));
+                UnitStatus.OCCUPIED);
+
+        assertThrows(ResourceNotFoundException.class, () -> unitService.update(unitId, request));
     }
 
     @Test

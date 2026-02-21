@@ -178,20 +178,21 @@ class UtilityServiceTest {
         when(waterTankRepository.findByIdAndDeletedFalse(tankId)).thenReturn(Optional.empty());
 
         ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
-
-        assertThrows(ResourceNotFoundException.class, () -> utilityService.createWaterLevelLog(new WaterLevelLogCreateRequest(
+        WaterLevelLogCreateRequest request = new WaterLevelLogCreateRequest(
                 tankId,
                 Instant.now(),
                 BigDecimal.valueOf(70),
-                BigDecimal.valueOf(25000)), principal));
+                BigDecimal.valueOf(25000));
+
+        assertThrows(ResourceNotFoundException.class, () -> utilityService.createWaterLevelLog(request, principal));
     }
 
     @Test
     void listWaterLevelLogsByDateRangeShouldValidateRange() {
-        assertThrows(BadRequestException.class, () -> utilityService.listWaterLevelLogsByDateRange(
-                Instant.parse("2026-02-20T10:00:00Z"),
-                Instant.parse("2026-02-19T10:00:00Z"),
-                Pageable.ofSize(10)));
+        Instant from = Instant.parse("2026-02-20T10:00:00Z");
+        Instant to = Instant.parse("2026-02-19T10:00:00Z");
+        Pageable pageable = Pageable.ofSize(10);
+        assertThrows(BadRequestException.class, () -> utilityService.listWaterLevelLogsByDateRange(from, to, pageable));
     }
 
     @Test
@@ -210,11 +211,13 @@ class UtilityServiceTest {
 
     @Test
     void listElectricityReadingsByDateRangeShouldValidateDates() {
+        LocalDate toDate = LocalDate.now();
+        Pageable pageable = Pageable.ofSize(10);
         assertThrows(BadRequestException.class, () -> utilityService.listElectricityReadingsByDateRange(
                 null,
-                LocalDate.now(),
+                toDate,
                 null,
-                Pageable.ofSize(10)));
+                pageable));
     }
 
     @Test
