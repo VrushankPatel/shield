@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,5 +77,17 @@ public class VisitorLogController {
     @GetMapping("/currently-inside")
     public ResponseEntity<ApiResponse<PagedResponse<VisitorLogResponse>>> currentlyInside(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok("Visitors currently inside fetched", visitorService.listCurrentlyInside(pageable)));
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE','SECURITY')")
+    public ResponseEntity<byte[]> export(
+            @RequestParam(value = "from", required = false) Instant from,
+            @RequestParam(value = "to", required = false) Instant to) {
+        String csv = visitorService.exportVisitorLogsCsv(from, to, SecurityUtils.getCurrentPrincipal());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=visitor-logs.csv")
+                .contentType(MediaType.valueOf("text/csv"))
+                .body(csv.getBytes());
     }
 }

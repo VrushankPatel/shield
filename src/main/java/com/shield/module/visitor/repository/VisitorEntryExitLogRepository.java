@@ -2,6 +2,7 @@ package com.shield.module.visitor.repository;
 
 import com.shield.module.visitor.entity.VisitorEntryExitLogEntity;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -21,4 +22,8 @@ public interface VisitorEntryExitLogRepository extends JpaRepository<VisitorEntr
     Page<VisitorEntryExitLogEntity> findAllByExitTimeIsNullAndDeletedFalse(Pageable pageable);
 
     Optional<VisitorEntryExitLogEntity> findFirstByVisitorPassIdAndExitTimeIsNullAndDeletedFalseOrderByEntryTimeDesc(UUID visitorPassId);
+
+    List<VisitorEntryExitLogEntity> findAllByDeletedFalseOrderByEntryTimeDesc();
+
+    List<VisitorEntryExitLogEntity> findAllByEntryTimeBetweenAndDeletedFalseOrderByEntryTimeDesc(Instant from, Instant to);
 }

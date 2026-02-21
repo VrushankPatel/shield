@@ -4,6 +4,7 @@ import com.shield.common.dto.ApiResponse;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.util.SecurityUtils;
 import com.shield.module.utility.dto.WaterLevelLogCreateRequest;
+import com.shield.module.utility.dto.WaterLevelChartDataResponse;
 import com.shield.module.utility.dto.WaterLevelLogResponse;
 import com.shield.module.utility.service.UtilityService;
 import com.shield.security.model.ShieldPrincipal;
@@ -68,5 +69,16 @@ public class WaterLevelLogController {
     public ResponseEntity<ApiResponse<WaterLevelLogResponse>> create(@Valid @RequestBody WaterLevelLogCreateRequest request) {
         ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
         return ResponseEntity.ok(ApiResponse.ok("Water level log created", utilityService.createWaterLevelLog(request, principal)));
+    }
+
+    @GetMapping("/chart-data")
+    public ResponseEntity<ApiResponse<WaterLevelChartDataResponse>> chartData(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(required = false) UUID tankId,
+            @RequestParam(required = false) Integer maxPoints) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Water level chart data fetched",
+                utilityService.getWaterLevelChartData(from, to, tankId, maxPoints)));
     }
 }

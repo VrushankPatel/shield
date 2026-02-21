@@ -17,16 +17,22 @@ public class PaymentWebhookSignatureVerifier {
     private static final String HMAC_SHA_256 = "HmacSHA256";
 
     private final Map<String, String> providerSecrets;
+    private final boolean providerSecretRequired;
 
     public PaymentWebhookSignatureVerifier(
-            @Value("${shield.payment.webhook.provider-secrets:}") String providerSecretsRaw) {
+            @Value("${shield.payment.webhook.provider-secrets:}") String providerSecretsRaw,
+            @Value("${shield.payment.webhook.require-provider-secret:true}") boolean providerSecretRequired) {
         this.providerSecrets = parse(providerSecretsRaw);
+        this.providerSecretRequired = providerSecretRequired;
     }
 
     public void assertValidSignature(String provider, String payload, String signature) {
         String normalizedProvider = normalize(provider);
         String secret = providerSecrets.get(normalizedProvider);
         if (secret == null || secret.isBlank()) {
+            if (providerSecretRequired) {
+                throw new BadRequestException("Webhook secret is not configured for provider: " + normalizedProvider);
+            }
             return;
         }
 

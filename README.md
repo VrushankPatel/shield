@@ -35,6 +35,7 @@ It is a multi-tenant Spring Boot backend for residential society operations with
 - Deployment guide: `docs/deployment.md`
 - Developer integration inputs: `docs/developer_request.md`
 - Plan gap analysis: `docs/implementation-gap-analysis.md`
+- Pending milestones: `docs/pending-milestones.md`
 
 ## Environment Strategy (`dev.env`, `prod.env`)
 `dev.env` and `prod.env` are committed as **templates**. Keep real secrets in secure stores or local override files.
@@ -151,6 +152,8 @@ Runtime environment secrets (examples):
 - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
 - `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`
 - `PAYMENT_WEBHOOK_PROVIDER_SECRETS`
+- `ROOT_BOOTSTRAP_CREDENTIAL_FILE` (secure path for first-run root credential output)
+- `PAYMENT_WEBHOOK_REQUIRE_PROVIDER_SECRET` (recommended `true` in production)
 
 GitHub Actions secrets:
 - `CODECOV_TOKEN`
@@ -163,7 +166,7 @@ For GitHub repository setup:
 
 ## Security Notes
 - Platform root login id is fixed as `root`.
-- On first startup, if missing, root password is generated once and logged.
+- On first startup, if missing, root password is generated once and written to `ROOT_BOOTSTRAP_CREDENTIAL_FILE`.
 - First root login requires password change.
 - Password change bumps root token version and invalidates old sessions.
 - Root login lockout policy is configurable:

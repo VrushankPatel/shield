@@ -2090,6 +2090,21 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Visitor logs fetched}
+  /visitor-logs/export:
+    get:
+      tags: [Visitor]
+      summary: Export visitor logs as CSV
+      parameters:
+        - in: query
+          name: from
+          required: false
+          schema: {type: string, format: date-time}
+        - in: query
+          name: to
+          required: false
+          schema: {type: string, format: date-time}
+      responses:
+        '200': {description: Visitor logs exported}
 
   /domestic-help:
     get:
@@ -4221,6 +4236,21 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Helpdesk attachment deleted}
+  /ticket-comments/{id}:
+    put:
+      tags: [Helpdesk]
+      summary: Update helpdesk ticket comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk comment updated}
+    delete:
+      tags: [Helpdesk]
+      summary: Delete helpdesk ticket comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk comment deleted}
 
   /emergency-contacts:
     get:
@@ -5368,6 +5398,38 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: Water level logs by date range fetched}
+  /water-level-logs/chart-data:
+    get:
+      tags: [Utility]
+      summary: Get water level chart data
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: tankId
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: maxPoints
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        '200': {description: Water level chart data fetched}
 
   /electricity-meters:
     get:

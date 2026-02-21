@@ -10,7 +10,9 @@ import com.shield.module.platform.dto.RootRefreshRequest;
 import com.shield.module.platform.dto.SocietyOnboardingRequest;
 import com.shield.module.platform.dto.SocietyOnboardingResponse;
 import com.shield.module.platform.entity.PlatformRootAccountEntity;
+import com.shield.module.platform.entity.PlatformRootSessionEntity;
 import com.shield.module.platform.repository.PlatformRootAccountRepository;
+import com.shield.module.platform.repository.PlatformRootSessionRepository;
 import com.shield.module.platform.verification.RootContactVerificationService;
 import com.shield.module.tenant.entity.TenantEntity;
 import com.shield.module.tenant.repository.TenantRepository;
@@ -21,9 +23,13 @@ import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
 import io.jsonwebtoken.Claims;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +49,7 @@ public class PlatformRootService {
     private static final String ROOT_PRINCIPAL_TYPE = "ROOT";
     private static final String ROOT_ROLE = "ROOT";
     private static final String ENTITY_PLATFORM_ROOT_ACCOUNT = "platform_root_account";
+    private static final String ENTITY_PLATFORM_ROOT_SESSION = "platform_root_session";
 
     private static final String UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     private static final String LOWER = "abcdefghijkmnopqrstuvwxyz";
@@ -52,6 +59,7 @@ public class PlatformRootService {
     private static final int GENERATED_PASSWORD_LENGTH = 32;
 
     private final PlatformRootAccountRepository platformRootAccountRepository;
+    private final PlatformRootSessionRepository platformRootSessionRepository;
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     @Lazy
@@ -64,6 +72,9 @@ public class PlatformRootService {
 
     @Value("${shield.security.jwt.access-token-ttl-minutes}")
     private long accessTokenTtlMinutes;
+
+    @Value("${shield.security.jwt.refresh-token-ttl-minutes}")
+    private long refreshTokenTtlMinutes;
 
     @Value("${shield.platform.root.lockout.max-failed-attempts:5}")
     private int maxFailedLoginAttempts;
@@ -143,6 +154,7 @@ public class PlatformRootService {
         long tokenVersion = safeTokenVersion(rootAccount);
         String accessToken = jwtService.generateRootAccessToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
         String refreshToken = jwtService.generateRootRefreshToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
+        createRootRefreshSession(rootAccount.getId(), tokenVersion, refreshToken);
 
         auditLogService.logEvent(
                 null,
@@ -159,6 +171,7 @@ public class PlatformRootService {
                 rootAccount.isPasswordChangeRequired());
     }
 
+    @Transactional
     public RootAuthResponse refresh(RootRefreshRequest request) {
         String refreshToken = jwtService.stripBearerPrefix(request.refreshToken());
         if (!jwtService.isTokenValid(refreshToken)) {
@@ -174,17 +187,39 @@ public class PlatformRootService {
 
         UUID rootAccountId = parseUuidClaim(claims, "userId");
         long tokenVersion = parseLongClaim(claims, "tokenVersion");
+        PlatformRootSessionEntity activeSession = platformRootSessionRepository
+                .findByTokenHashAndConsumedAtIsNullAndDeletedFalse(hashToken(refreshToken))
+                .orElseThrow(() -> new UnauthorizedException("Refresh token is no longer valid"));
 
         PlatformRootAccountEntity rootAccount = platformRootAccountRepository.findByIdAndDeletedFalse(rootAccountId)
                 .filter(PlatformRootAccountEntity::isActive)
                 .orElseThrow(() -> new UnauthorizedException("Root account not found"));
 
+        if (!rootAccount.getId().equals(activeSession.getRootAccountId())) {
+            throw new UnauthorizedException("Refresh token principal mismatch");
+        }
+        if (activeSession.getExpiresAt().isBefore(Instant.now())) {
+            activeSession.setConsumedAt(Instant.now());
+            platformRootSessionRepository.save(activeSession);
+            throw new UnauthorizedException("Refresh token has expired");
+        }
+        if (activeSession.getTokenVersion() == null || activeSession.getTokenVersion() != tokenVersion) {
+            activeSession.setConsumedAt(Instant.now());
+            platformRootSessionRepository.save(activeSession);
+            throw new UnauthorizedException("Refresh token is no longer valid");
+        }
         if (safeTokenVersion(rootAccount) != tokenVersion) {
+            activeSession.setConsumedAt(Instant.now());
+            platformRootSessionRepository.save(activeSession);
             throw new UnauthorizedException("Refresh token is no longer valid");
         }
 
+        activeSession.setConsumedAt(Instant.now());
+        platformRootSessionRepository.save(activeSession);
+
         String accessToken = jwtService.generateRootAccessToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
         String rotatedRefreshToken = jwtService.generateRootRefreshToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
+        createRootRefreshSession(rootAccount.getId(), tokenVersion, rotatedRefreshToken);
 
         return new RootAuthResponse(
                 accessToken,
@@ -223,6 +258,7 @@ public class PlatformRootService {
         rootAccount.setTokenVersion(safeTokenVersion(rootAccount) + 1L);
         resetRootLoginFailureState(rootAccount);
         platformRootAccountRepository.save(rootAccount);
+        revokeRootRefreshSessions(rootAccount.getId());
 
         auditLogService.logEvent(
                 null,
@@ -412,6 +448,38 @@ public class PlatformRootService {
             return 0L;
         } catch (Exception ex) {
             throw new UnauthorizedException("Invalid token claim: " + key);
+        }
+    }
+
+    private void createRootRefreshSession(UUID rootAccountId, long tokenVersion, String refreshToken) {
+        PlatformRootSessionEntity session = new PlatformRootSessionEntity();
+        session.setRootAccountId(rootAccountId);
+        session.setTokenHash(hashToken(refreshToken));
+        session.setTokenVersion(tokenVersion);
+        session.setExpiresAt(Instant.now().plus(refreshTokenTtlMinutes, ChronoUnit.MINUTES));
+        platformRootSessionRepository.save(session);
+    }
+
+    private void revokeRootRefreshSessions(UUID rootAccountId) {
+        List<PlatformRootSessionEntity> activeSessions = platformRootSessionRepository
+                .findAllByRootAccountIdAndConsumedAtIsNullAndDeletedFalse(rootAccountId);
+        if (activeSessions.isEmpty()) {
+            return;
+        }
+
+        Instant now = Instant.now();
+        activeSessions.forEach(session -> session.setConsumedAt(now));
+        platformRootSessionRepository.saveAll(activeSessions);
+        auditLogService.logEvent(null, rootAccountId, "ROOT_SESSIONS_REVOKED", ENTITY_PLATFORM_ROOT_SESSION, null, null);
+    }
+
+    private String hashToken(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(bytes);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Unable to hash token", ex);
         }
     }
 }

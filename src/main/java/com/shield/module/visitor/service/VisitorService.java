@@ -267,6 +267,50 @@ public class VisitorService {
                 .map(this::toVisitorLogResponse));
     }
 
+    @Transactional(readOnly = true)
+    public String exportVisitorLogsCsv(Instant from, Instant to, ShieldPrincipal principal) {
+        List<VisitorEntryExitLogEntity> logs;
+        if (from == null && to == null) {
+            logs = visitorEntryExitLogRepository.findAllByDeletedFalseOrderByEntryTimeDesc();
+        } else if (from != null && to != null) {
+            if (from.isAfter(to)) {
+                throw new BadRequestException("from must be before to");
+            }
+            logs = visitorEntryExitLogRepository.findAllByEntryTimeBetweenAndDeletedFalseOrderByEntryTimeDesc(from, to);
+        } else {
+            throw new BadRequestException("Both from and to must be provided for date range export");
+        }
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("id,visitorPassId,entryTime,exitTime,entryGate,exitGate,securityGuardEntry,securityGuardExit,faceCaptureUrl\n");
+        for (VisitorEntryExitLogEntity log : logs) {
+            csv.append(csvValue(log.getId()))
+                    .append(',')
+                    .append(csvValue(log.getVisitorPassId()))
+                    .append(',')
+                    .append(csvValue(log.getEntryTime()))
+                    .append(',')
+                    .append(csvValue(log.getExitTime()))
+                    .append(',')
+                    .append(csvValue(log.getEntryGate()))
+                    .append(',')
+                    .append(csvValue(log.getExitGate()))
+                    .append(',')
+                    .append(csvValue(log.getSecurityGuardEntry()))
+                    .append(',')
+                    .append(csvValue(log.getSecurityGuardExit()))
+                    .append(',')
+                    .append(csvValue(log.getFaceCaptureUrl()))
+                    .append('\n');
+        }
+
+        String metadata = (from == null || to == null)
+                ? "scope=all"
+                : "scope=range,from=" + from + ",to=" + to;
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "VISITOR_LOGS_EXPORTED", "visitor_entry_exit_log", null, metadata);
+        return csv.toString();
+    }
+
     public VisitorResponse createVisitor(VisitorCreateRequest request, ShieldPrincipal principal) {
         VisitorEntity entity = new VisitorEntity();
         entity.setTenantId(principal.tenantId());
@@ -740,5 +784,13 @@ public class VisitorService {
                 entity.getReceivedBy(),
                 entity.getSecurityGuardId(),
                 entity.getPhotoUrl());
+    }
+
+    private String csvValue(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String text = String.valueOf(value).replace("\"", "\"\"");
+        return "\"" + text + "\"";
     }
 }

@@ -89,11 +89,10 @@ public class JwtService {
         claims.put("tokenType", request.tokenType());
         claims.put("principalType", request.principalType());
         claims.put("tokenVersion", request.tokenVersion());
-        claims.put("jti", UUID.randomUUID().toString());
-
         return Jwts.builder()
                 .subject(request.subject())
                 .claims(claims)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(signingKey)

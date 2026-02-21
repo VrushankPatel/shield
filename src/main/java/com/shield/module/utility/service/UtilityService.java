@@ -18,6 +18,8 @@ import com.shield.module.utility.dto.GeneratorLogResponse;
 import com.shield.module.utility.dto.GeneratorLogSummaryResponse;
 import com.shield.module.utility.dto.GeneratorLogUpdateRequest;
 import com.shield.module.utility.dto.WaterLevelLogCreateRequest;
+import com.shield.module.utility.dto.WaterLevelChartDataResponse;
+import com.shield.module.utility.dto.WaterLevelChartPointResponse;
 import com.shield.module.utility.dto.WaterLevelLogResponse;
 import com.shield.module.utility.dto.WaterTankCreateRequest;
 import com.shield.module.utility.dto.WaterTankResponse;
@@ -39,6 +41,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -274,6 +277,30 @@ public class UtilityService {
                 : waterLevelLogRepository.findTopByTankIdAndDeletedFalseOrderByReadingTimeDesc(tankId)
                         .orElseThrow(() -> new ResourceNotFoundException("No water level logs found for tank: " + tankId));
         return toWaterLevelLogResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public WaterLevelChartDataResponse getWaterLevelChartData(Instant from, Instant to, UUID tankId, Integer maxPoints) {
+        validateInstantRange(from, to);
+        int effectiveMaxPoints = maxPoints == null ? 200 : Math.max(1, Math.min(maxPoints, 1000));
+
+        List<WaterLevelLogEntity> rows = tankId == null
+                ? waterLevelLogRepository.findAllByReadingTimeBetweenAndDeletedFalseOrderByReadingTimeAsc(from, to)
+                : waterLevelLogRepository.findAllByTankIdAndReadingTimeBetweenAndDeletedFalseOrderByReadingTimeAsc(tankId, from, to);
+
+        List<WaterLevelChartPointResponse> points = rows.stream()
+                .map(row -> new WaterLevelChartPointResponse(row.getReadingTime(), row.getLevelPercentage(), row.getVolume()))
+                .toList();
+        if (points.size() > effectiveMaxPoints) {
+            points = downsample(points, effectiveMaxPoints);
+        }
+
+        return new WaterLevelChartDataResponse(
+                tankId,
+                from,
+                to,
+                points.size(),
+                points);
     }
 
     @Transactional(readOnly = true)
@@ -557,5 +584,25 @@ public class UtilityService {
                 entity.getMeterReadingAfter(),
                 entity.getUnitsGenerated(),
                 entity.getOperatorId());
+    }
+
+    private List<WaterLevelChartPointResponse> downsample(List<WaterLevelChartPointResponse> points, int targetSize) {
+        if (points.size() <= targetSize) {
+            return points;
+        }
+        if (targetSize == 1) {
+            return List.of(points.get(points.size() - 1));
+        }
+
+        List<WaterLevelChartPointResponse> result = new ArrayList<>(targetSize);
+        double step = (double) (points.size() - 1) / (targetSize - 1);
+        for (int i = 0; i < targetSize; i++) {
+            int index = (int) Math.round(i * step);
+            if (index >= points.size()) {
+                index = points.size() - 1;
+            }
+            result.add(points.get(index));
+        }
+        return result;
     }
 }

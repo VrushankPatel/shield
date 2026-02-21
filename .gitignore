@@ -41,3 +41,6 @@ db_files/postgres/*
 db_files/redis/*
 !db_files/postgres/.gitkeep
 !db_files/redis/.gitkeep
+
+# Root bootstrap credentials generated on startup
+root-bootstrap-credential.txt

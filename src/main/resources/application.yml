@@ -88,8 +88,11 @@ shield:
   payment:
     webhook:
       provider-secrets: ${PAYMENT_WEBHOOK_PROVIDER_SECRETS:}
+      require-provider-secret: ${PAYMENT_WEBHOOK_REQUIRE_PROVIDER_SECRET:true}
   platform:
     root:
+      bootstrap:
+        credential-file: ${ROOT_BOOTSTRAP_CREDENTIAL_FILE:./root-bootstrap-credential.txt}
       verification:
         email-provider: ${ROOT_EMAIL_VERIFICATION_PROVIDER:DUMMY}
         mobile-provider: ${ROOT_MOBILE_VERIFICATION_PROVIDER:DUMMY}

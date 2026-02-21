@@ -24,4 +24,11 @@ public interface WaterLevelLogRepository extends JpaRepository<WaterLevelLogEnti
     Page<WaterLevelLogEntity> findAllByReadingTimeBetweenAndDeletedFalse(Instant from, Instant to, Pageable pageable);
 
     List<WaterLevelLogEntity> findAllByTankIdAndReadingTimeBetweenAndDeletedFalse(UUID tankId, Instant from, Instant to);
+
+    List<WaterLevelLogEntity> findAllByReadingTimeBetweenAndDeletedFalseOrderByReadingTimeAsc(Instant from, Instant to);
+
+    List<WaterLevelLogEntity> findAllByTankIdAndReadingTimeBetweenAndDeletedFalseOrderByReadingTimeAsc(
+            UUID tankId,
+            Instant from,
+            Instant to);
 }

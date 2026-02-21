@@ -21,14 +21,20 @@ import com.shield.module.platform.dto.RootLoginRequest;
 import com.shield.module.platform.dto.RootRefreshRequest;
 import com.shield.module.platform.dto.SocietyOnboardingRequest;
 import com.shield.module.platform.entity.PlatformRootAccountEntity;
+import com.shield.module.platform.entity.PlatformRootSessionEntity;
 import com.shield.module.platform.repository.PlatformRootAccountRepository;
+import com.shield.module.platform.repository.PlatformRootSessionRepository;
 import com.shield.module.platform.verification.RootContactVerificationService;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
 import io.jsonwebtoken.Claims;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +53,9 @@ class PlatformRootServiceTest {
 
     @Mock
     private TenantRepository tenantRepository;
+
+    @Mock
+    private PlatformRootSessionRepository platformRootSessionRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -72,6 +81,7 @@ class PlatformRootServiceTest {
     void setUp() {
         platformRootService = new PlatformRootService(
                 platformRootAccountRepository,
+                platformRootSessionRepository,
                 tenantRepository,
                 userRepository,
                 passwordEncoder,
@@ -80,6 +90,7 @@ class PlatformRootServiceTest {
                 rootContactVerificationService);
 
         ReflectionTestUtils.setField(platformRootService, "accessTokenTtlMinutes", 30L);
+        ReflectionTestUtils.setField(platformRootService, "refreshTokenTtlMinutes", 4320L);
         ReflectionTestUtils.setField(platformRootService, "maxFailedLoginAttempts", 5);
         ReflectionTestUtils.setField(platformRootService, "lockoutDurationMinutes", 30L);
     }
@@ -204,6 +215,13 @@ class PlatformRootServiceTest {
         when(claims.get("userId", String.class)).thenReturn(rootId.toString());
         when(claims.get("tokenVersion")).thenReturn("5");
 
+        PlatformRootSessionEntity session = new PlatformRootSessionEntity();
+        session.setRootAccountId(rootId);
+        session.setTokenVersion(5L);
+        session.setExpiresAt(Instant.now().plusSeconds(3600));
+        when(platformRootSessionRepository.findByTokenHashAndConsumedAtIsNullAndDeletedFalse(sha256("refresh-token")))
+                .thenReturn(Optional.of(session));
+
         when(platformRootAccountRepository.findByIdAndDeletedFalse(rootId)).thenReturn(Optional.of(rootAccount));
         when(jwtService.generateRootAccessToken(rootId, "root", 5L)).thenReturn("new-root-access");
         when(jwtService.generateRootRefreshToken(rootId, "root", 5L)).thenReturn("new-root-refresh");
@@ -235,6 +253,7 @@ class PlatformRootServiceTest {
         when(rootContactVerificationService.verifyMobileOwnership(anyString())).thenReturn(true);
         when(rootContactVerificationService.emailProvider()).thenReturn("DUMMY");
         when(rootContactVerificationService.mobileProvider()).thenReturn("DUMMY");
+        when(platformRootSessionRepository.findAllByRootAccountIdAndConsumedAtIsNullAndDeletedFalse(rootId)).thenReturn(List.of());
 
         ShieldPrincipal principal = new ShieldPrincipal(rootId, null, "root", "ROOT", "ROOT", 9L);
 
@@ -292,5 +311,14 @@ class PlatformRootServiceTest {
 
         assertTrue(platformRootService.isRootTokenVersionValid(rootId, 11L));
         assertFalse(platformRootService.isRootTokenVersionValid(rootId, 12L));
+    }
+
+    private String sha256(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(rawToken.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }

@@ -216,6 +216,60 @@ class PaymentGatewayFlowsIT extends IntegrationTestBase {
                 .body("data.status", equalTo("FAILED"));
     }
 
+    @Test
+    void webhookShouldRejectWhenSignatureIsMissing() {
+        TenantEntity tenant = createTenant("Payments Signature Society");
+        UnitEntity unit = createUnit(tenant.getId(), "P-404");
+        UserEntity admin = createUser(tenant.getId(), unit.getId(), "Admin Signature", "admin.pay.signature@shield.dev", UserRole.ADMIN);
+
+        String token = login(admin.getEmail(), PASSWORD);
+
+        String billId = given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token)
+                .body(Map.of(
+                        "unitId", unit.getId(),
+                        "month", 4,
+                        "year", 2026,
+                        "amount", 2000,
+                        "dueDate", LocalDate.of(2026, 4, 25).toString(),
+                        "lateFee", 0))
+                .when()
+                .post("/billing/generate")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .path("data.id");
+
+        String transactionRef = given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token)
+                .body(Map.of(
+                        "billId", billId,
+                        "amount", 2000,
+                        "mode", "CARD",
+                        "provider", "stripe"))
+                .when()
+                .post("/payments/initiate")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .path("data.transactionRef");
+
+        given()
+                .contentType("application/json")
+                .body(Map.of(
+                        "transactionRef", transactionRef,
+                        "gatewayOrderId", "ord_cb_02",
+                        "gatewayPaymentId", "pay_cb_02",
+                        "status", "FAILED",
+                        "payload", "{\"reason\":\"missing_signature\"}"))
+                .when()
+                .post("/payments/webhook/{provider}", "stripe")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+    }
+
     private String signWebhook(String payload) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");

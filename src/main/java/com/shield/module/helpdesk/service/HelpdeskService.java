@@ -4,11 +4,13 @@ import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.common.exception.UnauthorizedException;
 import com.shield.module.helpdesk.dto.HelpdeskCategoryCreateRequest;
 import com.shield.module.helpdesk.dto.HelpdeskCategoryResponse;
 import com.shield.module.helpdesk.dto.HelpdeskCategoryUpdateRequest;
 import com.shield.module.helpdesk.dto.HelpdeskCommentCreateRequest;
 import com.shield.module.helpdesk.dto.HelpdeskCommentResponse;
+import com.shield.module.helpdesk.dto.HelpdeskCommentUpdateRequest;
 import com.shield.module.helpdesk.dto.HelpdeskTicketAssignRequest;
 import com.shield.module.helpdesk.dto.HelpdeskTicketAttachmentCreateRequest;
 import com.shield.module.helpdesk.dto.HelpdeskTicketAttachmentResponse;
@@ -323,6 +325,30 @@ public class HelpdeskService {
         return toCommentResponse(saved);
     }
 
+    public HelpdeskCommentResponse updateComment(UUID commentId, HelpdeskCommentUpdateRequest request, ShieldPrincipal principal) {
+        HelpdeskCommentEntity comment = helpdeskCommentRepository.findByIdAndDeletedFalse(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk comment not found: " + commentId));
+        enforceCommentWritePermission(comment, principal);
+
+        comment.setComment(request.comment());
+        comment.setInternalNote(request.internalNote());
+        HelpdeskCommentEntity saved = helpdeskCommentRepository.save(comment);
+
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_COMMENT_UPDATED", "helpdesk_comment", saved.getId(), null);
+        return toCommentResponse(saved);
+    }
+
+    public void deleteComment(UUID commentId, ShieldPrincipal principal) {
+        HelpdeskCommentEntity comment = helpdeskCommentRepository.findByIdAndDeletedFalse(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Helpdesk comment not found: " + commentId));
+        enforceCommentWritePermission(comment, principal);
+
+        comment.setDeleted(true);
+        helpdeskCommentRepository.save(comment);
+
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "HELPDESK_COMMENT_DELETED", "helpdesk_comment", comment.getId(), null);
+    }
+
     @Transactional(readOnly = true)
     public PagedResponse<HelpdeskCommentResponse> listComments(UUID ticketId, Pageable pageable) {
         return PagedResponse.from(helpdeskCommentRepository.findAllByTicketIdAndDeletedFalse(ticketId, pageable).map(this::toCommentResponse));
@@ -412,5 +438,16 @@ public class HelpdeskService {
                 entity.getFileUrl(),
                 entity.getUploadedBy(),
                 entity.getUploadedAt());
+    }
+
+    private void enforceCommentWritePermission(HelpdeskCommentEntity comment, ShieldPrincipal principal) {
+        if (isPrivileged(principal) || principal.userId().equals(comment.getUserId())) {
+            return;
+        }
+        throw new UnauthorizedException("You are not allowed to modify this comment");
+    }
+
+    private boolean isPrivileged(ShieldPrincipal principal) {
+        return "ADMIN".equals(principal.role()) || "COMMITTEE".equals(principal.role());
     }
 }

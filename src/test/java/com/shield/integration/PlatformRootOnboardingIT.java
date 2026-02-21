@@ -2,6 +2,7 @@ package com.shield.integration;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -9,10 +10,13 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.shield.integration.support.IntegrationTestBase;
 import com.shield.module.platform.entity.PlatformRootAccountEntity;
 import com.shield.module.platform.repository.PlatformRootAccountRepository;
+import com.shield.module.platform.repository.PlatformRootSessionRepository;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.entity.UserStatus;
 import com.shield.module.user.repository.UserRepository;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -31,6 +35,9 @@ class PlatformRootOnboardingIT extends IntegrationTestBase {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PlatformRootSessionRepository platformRootSessionRepository;
 
     @Autowired
     private TenantRepository tenantRepository;
@@ -71,6 +78,42 @@ class PlatformRootOnboardingIT extends IntegrationTestBase {
                 .extract()
                 .path("data.accessToken");
 
+        String initialRefreshToken = given()
+                .contentType("application/json")
+                .body(Map.of(
+                        "loginId", ROOT_LOGIN_ID,
+                        "password", ROOT_INITIAL_PASSWORD))
+                .when()
+                .post("/platform/root/login")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .path("data.refreshToken");
+
+        String rotatedRefreshToken = given()
+                .contentType("application/json")
+                .body(Map.of("refreshToken", initialRefreshToken))
+                .when()
+                .post("/platform/root/refresh")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.refreshToken", notNullValue())
+                .extract()
+                .path("data.refreshToken");
+
+        assertNotEquals(initialRefreshToken, rotatedRefreshToken);
+        assertTrue(platformRootSessionRepository
+                .findByTokenHashAndConsumedAtIsNullAndDeletedFalse(sha256Hex(initialRefreshToken))
+                .isEmpty());
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("refreshToken", initialRefreshToken))
+                .when()
+                .post("/platform/root/refresh")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+
         given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + initialAccessToken)
@@ -99,6 +142,14 @@ class PlatformRootOnboardingIT extends IntegrationTestBase {
                 .post("/platform/root/change-password")
                 .then()
                 .statusCode(HttpStatus.OK.value());
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("refreshToken", rotatedRefreshToken))
+                .when()
+                .post("/platform/root/refresh")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
                 .contentType("application/json")
@@ -154,5 +205,19 @@ class PlatformRootOnboardingIT extends IntegrationTestBase {
                 .orElseThrow();
         assertEquals(UserRole.ADMIN, createdAdmin.getRole());
         assertEquals(UserStatus.ACTIVE, createdAdmin.getStatus());
+    }
+
+    private String sha256Hex(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder(bytes.length * 2);
+            for (byte value : bytes) {
+                builder.append(String.format("%02x", value));
+            }
+            return builder.toString();
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }
