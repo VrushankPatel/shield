@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,7 +78,7 @@ class FileStorageServiceTest {
         assertEquals("file-001", response.fileId());
         assertEquals("notes.txt", response.fileName());
         assertEquals(12, response.fileSize());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("FILE_UPLOADED"), eq("stored_file"), eq(storedId), eq(null));
+        verify(auditLogService).record(tenantId, userId, "FILE_UPLOADED", "stored_file", storedId, null);
     }
 
     @Test
@@ -94,12 +93,13 @@ class FileStorageServiceTest {
                 "x.txt",
                 "text/plain",
                 "abc".getBytes());
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
 
         assertThrows(BadRequestException.class, () -> fileStorageService.upload(
                 file,
                 null,
                 "dup-file",
-                new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN")));
+                principal));
     }
 
     @Test
@@ -113,10 +113,11 @@ class FileStorageServiceTest {
 
         when(storedFileRepository.findByFileIdAndDeletedFalse("exp-file")).thenReturn(Optional.of(entity));
         when(storedFileRepository.save(any(StoredFileEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN");
 
         assertThrows(ResourceNotFoundException.class, () -> fileStorageService.download(
                 "exp-file",
-                new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "x@shield.dev", "ADMIN")));
+                principal));
 
         assertEquals(StoredFileStatus.EXPIRED, entity.getStatus());
     }
@@ -181,6 +182,6 @@ class FileStorageServiceTest {
         assertEquals("download.txt", response.fileName());
         assertEquals("text/plain", response.contentType());
         assertArrayEquals(payload, response.content());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("FILE_DOWNLOADED"), eq("stored_file"), eq(entity.getId()), eq(null));
+        verify(auditLogService).record(tenantId, userId, "FILE_DOWNLOADED", "stored_file", entity.getId(), null);
     }
 }

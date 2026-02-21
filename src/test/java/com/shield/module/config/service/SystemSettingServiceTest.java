@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -78,7 +77,7 @@ class SystemSettingServiceTest {
 
         assertEquals("billing", response.module());
         assertTrue(response.enabled());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("MODULE_SETTING_TOGGLED"), eq("system_setting"), eq(id), eq(null));
+        verify(auditLogService).record(tenantId, userId, "MODULE_SETTING_TOGGLED", "system_setting", id, null);
     }
 
     @Test
@@ -117,7 +116,7 @@ class SystemSettingServiceTest {
 
         assertEquals("BILLING", response.group());
         assertEquals("HYBRID", response.value().get("mode").asText());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("BILLING_FORMULA_UPDATED"), eq("system_setting"), eq(id), eq(null));
+        verify(auditLogService).record(tenantId, userId, "BILLING_FORMULA_UPDATED", "system_setting", id, null);
     }
 
     @Test

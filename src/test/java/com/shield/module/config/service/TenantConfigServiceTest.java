@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +66,7 @@ class TenantConfigServiceTest {
         assertEquals(configId, response.id());
         assertEquals("notifications.email", response.key());
         assertEquals("preferences", response.category());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("TENANT_CONFIG_CREATED"), eq("tenant_config"), eq(configId), eq(null));
+        verify(auditLogService).record(tenantId, userId, "TENANT_CONFIG_CREATED", "tenant_config", configId, null);
     }
 
     @Test
@@ -91,7 +91,7 @@ class TenantConfigServiceTest {
                 principal(tenantId, userId));
 
         assertEquals("modern", response.value());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("TENANT_CONFIG_UPDATED"), eq("tenant_config"), eq(configId), eq(null));
+        verify(auditLogService).record(tenantId, userId, "TENANT_CONFIG_UPDATED", "tenant_config", configId, null);
     }
 
     @Test
@@ -124,7 +124,7 @@ class TenantConfigServiceTest {
         entity.setConfigKey("key");
         entity.setConfigValue("value");
 
-        when(tenantConfigRepository.findAllByCategoryAndDeletedFalse(eq(null), any(Pageable.class)))
+        when(tenantConfigRepository.findAllByCategoryAndDeletedFalse(isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(entity), Pageable.ofSize(5), 1));
 
         var page = tenantConfigService.listByCategory("  ", Pageable.ofSize(5));
@@ -159,7 +159,7 @@ class TenantConfigServiceTest {
         tenantConfigService.deleteByKey("notification.sms", principal(tenantId, userId));
 
         assertTrue(entity.isDeleted());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("TENANT_CONFIG_DELETED"), eq("tenant_config"), eq(configId), eq(null));
+        verify(auditLogService).record(tenantId, userId, "TENANT_CONFIG_DELETED", "tenant_config", configId, null);
     }
 
     private ShieldPrincipal principal(UUID tenantId, UUID userId) {

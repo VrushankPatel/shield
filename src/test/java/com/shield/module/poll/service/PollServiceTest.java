@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -98,7 +97,7 @@ class PollServiceTest {
         assertEquals(pollId, response.id());
         assertEquals(2, response.options().size());
         assertEquals(PollStatus.DRAFT, response.status());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("POLL_CREATED"), eq("poll"), eq(pollId), eq(null));
+        verify(auditLogService).record(tenantId, userId, "POLL_CREATED", "poll", pollId, null);
     }
 
     @Test
@@ -109,11 +108,13 @@ class PollServiceTest {
         entity.setStatus(PollStatus.ACTIVE);
 
         when(pollRepository.findByIdAndDeletedFalse(pollId)).thenReturn(Optional.of(entity));
+        PollUpdateRequest updateRequest = new PollUpdateRequest("Title", "Desc", Instant.now().plusSeconds(100));
+        ShieldPrincipal principal = principal(UUID.randomUUID(), UUID.randomUUID());
 
         assertThrows(BadRequestException.class, () -> pollService.update(
                 pollId,
-                new PollUpdateRequest("Title", "Desc", Instant.now().plusSeconds(100)),
-                principal(UUID.randomUUID(), UUID.randomUUID())));
+                updateRequest,
+                principal));
     }
 
     @Test
@@ -148,11 +149,13 @@ class PollServiceTest {
         poll.setExpiresAt(Instant.now().minusSeconds(10));
 
         when(pollRepository.findByIdAndDeletedFalse(pollId)).thenReturn(Optional.of(poll));
+        PollVoteRequest voteRequest = new PollVoteRequest(UUID.randomUUID());
+        ShieldPrincipal principal = principal(UUID.randomUUID(), UUID.randomUUID());
 
         assertThrows(BadRequestException.class, () -> pollService.vote(
                 pollId,
-                new PollVoteRequest(UUID.randomUUID()),
-                principal(UUID.randomUUID(), UUID.randomUUID())));
+                voteRequest,
+                principal));
     }
 
     @Test
@@ -167,11 +170,13 @@ class PollServiceTest {
 
         when(pollRepository.findByIdAndDeletedFalse(pollId)).thenReturn(Optional.of(poll));
         when(pollVoteRepository.existsByPollIdAndUserIdAndDeletedFalse(pollId, userId)).thenReturn(true);
+        PollVoteRequest voteRequest = new PollVoteRequest(UUID.randomUUID());
+        ShieldPrincipal principal = principal(UUID.randomUUID(), userId);
 
         assertThrows(BadRequestException.class, () -> pollService.vote(
                 pollId,
-                new PollVoteRequest(UUID.randomUUID()),
-                principal(UUID.randomUUID(), userId)));
+                voteRequest,
+                principal));
     }
 
     @Test
@@ -208,7 +213,7 @@ class PollServiceTest {
 
         assertEquals(voteId, response.id());
         assertEquals(optionId, response.optionId());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("POLL_VOTED"), eq("poll"), eq(pollId), eq(null));
+        verify(auditLogService).record(tenantId, userId, "POLL_VOTED", "poll", pollId, null);
     }
 
     @Test
@@ -256,8 +261,9 @@ class PollServiceTest {
         UUID userId = UUID.randomUUID();
 
         when(pollVoteRepository.findByPollIdAndUserIdAndDeletedFalse(pollId, userId)).thenReturn(Optional.empty());
+        ShieldPrincipal principal = principal(UUID.randomUUID(), userId);
 
-        assertThrows(ResourceNotFoundException.class, () -> pollService.getMyVote(pollId, principal(UUID.randomUUID(), userId)));
+        assertThrows(ResourceNotFoundException.class, () -> pollService.getMyVote(pollId, principal));
     }
 
     private ShieldPrincipal principal(UUID tenantId, UUID userId) {

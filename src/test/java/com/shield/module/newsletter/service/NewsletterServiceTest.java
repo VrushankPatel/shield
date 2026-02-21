@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,7 +69,7 @@ class NewsletterServiceTest {
 
         assertEquals(id, response.id());
         assertEquals(NewsletterStatus.DRAFT, response.status());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("NEWSLETTER_CREATED"), eq("newsletter"), eq(id), eq(null));
+        verify(auditLogService).record(tenantId, userId, "NEWSLETTER_CREATED", "newsletter", id, null);
     }
 
     @Test
@@ -81,10 +81,13 @@ class NewsletterServiceTest {
 
         when(newsletterRepository.findByIdAndDeletedFalse(id)).thenReturn(Optional.of(entity));
 
+        NewsletterUpdateRequest updateRequest = new NewsletterUpdateRequest("t", "c", "s", "f");
+        ShieldPrincipal principal = principal(UUID.randomUUID(), UUID.randomUUID());
+
         assertThrows(BadRequestException.class, () -> newsletterService.update(
                 id,
-                new NewsletterUpdateRequest("t", "c", "s", "f"),
-                principal(UUID.randomUUID(), UUID.randomUUID())));
+                updateRequest,
+                principal));
     }
 
     @Test
@@ -105,7 +108,7 @@ class NewsletterServiceTest {
 
         assertEquals(NewsletterStatus.PUBLISHED, response.status());
         assertEquals(userId, response.publishedBy());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("NEWSLETTER_PUBLISHED"), eq("newsletter"), eq(id), eq(null));
+        verify(auditLogService).record(tenantId, userId, "NEWSLETTER_PUBLISHED", "newsletter", id, null);
     }
 
     @Test
@@ -118,7 +121,7 @@ class NewsletterServiceTest {
         entity.setMonth(2);
         entity.setStatus(NewsletterStatus.DRAFT);
 
-        when(newsletterRepository.findAllByYearAndDeletedFalse(eq(2026), any(Pageable.class)))
+        when(newsletterRepository.findAllByYearAndDeletedFalse(anyInt(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(entity), Pageable.ofSize(10), 1));
 
         var page = newsletterService.listByYear(2026, Pageable.ofSize(10));
@@ -144,7 +147,7 @@ class NewsletterServiceTest {
         newsletterService.delete(id, principal(tenantId, userId));
 
         assertTrue(entity.isDeleted());
-        verify(auditLogService).record(eq(tenantId), eq(userId), eq("NEWSLETTER_DELETED"), eq("newsletter"), eq(id), eq(null));
+        verify(auditLogService).record(tenantId, userId, "NEWSLETTER_DELETED", "newsletter", id, null);
     }
 
     private ShieldPrincipal principal(UUID tenantId, UUID userId) {
