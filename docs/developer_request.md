@@ -1,30 +1,47 @@
 # Developer Inputs Required
 
-This file lists values that must be provided by the developer/team for deployment and external integrations.
+This document lists operational inputs required to run SHIELD in production safely.
 
-## 1. Mandatory Runtime Secrets
+## 1. Environment File Policy
+- Keep `dev.env` and `prod.env` in repo as templates only.
+- Do not commit real credentials.
+- For production, inject real values through secure environment management.
+
+Load env variables:
+
+```bash
+set -a && source prod.env && set +a
+```
+
+## 2. Mandatory Runtime Secrets
 - `JWT_SECRET`
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 
-## 2. Platform Root (Initial Security)
-No manual root password input is required.
+## 3. Platform Root Account Behavior
+No manual seed password is required.
 
 Behavior:
-- On first startup, if the platform root password is missing, SHIELD generates a strong password and logs it.
-- Login id is fixed: `root`
-- First login requires immediate password change through `/api/v1/platform/root/change-password`.
+- On first startup, if root password is missing, SHIELD generates one and logs it once.
+- Root login id is fixed as `root`.
+- First root login requires password change (`/api/v1/platform/root/change-password`).
+- Root login lockout is controlled by:
+  - `ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS`
+  - `ROOT_LOCKOUT_DURATION_MINUTES`
 
-## 3. CI/CD Secrets (GitHub)
+## 4. CI/CD Secrets (GitHub Actions)
 - `CODECOV_TOKEN` for Codecov upload
-- `SONAR_TOKEN` for SonarCloud (if enabled)
+- `SONAR_TOKEN` for SonarCloud analysis
 
-## 4. GHCR Publishing
+Set these under GitHub repository:
+- `Settings -> Secrets and variables -> Actions`
+
+## 5. Container Registry Publishing
 GHCR publish uses GitHub Actions `GITHUB_TOKEN` with `packages:write` permission.
-No additional registry secret is required for normal GitHub-hosted builds.
+No extra registry secret is needed in standard GitHub-hosted workflows.
 
-## 5. Email Integration (Optional)
+## 6. Email Integration Inputs (Optional)
 To enable SMTP email notifications:
 - `NOTIFICATION_EMAIL_ENABLED=true`
 - `NOTIFICATION_EMAIL_FROM`
@@ -35,13 +52,28 @@ To enable SMTP email notifications:
 
 ### Gmail App Password Steps
 1. Open [Google Account](https://myaccount.google.com/) and sign in.
-2. Go to `Security`.
+2. Open `Security`.
 3. Enable `2-Step Verification`.
 4. Open `App passwords`.
-5. Select app type `Mail` and device `Other`.
+5. Select `Mail` and device `Other`.
 6. Enter name `SHIELD SMTP` and generate.
 7. Use generated 16-character app password as `SPRING_MAIL_PASSWORD`.
 
 Notes:
-- Do not use your normal Gmail password.
-- Keep app password only in secret stores/CI environment variables.
+- Do not use normal Gmail password.
+- Keep app password only in secret stores and environment variables.
+
+## 7. Payment/Webhook Secrets (Optional)
+- `PAYMENT_WEBHOOK_PROVIDER_SECRETS`
+
+Example format:
+- `STRIPE=whsec_abc,RAZORPAY=rzp_secret`
+
+## 8. SMS/WhatsApp Placeholder Integrations
+Current implementation supports placeholder toggles/providers:
+- `NOTIFICATION_SMS_ENABLED`
+- `NOTIFICATION_SMS_PROVIDER`
+- `NOTIFICATION_WHATSAPP_ENABLED`
+- `NOTIFICATION_WHATSAPP_PROVIDER`
+
+Both channels currently use dummy provider implementations until real integrations are configured.

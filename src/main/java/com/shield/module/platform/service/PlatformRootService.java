@@ -11,6 +11,7 @@ import com.shield.module.platform.dto.SocietyOnboardingRequest;
 import com.shield.module.platform.dto.SocietyOnboardingResponse;
 import com.shield.module.platform.entity.PlatformRootAccountEntity;
 import com.shield.module.platform.repository.PlatformRootAccountRepository;
+import com.shield.module.platform.verification.RootContactVerificationService;
 import com.shield.module.tenant.entity.TenantEntity;
 import com.shield.module.tenant.repository.TenantRepository;
 import com.shield.module.user.entity.UserEntity;
@@ -21,6 +22,8 @@ import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
 import io.jsonwebtoken.Claims;
 import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -54,11 +57,18 @@ public class PlatformRootService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuditLogService auditLogService;
+    private final RootContactVerificationService rootContactVerificationService;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${shield.security.jwt.access-token-ttl-minutes}")
     private long accessTokenTtlMinutes;
+
+    @Value("${shield.platform.root.lockout.max-failed-attempts:5}")
+    private int maxFailedLoginAttempts;
+
+    @Value("${shield.platform.root.lockout.duration-minutes:30}")
+    private long lockoutDurationMinutes;
 
     @Transactional
     public Optional<String> ensureRootAccountAndGeneratePasswordIfMissing() {
@@ -76,6 +86,8 @@ public class PlatformRootService {
         rootAccount.setMobileVerified(true);
         rootAccount.setActive(true);
         rootAccount.setTokenVersion(safeTokenVersion(rootAccount));
+        resetRootLoginFailureState(rootAccount);
+        rootAccount.setLastLoginAt(null);
         platformRootAccountRepository.save(rootAccount);
 
         auditLogService.record(null, rootAccount.getId(), "ROOT_PASSWORD_GENERATED", "platform_root_account", rootAccount.getId(), null);
@@ -107,15 +119,37 @@ public class PlatformRootService {
             throw new UnauthorizedException("Root account is not active");
         }
 
+        if (isLocked(rootAccount)) {
+            auditLogService.record(
+                    null,
+                    rootAccount.getId(),
+                    "ROOT_LOGIN_BLOCKED",
+                    "platform_root_account",
+                    rootAccount.getId(),
+                    "reason=lockout,lockedUntil=" + rootAccount.getLockedUntil());
+            throw new UnauthorizedException("Root account is temporarily locked due to failed login attempts. Try again later.");
+        }
+
         if (!passwordEncoder.matches(request.password(), rootAccount.getPasswordHash())) {
+            onRootLoginFailed(rootAccount);
             throw new UnauthorizedException("Invalid root credentials");
         }
+
+        resetRootLoginFailureState(rootAccount);
+        rootAccount.setLastLoginAt(Instant.now());
+        platformRootAccountRepository.save(rootAccount);
 
         long tokenVersion = safeTokenVersion(rootAccount);
         String accessToken = jwtService.generateRootAccessToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
         String refreshToken = jwtService.generateRootRefreshToken(rootAccount.getId(), rootAccount.getLoginId(), tokenVersion);
 
-        auditLogService.record(null, rootAccount.getId(), "ROOT_LOGIN", "platform_root_account", rootAccount.getId(), null);
+        auditLogService.record(
+                null,
+                rootAccount.getId(),
+                "ROOT_LOGIN",
+                "platform_root_account",
+                rootAccount.getId(),
+                "passwordChangeRequired=" + rootAccount.isPasswordChangeRequired());
         return new RootAuthResponse(
                 accessToken,
                 refreshToken,
@@ -172,8 +206,8 @@ public class PlatformRootService {
             throw new BadRequestException("New password must be different from current password");
         }
 
-        boolean emailVerified = verifyEmailOwnership(request.email());
-        boolean mobileVerified = verifyMobileOwnership(request.mobile());
+        boolean emailVerified = rootContactVerificationService.verifyEmailOwnership(request.email());
+        boolean mobileVerified = rootContactVerificationService.verifyMobileOwnership(request.mobile());
 
         if (!emailVerified || !mobileVerified) {
             throw new BadRequestException("Email or mobile verification failed");
@@ -186,9 +220,19 @@ public class PlatformRootService {
         rootAccount.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         rootAccount.setPasswordChangeRequired(false);
         rootAccount.setTokenVersion(safeTokenVersion(rootAccount) + 1L);
+        resetRootLoginFailureState(rootAccount);
         platformRootAccountRepository.save(rootAccount);
 
-        auditLogService.record(null, rootAccount.getId(), "ROOT_PASSWORD_CHANGED", "platform_root_account", rootAccount.getId(), null);
+        auditLogService.record(
+                null,
+                rootAccount.getId(),
+                "ROOT_PASSWORD_CHANGED",
+                "platform_root_account",
+                rootAccount.getId(),
+                "emailVerified=" + emailVerified
+                        + ",mobileVerified=" + mobileVerified
+                        + ",emailProvider=" + rootContactVerificationService.emailProvider()
+                        + ",mobileProvider=" + rootContactVerificationService.mobileProvider());
     }
 
     @Transactional
@@ -197,6 +241,15 @@ public class PlatformRootService {
         if (rootAccount.isPasswordChangeRequired()) {
             throw new BadRequestException("Root password change is required before onboarding societies");
         }
+
+        auditLogService.record(
+                null,
+                rootAccount.getId(),
+                "ROOT_ONBOARDING_STARTED",
+                "platform_root_account",
+                rootAccount.getId(),
+                "societyName=" + request.societyName().trim()
+                        + ",adminEmail=" + request.adminEmail().trim().toLowerCase());
 
         TenantEntity tenant = new TenantEntity();
         tenant.setName(request.societyName().trim());
@@ -214,8 +267,27 @@ public class PlatformRootService {
 
         UserEntity savedAdmin = userRepository.save(admin);
 
-        auditLogService.record(null, rootAccount.getId(), "ROOT_SOCIETY_CREATED", "tenant", savedTenant.getId(), null);
-        auditLogService.record(savedTenant.getId(), rootAccount.getId(), "ROOT_ADMIN_CREATED", "users", savedAdmin.getId(), null);
+        auditLogService.record(
+                null,
+                rootAccount.getId(),
+                "ROOT_SOCIETY_CREATED",
+                "tenant",
+                savedTenant.getId(),
+                "societyName=" + savedTenant.getName());
+        auditLogService.record(
+                savedTenant.getId(),
+                rootAccount.getId(),
+                "ROOT_ADMIN_CREATED",
+                "users",
+                savedAdmin.getId(),
+                "adminEmail=" + savedAdmin.getEmail());
+        auditLogService.record(
+                savedTenant.getId(),
+                rootAccount.getId(),
+                "ROOT_ONBOARDING_COMPLETED",
+                "tenant",
+                savedTenant.getId(),
+                "adminUserId=" + savedAdmin.getId());
 
         return new SocietyOnboardingResponse(savedTenant.getId(), savedAdmin.getId(), savedAdmin.getEmail());
     }
@@ -241,12 +313,37 @@ public class PlatformRootService {
         return rootAccount;
     }
 
-    private boolean verifyEmailOwnership(String email) {
-        return true;
+    private void onRootLoginFailed(PlatformRootAccountEntity rootAccount) {
+        int currentAttempts = rootAccount.getFailedLoginAttempts() == null ? 0 : rootAccount.getFailedLoginAttempts();
+        int updatedAttempts = currentAttempts + 1;
+        rootAccount.setFailedLoginAttempts(updatedAttempts);
+
+        String payload = "failedAttempts=" + updatedAttempts;
+        if (updatedAttempts >= maxFailedLoginAttempts) {
+            Instant lockedUntil = Instant.now().plus(lockoutDurationMinutes, ChronoUnit.MINUTES);
+            rootAccount.setLockedUntil(lockedUntil);
+            rootAccount.setFailedLoginAttempts(0);
+            payload = payload + ",lockoutMinutes=" + lockoutDurationMinutes + ",lockedUntil=" + lockedUntil;
+        }
+
+        platformRootAccountRepository.save(rootAccount);
+        auditLogService.record(
+                null,
+                rootAccount.getId(),
+                "ROOT_LOGIN_FAILED",
+                "platform_root_account",
+                rootAccount.getId(),
+                payload);
     }
 
-    private boolean verifyMobileOwnership(String mobile) {
-        return true;
+    private void resetRootLoginFailureState(PlatformRootAccountEntity rootAccount) {
+        rootAccount.setFailedLoginAttempts(0);
+        rootAccount.setLockedUntil(null);
+    }
+
+    private boolean isLocked(PlatformRootAccountEntity rootAccount) {
+        Instant lockedUntil = rootAccount.getLockedUntil();
+        return lockedUntil != null && lockedUntil.isAfter(Instant.now());
     }
 
     private PlatformRootAccountEntity createInitialRootAccount() {
@@ -256,6 +353,8 @@ public class PlatformRootService {
         rootAccount.setMobileVerified(true);
         rootAccount.setPasswordChangeRequired(true);
         rootAccount.setTokenVersion(0L);
+        rootAccount.setFailedLoginAttempts(0);
+        rootAccount.setLockedUntil(null);
         rootAccount.setActive(true);
         return platformRootAccountRepository.save(rootAccount);
     }

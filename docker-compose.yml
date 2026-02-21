@@ -1,34 +1,67 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: shield
-      POSTGRES_USER: shield
-      POSTGRES_PASSWORD: shield
+      POSTGRES_DB: ${POSTGRES_DB:-shield}
+      POSTGRES_USER: ${POSTGRES_USER:-shield}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shield}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./db_files/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shield}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    command: [ "redis-server", "--appendonly", "yes" ]
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./db_files/redis:/data
 
   app:
     build: .
+    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${APP_EXPOSED_PORT:-8080}:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shield
-      SPRING_DATASOURCE_USERNAME: shield
-      SPRING_DATASOURCE_PASSWORD: shield
-      JWT_SECRET: change-me-change-me-change-me-change-me
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/shield}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-shield}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-shield}
+      JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me}
+      JWT_ACCESS_TOKEN_TTL_MINUTES: ${JWT_ACCESS_TOKEN_TTL_MINUTES:-30}
+      JWT_REFRESH_TOKEN_TTL_MINUTES: ${JWT_REFRESH_TOKEN_TTL_MINUTES:-4320}
+      NOTIFICATION_EMAIL_ENABLED: ${NOTIFICATION_EMAIL_ENABLED:-false}
+      NOTIFICATION_EMAIL_FROM: ${NOTIFICATION_EMAIL_FROM:-no-reply@shield.local}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      NOTIFICATION_SMS_ENABLED: ${NOTIFICATION_SMS_ENABLED:-false}
+      NOTIFICATION_SMS_PROVIDER: ${NOTIFICATION_SMS_PROVIDER:-DUMMY}
+      NOTIFICATION_WHATSAPP_ENABLED: ${NOTIFICATION_WHATSAPP_ENABLED:-false}
+      NOTIFICATION_WHATSAPP_PROVIDER: ${NOTIFICATION_WHATSAPP_PROVIDER:-DUMMY}
+      PAYMENT_WEBHOOK_PROVIDER_SECRETS: ${PAYMENT_WEBHOOK_PROVIDER_SECRETS:-}
+      ROOT_EMAIL_VERIFICATION_PROVIDER: ${ROOT_EMAIL_VERIFICATION_PROVIDER:-DUMMY}
+      ROOT_MOBILE_VERIFICATION_PROVIDER: ${ROOT_MOBILE_VERIFICATION_PROVIDER:-DUMMY}
+      ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS: ${ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS:-5}
+      ROOT_LOCKOUT_DURATION_MINUTES: ${ROOT_LOCKOUT_DURATION_MINUTES:-30}
+      BOOTSTRAP_ENABLED: ${BOOTSTRAP_ENABLED:-false}
+      BOOTSTRAP_TENANT_NAME: ${BOOTSTRAP_TENANT_NAME:-}
+      BOOTSTRAP_TENANT_ADDRESS: ${BOOTSTRAP_TENANT_ADDRESS:-}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-ShieldAdmin}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     depends_on:
-      - postgres
-      - redis
-
-volumes:
-  postgres_data:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started

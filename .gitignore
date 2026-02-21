@@ -21,6 +21,8 @@ logs/
 .env
 application-local.yml
 application-secrets.yml
+*.local.env
+secrets.env
 
 # Build artifacts
 *.class

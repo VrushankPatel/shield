@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/shield
-    username: shield
-    password: shield
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/shield}
+    username: ${SPRING_DATASOURCE_USERNAME:shield}
+    password: ${SPRING_DATASOURCE_PASSWORD:shield}
   jpa:
     show-sql: true
 

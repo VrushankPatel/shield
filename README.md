@@ -5,10 +5,11 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VrushankPatel_shield&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VrushankPatel_shield)
 
 SHIELD stands for **Smart Housing Infrastructure and Entry Log Digitalization**.
-It is a multi-tenant Spring Boot backend for residential society operations.
 
-## Stack
-- Java 17
+It is a multi-tenant Spring Boot backend for residential society operations with JWT-based RBAC, OpenAPI-first contracts, Flyway migrations, Testcontainers integration testing, and GHCR-ready CI/CD.
+
+## Technology Stack
+- Java 17+
 - Spring Boot 3.2.x
 - Spring Security + JWT + RBAC
 - PostgreSQL + Flyway
@@ -16,66 +17,113 @@ It is a multi-tenant Spring Boot backend for residential society operations.
 - Springdoc OpenAPI
 - Testcontainers + RestAssured + JUnit 5
 
-## Architecture
-- Modular monolith with strict module boundaries
-- Single database multi-tenancy (`tenant_id` isolation)
-- Tenant context from JWT claims
-- Stateless auth with access/refresh JWT tokens
+## Key Functional Scope
+- Identity and access management (tenant, unit, user, role)
+- Billing, payments, accounting, and treasury records
+- Visitor and gate pass workflows
+- Asset, complaint, and work-order lifecycle
+- Amenities and meeting governance
+- Staff/payroll, utility monitoring, marketplace, helpdesk
+- Platform root onboarding flow for new societies
 
-## Platform Root Flow
-A dedicated platform root account is used for first-time onboarding.
-
-- Root login id is fixed: `root`
-- If root password is missing at startup, SHIELD generates a strong password and logs it once
-- First root login requires password change
-- Root password change requires: email, mobile, new password, confirm password
-- After password change, old root tokens are invalidated automatically (token version bump)
-- Root can create society + tenant admin using `POST /api/v1/platform/societies`
-
-## API and Database Docs
+## Project Docs
+- Architecture: `docs/architecture.md`
+- API spec summary: `docs/api-spec.md`
 - OpenAPI source: `src/main/resources/openapi.yml`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- Runtime OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-- API summary: `docs/api-spec.md`
-- Consolidated DB SQL model: `docs/database-model.sql`
-- DB model guide: `docs/database-model.md`
+- Database SQL model: `docs/database-model.sql`
+- Database model guide: `docs/database-model.md`
 - Deployment guide: `docs/deployment.md`
-- Dev inputs/secrets: `docs/developer_request.md`
+- Developer integration inputs: `docs/developer_request.md`
 
-## Local Run
-1. Start dependencies:
+## Environment Strategy (`dev.env`, `prod.env`)
+`dev.env` and `prod.env` are committed as **templates**. Keep real secrets in secure stores or local override files.
+
+Load env values into your shell:
+
 ```bash
-docker compose up -d postgres redis
+set -a && source dev.env && set +a
 ```
 
-2. Run application:
+or
+
+```bash
+set -a && source prod.env && set +a
+```
+
+Spring config reads these through normal process environment variables.
+
+## Local Development Run
+1. Load development env:
+```bash
+set -a && source dev.env && set +a
+```
+
+2. Start local dependencies:
+```bash
+docker compose --env-file dev.env up -d postgres redis
+```
+
+3. Run API:
 ```bash
 mvn spring-boot:run
 ```
 
-## One-Click HA Topology
-`run.sh` can generate and launch multi-instance app topology with HAProxy or NGINX:
+4. Open API docs:
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+## Docker Compose Full Stack
+Run app + postgres + redis using production template values:
 
 ```bash
-./run.sh --instances 4 --proxy haproxy
-./run.sh --instances 2 --proxy nginx
+docker compose --env-file prod.env up -d --build
 ```
 
-Generated files are placed under `system_topologies/generated/`.
-Persistent DB/cache data stays under `db_files/`.
+Persistent data directories:
+- PostgreSQL: `db_files/postgres`
+- Redis append-only data: `db_files/redis`
 
-## Build and Test
-- Unit tests:
+## One-Click Multi-Instance Topology
+Use `run.sh` to generate and run HAProxy/NGINX balanced multi-instance topologies:
+
+```bash
+./run.sh --instances 4 --proxy haproxy --env-file prod.env
+./run.sh --instances 2 --proxy nginx --env-file prod.env
+```
+
+Stop generated topology:
+
+```bash
+./run.sh --instances 4 --proxy haproxy --env-file prod.env --down
+```
+
+Generate files only:
+
+```bash
+./run.sh --instances 4 --proxy haproxy --env-file prod.env --generate-only
+```
+
+Generated artifacts are under `system_topologies/generated/`.
+
+## Scripts
+- `run.sh`: Generate and run/load-balanced deployment topologies.
+- `scripts/generate_db_artifacts.py`: Generate migration/doc artifacts from DB model JSON.
+
+## Build, Test, and Coverage
+Run tests:
+
 ```bash
 mvn test
 ```
 
-- Full test suite with integration tests and coverage:
+Run full verification (unit + integration + coverage):
+
 ```bash
 mvn verify
 ```
 
-- Build fat jar:
+Build fat jar:
+
 ```bash
 mvn clean package
 ```
@@ -83,6 +131,32 @@ mvn clean package
 Artifact:
 - `target/shield-1.0.0.jar`
 
-## Mobile Client Note
-Frontend/mobile implementation is intentionally out of scope in this repository.
-The backend is built as API-first and secured for React Native or any other client.
+## Production Secret Wiring
+Do not hardcode secrets in source control.
+
+Runtime environment secrets (examples):
+- `JWT_SECRET`
+- `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`
+- `PAYMENT_WEBHOOK_PROVIDER_SECRETS`
+
+GitHub Actions secrets:
+- `CODECOV_TOKEN`
+- `SONAR_TOKEN`
+
+For GitHub repository setup:
+1. Open repo `Settings` -> `Secrets and variables` -> `Actions`.
+2. Add required secrets.
+3. Keep `prod.env` placeholders only; inject real values at deploy runtime.
+
+## Security Notes
+- Platform root login id is fixed as `root`.
+- On first startup, if missing, root password is generated once and logged.
+- First root login requires password change.
+- Password change bumps root token version and invalidates old sessions.
+- Root login lockout policy is configurable:
+  - `ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS`
+  - `ROOT_LOCKOUT_DURATION_MINUTES`
+
+## Client Scope
+This repository is backend-only. Mobile/web clients are out of scope here.
