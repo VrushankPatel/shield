@@ -7,52 +7,113 @@ INSTANCES=2
 PROXY="haproxy"
 ACTION="up"
 GENERATE_ONLY=false
-ENV_FILE="$ROOT_DIR/prod.env"
+ENV_FILE=""
+
+POSTGRES_HOST_DIR="$ROOT_DIR/db_files/postgres"
+REDIS_HOST_DIR="$ROOT_DIR/db_files/redis"
+
+print_banner() {
+  cat <<'BANNER'
+   _____ _   _ ___ _____ _     ____
+  / ____| | | |_ _| ____| |   |  _ \\
+ | (___ | |_| || ||  _| | |   | | | |
+  \___ \|  _  || || |___| |___| |_| |
+  ____) | | | || ||_____|_____|____/
+ |_____/|_| |_|___|
+
+ Smart Housing Infrastructure and Entry Log Digitalization
+BANNER
+}
 
 usage() {
+  print_banner
   cat <<USAGE
+
 Usage:
-  ./run.sh --instances <count> --proxy <haproxy|nginx> [--env-file <path>] [--generate-only]
-  ./run.sh --instances <count> --proxy <haproxy|nginx> [--env-file <path>] --down
+  run.sh --instances <count> --proxy <haproxy|nginx> [--env-file <path>] [--generate-only]
+  run.sh --instances <count> --proxy <haproxy|nginx> [--env-file <path>] --down
 
 Examples:
   ./run.sh --instances 4 --proxy haproxy --env-file prod.env
   ./run.sh --instances 2 --proxy nginx --env-file dev.env
-  ./run.sh --instances 2 --proxy haproxy --generate-only
+  ./run.sh --instances 4 --proxy haproxy --generate-only
+  /absolute/path/to/run.sh --instances 3 --proxy haproxy --env-file /absolute/path/to/prod.env
 
 Options:
-  --instances <count>   Number of app instances to generate/run (>=1)
-  --proxy <name>        Proxy to use: haproxy or nginx
-  --env-file <path>     Environment file to load (default: prod.env)
-  --generate-only       Generate topology files only, do not run docker compose
-  --down                Stop and remove generated topology stack
-  -h, --help            Show this help
+  --instances <count>   Number of API app instances (must be >= 1)
+  --proxy <name>        Load balancer: haproxy or nginx
+  --env-file <path>     Environment file path. Relative path resolves by:
+                        1) current working directory
+                        2) project root ($ROOT_DIR)
+                        default: $ROOT_DIR/prod.env
+  --generate-only       Generate topology and config files only (no compose up/down)
+  --down                Stop and remove the generated stack
+  -h, --help            Show this help and exit
+
+What this script generates:
+  - topology directory: system_topologies/generated/System<instances>Nodes<Proxy>/
+  - docker-compose.yml
+  - haproxy.cfg or nginx.conf
+
+Persistence:
+  - PostgreSQL data: $POSTGRES_HOST_DIR
+  - Redis data:      $REDIS_HOST_DIR
+
 USAGE
+}
+
+err() {
+  echo "[ERROR] $*" >&2
 }
 
 require_value() {
   local flag="$1"
   local value="${2:-}"
   if [[ -z "$value" || "$value" == --* ]]; then
-    echo "Missing value for $flag" >&2
+    err "Missing value for $flag"
     usage
     exit 1
   fi
 }
 
-resolve_path() {
-  local input_path="$1"
-  if [[ "$input_path" = /* ]]; then
-    echo "$input_path"
-  else
-    echo "$ROOT_DIR/$input_path"
+abspath() {
+  local p="$1"
+  if [[ "$p" = /* ]]; then
+    printf '%s\n' "$p"
+    return
   fi
+
+  local dir
+  dir="$(cd "$(dirname "$p")" && pwd)"
+  printf '%s/%s\n' "$dir" "$(basename "$p")"
+}
+
+resolve_env_file() {
+  local raw="$1"
+
+  if [[ "$raw" = /* ]]; then
+    printf '%s\n' "$raw"
+    return
+  fi
+
+  if [[ -f "$raw" ]]; then
+    abspath "$raw"
+    return
+  fi
+
+  if [[ -f "$ROOT_DIR/$raw" ]]; then
+    abspath "$ROOT_DIR/$raw"
+    return
+  fi
+
+  # Fallback for error handling path display
+  printf '%s\n' "$ROOT_DIR/$raw"
 }
 
 load_env_file() {
   local env_file="$1"
   if [[ ! -f "$env_file" ]]; then
-    echo "Env file not found: $env_file" >&2
+    err "Env file not found: $env_file"
     exit 1
   fi
 
@@ -60,6 +121,38 @@ load_env_file() {
   # shellcheck disable=SC1090
   source "$env_file"
   set +a
+}
+
+proxy_label() {
+  if [[ "$1" == "haproxy" ]]; then
+    echo "HaProxy"
+  else
+    echo "Nginx"
+  fi
+}
+
+print_failure_diagnostics() {
+  local compose_project="$1"
+  local postgres_container="${compose_project}-postgres-1"
+
+  echo
+  err "Stack startup failed. Diagnostics:"
+
+  if docker ps -a --format '{{.Names}}' | grep -qx "$postgres_container"; then
+    echo "--- postgres logs ($postgres_container) ---"
+    docker logs --tail 120 "$postgres_container" || true
+    echo "--- end postgres logs ---"
+
+    if docker logs "$postgres_container" 2>&1 | grep -q "exists but is not empty"; then
+      echo
+      err "PostgreSQL initdb failed because data directory is a non-empty mount root."
+      echo "Hint: script now uses PGDATA subdirectory '/var/lib/postgresql/data/pgdata' to avoid this."
+      echo "If old broken files exist, clean only when safe:"
+      echo "  rm -rf '$POSTGRES_HOST_DIR/pgdata'"
+    fi
+  else
+    err "Postgres container not found ($postgres_container)."
+  fi
 }
 
 while [[ $# -gt 0 ]]; do
@@ -76,7 +169,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --env-file)
       require_value "$1" "${2:-}"
-      ENV_FILE="$(resolve_path "$2")"
+      ENV_FILE="$(resolve_env_file "$2")"
       shift 2
       ;;
     --generate-only)
@@ -92,30 +185,29 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Unknown option: $1" >&2
+      err "Unknown option: $1"
       usage
       exit 1
       ;;
   esac
 done
 
-if ! [[ "$INSTANCES" =~ ^[0-9]+$ ]]; then
-  echo "--instances must be a positive integer" >&2
-  exit 1
-fi
-
-if (( INSTANCES < 1 )); then
-  echo "--instances must be >= 1" >&2
+if ! [[ "$INSTANCES" =~ ^[0-9]+$ ]] || (( INSTANCES < 1 )); then
+  err "--instances must be a positive integer >= 1"
   exit 1
 fi
 
 case "$PROXY" in
   haproxy|nginx) ;;
   *)
-    echo "--proxy must be either 'haproxy' or 'nginx'" >&2
+    err "--proxy must be either 'haproxy' or 'nginx'"
     exit 1
     ;;
 esac
+
+if [[ -z "$ENV_FILE" ]]; then
+  ENV_FILE="$ROOT_DIR/prod.env"
+fi
 
 load_env_file "$ENV_FILE"
 
@@ -126,6 +218,14 @@ load_env_file "$ENV_FILE"
 : "${JWT_SECRET:=change-me-change-me-change-me-change-me}"
 : "${JWT_ACCESS_TOKEN_TTL_MINUTES:=30}"
 : "${JWT_REFRESH_TOKEN_TTL_MINUTES:=4320}"
+: "${PASSWORD_POLICY_MIN_LENGTH:=12}"
+: "${PASSWORD_POLICY_MAX_LENGTH:=128}"
+: "${PASSWORD_POLICY_REQUIRE_UPPER:=true}"
+: "${PASSWORD_POLICY_REQUIRE_LOWER:=true}"
+: "${PASSWORD_POLICY_REQUIRE_DIGIT:=true}"
+: "${PASSWORD_POLICY_REQUIRE_SPECIAL:=true}"
+: "${USER_LOCKOUT_MAX_FAILED_ATTEMPTS:=5}"
+: "${USER_LOCKOUT_DURATION_MINUTES:=30}"
 : "${NOTIFICATION_EMAIL_ENABLED:=false}"
 : "${NOTIFICATION_EMAIL_FROM:=no-reply@shield.local}"
 : "${SPRING_MAIL_HOST:=smtp.gmail.com}"
@@ -152,6 +252,10 @@ load_env_file "$ENV_FILE"
 
 export POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD SPRING_PROFILES_ACTIVE JWT_SECRET
 export JWT_ACCESS_TOKEN_TTL_MINUTES JWT_REFRESH_TOKEN_TTL_MINUTES
+export PASSWORD_POLICY_MIN_LENGTH PASSWORD_POLICY_MAX_LENGTH
+export PASSWORD_POLICY_REQUIRE_UPPER PASSWORD_POLICY_REQUIRE_LOWER
+export PASSWORD_POLICY_REQUIRE_DIGIT PASSWORD_POLICY_REQUIRE_SPECIAL
+export USER_LOCKOUT_MAX_FAILED_ATTEMPTS USER_LOCKOUT_DURATION_MINUTES
 export NOTIFICATION_EMAIL_ENABLED NOTIFICATION_EMAIL_FROM
 export SPRING_MAIL_HOST SPRING_MAIL_PORT SPRING_MAIL_USERNAME SPRING_MAIL_PASSWORD
 export NOTIFICATION_SMS_ENABLED NOTIFICATION_SMS_PROVIDER
@@ -161,31 +265,21 @@ export ROOT_BOOTSTRAP_CREDENTIAL_FILE
 export ROOT_LOCKOUT_MAX_FAILED_ATTEMPTS ROOT_LOCKOUT_DURATION_MINUTES
 export BOOTSTRAP_ENABLED BOOTSTRAP_TENANT_NAME BOOTSTRAP_TENANT_ADDRESS
 export BOOTSTRAP_ADMIN_NAME BOOTSTRAP_ADMIN_EMAIL BOOTSTRAP_ADMIN_PASSWORD
-export PAYMENT_WEBHOOK_PROVIDER_SECRETS
-export PAYMENT_WEBHOOK_REQUIRE_PROVIDER_SECRET
-
-proxy_label() {
-  if [[ "$1" == "haproxy" ]]; then
-    echo "HaProxy"
-  else
-    echo "Nginx"
-  fi
-}
+export PAYMENT_WEBHOOK_PROVIDER_SECRETS PAYMENT_WEBHOOK_REQUIRE_PROVIDER_SECRET
 
 SYSTEM_DIR_NAME="System${INSTANCES}Nodes$(proxy_label "$PROXY")"
 TARGET_DIR="$ROOT_DIR/system_topologies/generated/$SYSTEM_DIR_NAME"
 COMPOSE_FILE="$TARGET_DIR/docker-compose.yml"
 COMPOSE_PROJECT="$(echo "$SYSTEM_DIR_NAME" | tr '[:upper:]' '[:lower:]')"
 
-mkdir -p "$ROOT_DIR/db_files/postgres" "$ROOT_DIR/db_files/redis"
-mkdir -p "$TARGET_DIR"
+mkdir -p "$POSTGRES_HOST_DIR/pgdata" "$REDIS_HOST_DIR" "$TARGET_DIR"
 
 generate_haproxy_cfg() {
   local cfg_file="$TARGET_DIR/haproxy.cfg"
   {
     echo "global"
     echo "  log stdout format raw local0"
-    echo ""
+    echo
     echo "defaults"
     echo "  mode http"
     echo "  log global"
@@ -193,11 +287,11 @@ generate_haproxy_cfg() {
     echo "  timeout connect 5s"
     echo "  timeout client 30s"
     echo "  timeout server 30s"
-    echo ""
+    echo
     echo "frontend fe_http"
     echo "  bind *:80"
     echo "  default_backend be_shield"
-    echo ""
+    echo
     echo "backend be_shield"
     echo "  balance roundrobin"
     for i in $(seq 1 "$INSTANCES"); do
@@ -215,10 +309,10 @@ generate_nginx_conf() {
       echo "  server app${i}:8080 max_fails=3 fail_timeout=30s;"
     done
     echo "}"
-    echo ""
+    echo
     echo "server {"
     echo "  listen 80;"
-    echo ""
+    echo
     echo "  location / {"
     echo "    proxy_pass http://shield_backend;"
     echo "    proxy_http_version 1.1;"
@@ -241,23 +335,24 @@ generate_compose() {
     echo "      POSTGRES_DB: \${POSTGRES_DB}"
     echo "      POSTGRES_USER: \${POSTGRES_USER}"
     echo "      POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}"
+    echo "      PGDATA: /var/lib/postgresql/data/pgdata"
     echo "    volumes:"
-    echo "      - ../../../db_files/postgres:/var/lib/postgresql/data"
+    echo "      - $POSTGRES_HOST_DIR:/var/lib/postgresql/data"
     echo "    healthcheck:"
-    echo "      test: [\"CMD-SHELL\", \"pg_isready -U \${POSTGRES_USER}\"]"
+    echo "      test: [\"CMD-SHELL\", \"pg_isready -h 127.0.0.1 -U \${POSTGRES_USER} -d \${POSTGRES_DB} || exit 1\"]"
     echo "      interval: 10s"
     echo "      timeout: 5s"
-    echo "      retries: 5"
+    echo "      retries: 10"
     echo "    networks: [shield-net]"
-    echo ""
+    echo
     echo "  redis:"
     echo "    image: redis:7-alpine"
     echo "    restart: unless-stopped"
     echo "    command: [\"redis-server\", \"--appendonly\", \"yes\"]"
     echo "    volumes:"
-    echo "      - ../../../db_files/redis:/data"
+    echo "      - $REDIS_HOST_DIR:/data"
     echo "    networks: [shield-net]"
-    echo ""
+    echo
 
     for i in $(seq 1 "$INSTANCES"); do
       echo "  app${i}:"
@@ -273,6 +368,14 @@ generate_compose() {
       echo "      JWT_SECRET: \${JWT_SECRET}"
       echo "      JWT_ACCESS_TOKEN_TTL_MINUTES: \${JWT_ACCESS_TOKEN_TTL_MINUTES}"
       echo "      JWT_REFRESH_TOKEN_TTL_MINUTES: \${JWT_REFRESH_TOKEN_TTL_MINUTES}"
+      echo "      PASSWORD_POLICY_MIN_LENGTH: \${PASSWORD_POLICY_MIN_LENGTH}"
+      echo "      PASSWORD_POLICY_MAX_LENGTH: \${PASSWORD_POLICY_MAX_LENGTH}"
+      echo "      PASSWORD_POLICY_REQUIRE_UPPER: \${PASSWORD_POLICY_REQUIRE_UPPER}"
+      echo "      PASSWORD_POLICY_REQUIRE_LOWER: \${PASSWORD_POLICY_REQUIRE_LOWER}"
+      echo "      PASSWORD_POLICY_REQUIRE_DIGIT: \${PASSWORD_POLICY_REQUIRE_DIGIT}"
+      echo "      PASSWORD_POLICY_REQUIRE_SPECIAL: \${PASSWORD_POLICY_REQUIRE_SPECIAL}"
+      echo "      USER_LOCKOUT_MAX_FAILED_ATTEMPTS: \${USER_LOCKOUT_MAX_FAILED_ATTEMPTS}"
+      echo "      USER_LOCKOUT_DURATION_MINUTES: \${USER_LOCKOUT_DURATION_MINUTES}"
       echo "      NOTIFICATION_EMAIL_ENABLED: \${NOTIFICATION_EMAIL_ENABLED}"
       echo "      NOTIFICATION_EMAIL_FROM: \${NOTIFICATION_EMAIL_FROM}"
       echo "      SPRING_MAIL_HOST: \${SPRING_MAIL_HOST}"
@@ -302,7 +405,7 @@ generate_compose() {
       echo "      redis:"
       echo "        condition: service_started"
       echo "    networks: [shield-net]"
-      echo ""
+      echo
     done
 
     if [[ "$PROXY" == "haproxy" ]]; then
@@ -333,7 +436,7 @@ generate_compose() {
       echo "    networks: [shield-net]"
     fi
 
-    echo ""
+    echo
     echo "networks:"
     echo "  shield-net:"
     echo "    driver: bridge"
@@ -357,13 +460,18 @@ if [[ "$GENERATE_ONLY" == true ]]; then
   exit 0
 fi
 
+COMPOSE_CMD=(docker compose --project-name "$COMPOSE_PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE")
+
 if [[ "$ACTION" == "down" ]]; then
-  docker compose --project-name "$COMPOSE_PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" down
+  "${COMPOSE_CMD[@]}" down
   echo "Stopped topology $SYSTEM_DIR_NAME"
   exit 0
 fi
 
-docker compose --project-name "$COMPOSE_PROJECT" --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d --build
+if ! "${COMPOSE_CMD[@]}" up -d --build; then
+  print_failure_diagnostics "$COMPOSE_PROJECT"
+  exit 1
+fi
 
 echo "Started topology $SYSTEM_DIR_NAME"
 echo "Proxy endpoint: http://localhost:8080"
