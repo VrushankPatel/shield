@@ -104,13 +104,12 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 - Coverage upload (Codecov)
 - Docker image build and push to GHCR
 - SonarCloud analysis (when `SONAR_TOKEN` is configured)
-- PDF/JSON/Markdown quality artifact generation for Sonar and coverage
 
-Download quality artifacts using GitHub CLI:
+Download JaCoCo coverage artifact using GitHub CLI:
 
 ```bash
 gh run list --workflow ci.yml --limit 5
-gh run download <run-id> -n sonar-quality-report -n coverage-quality-report -n jacoco-report
+gh run download <run-id> -n jacoco-report
 ```
 
 Published image tags:

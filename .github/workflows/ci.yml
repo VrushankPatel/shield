@@ -41,17 +41,6 @@ jobs:
           DOCKER_API_VERSION: "1.44"
         run: mvn -B clean verify
 
-      - name: Set up Python 3
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install quality report dependencies
-        run: python -m pip install --upgrade pip reportlab
-
-      - name: Generate coverage PDF report
-        run: python scripts/generate_coverage_pdf_report.py target/quality-reports/coverage
-
       - name: SonarCloud analysis
         if: ${{ env.SONAR_TOKEN != '' }}
         continue-on-error: true
@@ -63,26 +52,6 @@ jobs:
           -Dsonar.organization=${SONAR_ORGANIZATION:-vrushankpatel}
           -Dsonar.projectKey=${SONAR_PROJECT_KEY:-VrushankPatel_shield}
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
-
-      - name: Generate SonarCloud PDF report
-        if: always()
-        run: python scripts/generate_sonar_pdf_report.py target/quality-reports/sonar
-
-      - name: Upload coverage quality artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-quality-report
-          path: |
-            target/quality-reports/coverage/
-
-      - name: Upload Sonar quality artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sonar-quality-report
-          path: |
-            target/quality-reports/sonar/
 
       - name: Upload JaCoCo report
         uses: actions/upload-artifact@v4

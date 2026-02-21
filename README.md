@@ -34,6 +34,7 @@ It is a multi-tenant Spring Boot backend for residential society operations with
 - Database model guide: `docs/database-model.md`
 - Deployment guide: `docs/deployment.md`
 - Developer integration inputs: `docs/developer_request.md`
+- Plan gap analysis: `docs/implementation-gap-analysis.md`
 
 ## Environment Strategy (`dev.env`, `prod.env`)
 `dev.env` and `prod.env` are committed as **templates**. Keep real secrets in secure stores or local override files.
@@ -108,8 +109,6 @@ Generated artifacts are under `system_topologies/generated/`.
 ## Scripts
 - `run.sh`: Generate and run/load-balanced deployment topologies.
 - `scripts/generate_db_artifacts.py`: Generate migration/doc artifacts from DB model JSON.
-- `scripts/generate_sonar_pdf_report.py`: Build SonarCloud issue/measure reports (JSON/MD/PDF).
-- `scripts/generate_coverage_pdf_report.py`: Build JaCoCo coverage reports (JSON/MD/PDF).
 
 ## Build, Test, and Coverage
 Run tests:
@@ -134,23 +133,14 @@ Artifact:
 - `target/shield-1.0.0.jar`
 
 ## CI Quality Artifacts
-CI now publishes downloadable artifacts for quality triage:
-- `sonar-quality-report`
-  - `sonar-report.pdf`
-  - `sonar-report.json`
-  - `sonar-report.md`
-- `coverage-quality-report`
-  - `coverage-report.pdf`
-  - `coverage-report.json`
-  - `coverage-report.md`
+CI publishes JaCoCo HTML coverage reports as downloadable artifact:
 - `jacoco-report`
-  - full JaCoCo HTML reports
 
 Download from terminal with GitHub CLI:
 
 ```bash
 gh run list --workflow ci.yml --limit 5
-gh run download <run-id> -n sonar-quality-report -n coverage-quality-report -n jacoco-report
+gh run download <run-id> -n jacoco-report
 ```
 
 ## Production Secret Wiring
