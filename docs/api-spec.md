@@ -43,6 +43,12 @@ Root lifecycle behavior:
 - Helpdesk/Emergency/Documents: `/helpdesk-*`, `/emergency-*`, `/sos-alerts/*`, `/documents/*`, `/document-categories/hierarchy`
 - Analytics/Config/Files/Logs: `/analytics/*`, `/config/*`, `/settings/*`, `/files/*`, `/audit-logs/*`
 
+### Communication Notes
+- Announcements now include:
+  - filtered listing: `/announcements/category/{category}`, `/announcements/priority/{priority}`, `/announcements/active`
+  - read tracking: `POST /announcements/{id}/mark-read`
+  - read visibility: `GET /announcements/{id}/read-receipts`, `GET /announcements/{id}/statistics`
+
 ## Mobile App Readiness
 The backend is API-first and frontend-agnostic. React Native clients should use:
 - short-lived access token + refresh flow

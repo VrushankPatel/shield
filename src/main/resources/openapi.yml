@@ -3654,6 +3654,48 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Announcements fetched}
+  /announcements/category/{category}:
+    get:
+      tags: [Announcements]
+      summary: List announcements by category
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+            enum: [URGENT, MAINTENANCE, EVENT, GENERAL]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Announcements fetched}
+  /announcements/priority/{priority}:
+    get:
+      tags: [Announcements]
+      summary: List announcements by priority
+      parameters:
+        - in: path
+          name: priority
+          required: true
+          schema:
+            type: string
+            enum: [HIGH, MEDIUM, LOW]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Announcements fetched}
+  /announcements/active:
+    get:
+      tags: [Announcements]
+      summary: List active announcements
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Announcements fetched}
   /announcements/{id}:
     get:
       tags: [Announcements]
@@ -3670,6 +3712,33 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Announcement published}
+  /announcements/{id}/mark-read:
+    post:
+      tags: [Announcements]
+      summary: Mark announcement as read
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Announcement marked as read}
+  /announcements/{id}/read-receipts:
+    get:
+      tags: [Announcements]
+      summary: List announcement read receipts
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Announcement read receipts fetched}
+  /announcements/{id}/statistics:
+    get:
+      tags: [Announcements]
+      summary: Get announcement read statistics
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Announcement statistics fetched}
   /announcements/{id}/attachments:
     get:
       tags: [Announcements]

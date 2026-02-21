@@ -7,7 +7,11 @@ import com.shield.module.announcement.dto.AnnouncementAttachmentRequest;
 import com.shield.module.announcement.dto.AnnouncementAttachmentResponse;
 import com.shield.module.announcement.dto.AnnouncementCreateRequest;
 import com.shield.module.announcement.dto.AnnouncementPublishResponse;
+import com.shield.module.announcement.dto.AnnouncementReadReceiptResponse;
 import com.shield.module.announcement.dto.AnnouncementResponse;
+import com.shield.module.announcement.dto.AnnouncementStatisticsResponse;
+import com.shield.module.announcement.entity.AnnouncementCategory;
+import com.shield.module.announcement.entity.AnnouncementPriority;
 import com.shield.module.announcement.service.AnnouncementAttachmentService;
 import com.shield.module.announcement.service.AnnouncementService;
 import com.shield.security.model.ShieldPrincipal;
@@ -48,6 +52,29 @@ public class AnnouncementController {
         return ResponseEntity.ok(ApiResponse.ok("Announcements fetched", announcementService.list(pageable)));
     }
 
+    @GetMapping("/category/{category}")
+    public ResponseEntity<ApiResponse<PagedResponse<AnnouncementResponse>>> listByCategory(
+            @PathVariable AnnouncementCategory category,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Announcements fetched",
+                announcementService.listByCategory(category, pageable)));
+    }
+
+    @GetMapping("/priority/{priority}")
+    public ResponseEntity<ApiResponse<PagedResponse<AnnouncementResponse>>> listByPriority(
+            @PathVariable AnnouncementPriority priority,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Announcements fetched",
+                announcementService.listByPriority(priority, pageable)));
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<PagedResponse<AnnouncementResponse>>> listActive(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Announcements fetched", announcementService.listActive(pageable)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<AnnouncementResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok("Announcement fetched", announcementService.getById(id)));
@@ -58,6 +85,28 @@ public class AnnouncementController {
     public ResponseEntity<ApiResponse<AnnouncementPublishResponse>> publish(@PathVariable UUID id) {
         ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
         return ResponseEntity.ok(ApiResponse.ok("Announcement published", announcementService.publish(id, principal)));
+    }
+
+    @PostMapping("/{id}/mark-read")
+    public ResponseEntity<ApiResponse<AnnouncementReadReceiptResponse>> markRead(@PathVariable UUID id) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Announcement marked as read", announcementService.markRead(id, principal)));
+    }
+
+    @GetMapping("/{id}/read-receipts")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PagedResponse<AnnouncementReadReceiptResponse>>> listReadReceipts(
+            @PathVariable UUID id,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Announcement read receipts fetched",
+                announcementService.listReadReceipts(id, pageable)));
+    }
+
+    @GetMapping("/{id}/statistics")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<AnnouncementStatisticsResponse>> statistics(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok("Announcement statistics fetched", announcementService.getStatistics(id)));
     }
 
     @PostMapping("/{id}/attachments")

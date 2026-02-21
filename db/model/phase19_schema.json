@@ -1,0 +1,19 @@
+{
+  "version": "phase19-v1",
+  "tables": [
+    {
+      "name": "announcement_read_receipt",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "announcement_id", "type": "UUID", "nullable": false, "references": "announcement(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "read_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"}
+      ],
+      "indexes": [
+        {"name": "idx_ann_read_receipt_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_ann_read_receipt_announcement", "columns": ["tenant_id", "announcement_id"]},
+        {"name": "idx_ann_read_receipt_user", "columns": ["tenant_id", "user_id"]}
+      ]
+    }
+  ]
+}

@@ -99,8 +99,63 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .when().delete("/announcements/attachments/" + attachmentId)
                                 .then().statusCode(200);
 
+                // 6. Publish Announcement
+                given()
+                                .header("Authorization", "Bearer " + adminToken)
+                                .when().post("/announcements/" + announcementId + "/publish")
+                                .then().statusCode(200)
+                                .body("data.announcement.status", equalTo("PUBLISHED"));
+
+                // 7. Filter announcements by category/priority/active
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().get("/announcements/category/GENERAL")
+                                .then().statusCode(200)
+                                .body("data.content", hasSize(1));
+
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().get("/announcements/priority/MEDIUM")
+                                .then().statusCode(200)
+                                .body("data.content", hasSize(1));
+
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().get("/announcements/active")
+                                .then().statusCode(200)
+                                .body("data.content", hasSize(1));
+
+                // 8. Mark announcement read and verify idempotency
+                String receiptId = given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().post("/announcements/" + announcementId + "/mark-read")
+                                .then().statusCode(200)
+                                .extract().path("data.id");
+
+                given()
+                                .header("Authorization", "Bearer " + residentToken)
+                                .when().post("/announcements/" + announcementId + "/mark-read")
+                                .then().statusCode(200)
+                                .body("data.id", equalTo(receiptId));
+
+                // 9. Read receipts and statistics
+                given()
+                                .header("Authorization", "Bearer " + adminToken)
+                                .when().get("/announcements/" + announcementId + "/read-receipts")
+                                .then().statusCode(200)
+                                .body("data.content", hasSize(1))
+                                .body("data.content[0].userId", equalTo(resident.getId().toString()));
+
+                given()
+                                .header("Authorization", "Bearer " + adminToken)
+                                .when().get("/announcements/" + announcementId + "/statistics")
+                                .then().statusCode(200)
+                                .body("data.totalRecipients", equalTo(2))
+                                .body("data.totalReads", equalTo(1))
+                                .body("data.unreadCount", equalTo(1));
+
                 // --- POLLS ---
-                // 6. Create Poll (Admin)
+                // 10. Create Poll (Admin)
                 String pollId = given()
                                 .header("Authorization", "Bearer " + adminToken)
                                 .contentType("application/json")
@@ -114,14 +169,14 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .then().statusCode(200)
                                 .extract().path("data.id");
 
-                // 7. Activate Poll
+                // 11. Activate Poll
                 given()
                                 .header("Authorization", "Bearer " + adminToken)
                                 .when().post("/polls/" + pollId + "/activate")
                                 .then().statusCode(200)
                                 .body("data.status", equalTo("ACTIVE"));
 
-                // 8. Vote (Resident)
+                // 12. Vote (Resident)
                 String optionId = given()
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().get("/polls/" + pollId)
@@ -135,7 +190,7 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .when().post("/polls/" + pollId + "/vote")
                                 .then().statusCode(200);
 
-                // 9. Check Results
+                // 13. Check Results
                 given()
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().get("/polls/" + pollId + "/results")
@@ -144,7 +199,7 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .body("data.results[0].voteCount", equalTo(1));
 
                 // --- NEWSLETTERS ---
-                // 10. Create Newsletter
+                // 14. Create Newsletter
                 String newsletterId = given()
                                 .header("Authorization", "Bearer " + adminToken)
                                 .contentType("application/json")
@@ -159,14 +214,14 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .then().statusCode(200)
                                 .extract().path("data.id");
 
-                // 11. Publish Newsletter
+                // 15. Publish Newsletter
                 given()
                                 .header("Authorization", "Bearer " + adminToken)
                                 .when().post("/newsletters/" + newsletterId + "/publish")
                                 .then().statusCode(200)
                                 .body("data.status", equalTo("PUBLISHED"));
 
-                // 12. List by Year
+                // 16. List by Year
                 given()
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().get("/newsletters/year/2026")
@@ -174,7 +229,7 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .body("data.content", hasSize(1));
 
                 // --- NOTIFICATIONS ---
-                // 13. Bulk Send
+                // 17. Bulk Send
                 given()
                                 .header("Authorization", "Bearer " + adminToken)
                                 .contentType("application/json")
@@ -188,14 +243,14 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().get("/notifications")
                                 .then().statusCode(200)
-                                .body("data.content", hasSize(1))
+                                .body("data.content", hasSize(2))
                                 .extract().path("data.content[0].id");
 
                 given()
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().get("/notifications/unread-count")
                                 .then().statusCode(200)
-                                .body("data", equalTo(1));
+                                .body("data", equalTo(2));
 
                 given()
                                 .header("Authorization", "Bearer " + residentToken)
@@ -206,9 +261,9 @@ class CommunicationModuleIT extends IntegrationTestBase {
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().get("/notifications/unread-count")
                                 .then().statusCode(200)
-                                .body("data", equalTo(0));
+                                .body("data", equalTo(1));
 
-                // 14. Mark all read (Resident)
+                // 18. Mark all read (Resident)
                 given()
                                 .header("Authorization", "Bearer " + residentToken)
                                 .when().post("/notifications/mark-all-read")

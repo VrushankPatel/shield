@@ -2,13 +2,20 @@ package com.shield.module.announcement.service;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
+import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
 import com.shield.module.announcement.dto.AnnouncementCreateRequest;
 import com.shield.module.announcement.dto.AnnouncementPublishResponse;
+import com.shield.module.announcement.dto.AnnouncementReadReceiptResponse;
 import com.shield.module.announcement.dto.AnnouncementResponse;
+import com.shield.module.announcement.dto.AnnouncementStatisticsResponse;
+import com.shield.module.announcement.entity.AnnouncementCategory;
 import com.shield.module.announcement.entity.AnnouncementEntity;
+import com.shield.module.announcement.entity.AnnouncementPriority;
+import com.shield.module.announcement.entity.AnnouncementReadReceiptEntity;
 import com.shield.module.announcement.entity.AnnouncementStatus;
 import com.shield.module.announcement.entity.AnnouncementTargetAudience;
+import com.shield.module.announcement.repository.AnnouncementReadReceiptRepository;
 import com.shield.module.announcement.repository.AnnouncementRepository;
 import com.shield.module.notification.dto.NotificationDispatchResponse;
 import com.shield.module.notification.service.NotificationService;
@@ -26,15 +33,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AnnouncementService {
 
+    private static final String ENTITY_ANNOUNCEMENT = "announcement";
+    private static final String ENTITY_ANNOUNCEMENT_READ_RECEIPT = "announcement_read_receipt";
+
     private final AnnouncementRepository announcementRepository;
+    private final AnnouncementReadReceiptRepository readReceiptRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
     public AnnouncementService(
             AnnouncementRepository announcementRepository,
+            AnnouncementReadReceiptRepository readReceiptRepository,
             NotificationService notificationService,
             AuditLogService auditLogService) {
         this.announcementRepository = announcementRepository;
+        this.readReceiptRepository = readReceiptRepository;
         this.notificationService = notificationService;
         this.auditLogService = auditLogService;
     }
@@ -52,7 +65,13 @@ public class AnnouncementService {
         entity.setStatus(AnnouncementStatus.DRAFT);
 
         AnnouncementEntity saved = announcementRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANNOUNCEMENT_CREATED", "announcement", saved.getId(), null);
+        auditLogService.logEvent(
+                principal.tenantId(),
+                principal.userId(),
+                "ANNOUNCEMENT_CREATED",
+                ENTITY_ANNOUNCEMENT,
+                saved.getId(),
+                null);
         return toResponse(saved);
     }
 
@@ -62,15 +81,27 @@ public class AnnouncementService {
     }
 
     @Transactional(readOnly = true)
+    public PagedResponse<AnnouncementResponse> listByCategory(AnnouncementCategory category, Pageable pageable) {
+        return PagedResponse.from(announcementRepository.findAllByCategoryAndDeletedFalse(category, pageable).map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<AnnouncementResponse> listByPriority(AnnouncementPriority priority, Pageable pageable) {
+        return PagedResponse.from(announcementRepository.findAllByPriorityAndDeletedFalse(priority, pageable).map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<AnnouncementResponse> listActive(Pageable pageable) {
+        return PagedResponse.from(announcementRepository.findAllActive(Instant.now(), pageable).map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
     public AnnouncementResponse getById(UUID id) {
-        AnnouncementEntity entity = announcementRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found: " + id));
-        return toResponse(entity);
+        return toResponse(findAnnouncement(id));
     }
 
     public AnnouncementPublishResponse publish(UUID id, ShieldPrincipal principal) {
-        AnnouncementEntity entity = announcementRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found: " + id));
+        AnnouncementEntity entity = findAnnouncement(id);
 
         entity.setPublishedAt(Instant.now());
         entity.setPublishedBy(principal.userId());
@@ -89,8 +120,75 @@ public class AnnouncementService {
                 saved.getContent(),
                 recipients);
 
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ANNOUNCEMENT_PUBLISHED", "announcement", saved.getId(), null);
+        auditLogService.logEvent(
+                principal.tenantId(),
+                principal.userId(),
+                "ANNOUNCEMENT_PUBLISHED",
+                ENTITY_ANNOUNCEMENT,
+                saved.getId(),
+                null);
         return new AnnouncementPublishResponse(toResponse(saved), dispatchResponse);
+    }
+
+    public AnnouncementReadReceiptResponse markRead(UUID announcementId, ShieldPrincipal principal) {
+        AnnouncementEntity announcement = findAnnouncement(announcementId);
+        if (announcement.getStatus() != AnnouncementStatus.PUBLISHED) {
+            throw new BadRequestException("Only published announcements can be marked as read");
+        }
+
+        AnnouncementReadReceiptEntity existing = readReceiptRepository
+                .findByAnnouncementIdAndUserIdAndDeletedFalse(announcementId, principal.userId())
+                .orElse(null);
+        if (existing != null) {
+            return toReadReceiptResponse(existing);
+        }
+
+        AnnouncementReadReceiptEntity receipt = new AnnouncementReadReceiptEntity();
+        receipt.setTenantId(principal.tenantId());
+        receipt.setAnnouncementId(announcementId);
+        receipt.setUserId(principal.userId());
+        receipt.setReadAt(Instant.now());
+        AnnouncementReadReceiptEntity saved = readReceiptRepository.save(receipt);
+
+        auditLogService.logEvent(
+                principal.tenantId(),
+                principal.userId(),
+                "ANNOUNCEMENT_MARK_READ",
+                ENTITY_ANNOUNCEMENT_READ_RECEIPT,
+                saved.getId(),
+                null);
+
+        return toReadReceiptResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<AnnouncementReadReceiptResponse> listReadReceipts(UUID announcementId, Pageable pageable) {
+        findAnnouncement(announcementId);
+        return PagedResponse.from(
+                readReceiptRepository.findAllByAnnouncementIdAndDeletedFalse(announcementId, pageable)
+                        .map(this::toReadReceiptResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public AnnouncementStatisticsResponse getStatistics(UUID announcementId) {
+        AnnouncementEntity announcement = findAnnouncement(announcementId);
+
+        List<UserEntity> activeUsers = notificationService.getTenantActiveUsers(announcement.getTenantId());
+        long totalRecipients = filterAudience(activeUsers, announcement.getTargetAudience()).size();
+        long readCount = readReceiptRepository.countByAnnouncementIdAndDeletedFalse(announcementId);
+        long unreadCount = Math.max(totalRecipients - readCount, 0);
+
+        return new AnnouncementStatisticsResponse(
+                announcementId,
+                totalRecipients,
+                readCount,
+                readCount,
+                unreadCount);
+    }
+
+    private AnnouncementEntity findAnnouncement(UUID id) {
+        return announcementRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found: " + id));
     }
 
     private List<UserEntity> filterAudience(List<UserEntity> users, AnnouncementTargetAudience audience) {
@@ -123,5 +221,14 @@ public class AnnouncementService {
                 entity.getStatus(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
+    }
+
+    private AnnouncementReadReceiptResponse toReadReceiptResponse(AnnouncementReadReceiptEntity entity) {
+        return new AnnouncementReadReceiptResponse(
+                entity.getId(),
+                entity.getAnnouncementId(),
+                entity.getUserId(),
+                entity.getReadAt(),
+                entity.getCreatedAt());
     }
 }

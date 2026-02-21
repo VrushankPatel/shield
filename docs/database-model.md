@@ -11,7 +11,7 @@ This file is generated from the ordered Flyway migrations under:
 
 ## How The Model Is Written
 1. Schema changes are introduced as immutable Flyway migrations.
-2. Migrations are applied in version order (`V1`, `V2`, ..., `V25`).
+2. Migrations are applied in version order (`V1`, `V2`, ..., latest `V*`).
 3. The consolidated model file is regenerated from those migrations.
 
 ## Regenerate The Consolidated SQL

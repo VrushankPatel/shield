@@ -7,6 +7,7 @@
   - auth service credential paths
   - notification dispatch behavior (enabled/disabled)
   - announcement publish audience filtering
+  - announcement read-tracking behavior (active/category/priority filtering, mark-read idempotency, read statistics)
   - phase-2 module service behavior (helpdesk/emergency/document/staff/payroll/utility/marketplace)
   - staff leave, payroll component, salary structure, payroll-detail/payslip, and bulk payroll processing logic
   - expanded staff/payroll lifecycle behavior (attendance summary/date-range, process/approve/summarize payroll)
@@ -35,6 +36,7 @@
   - KYC + move-record + parking + digital ID operational lifecycle
   - tenant isolation behavior
   - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)
+  - communication read-receipt flow (publish -> mark-read -> read-receipts/statistics)
   - M8 completion flow (salary-structure + payroll-components + payroll-detail/payslip + staff-leave approvals and balances)
   - expanded phase-2 flow coverage for new staff/payroll/utility/marketplace endpoints
   - utility diesel-generator lifecycle and generator-log summary flow
