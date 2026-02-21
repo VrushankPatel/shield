@@ -1,0 +1,184 @@
+{
+  "version": "phase15-v1",
+  "tables": [
+    {
+      "name": "amenity_time_slot",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "amenity_id", "type": "UUID", "nullable": false, "references": "amenity(id)"},
+        {"name": "slot_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "start_time", "type": "TIME", "nullable": false},
+        {"name": "end_time", "type": "TIME", "nullable": false},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_amenity_time_slot_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_amenity_time_slot_amenity", "columns": ["tenant_id", "amenity_id"]},
+        {"name": "idx_amenity_time_slot_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "amenity_pricing",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "amenity_id", "type": "UUID", "nullable": false, "references": "amenity(id)"},
+        {"name": "time_slot_id", "type": "UUID", "nullable": false, "references": "amenity_time_slot(id)"},
+        {"name": "day_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "base_price", "type": "NUMERIC(12,2)", "nullable": false},
+        {"name": "peak_hour", "type": "BOOLEAN", "nullable": false, "default": "FALSE"},
+        {"name": "peak_hour_multiplier", "type": "NUMERIC(5,2)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_amenity_pricing_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_amenity_pricing_amenity", "columns": ["tenant_id", "amenity_id"]},
+        {"name": "idx_amenity_pricing_slot", "columns": ["tenant_id", "time_slot_id"]}
+      ]
+    },
+    {
+      "name": "amenity_booking_rule",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "amenity_id", "type": "UUID", "nullable": false, "references": "amenity(id)"},
+        {"name": "rule_type", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "rule_value", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_amenity_booking_rule_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_amenity_booking_rule_amenity", "columns": ["tenant_id", "amenity_id"]}
+      ]
+    },
+    {
+      "name": "amenity_cancellation_policy",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "amenity_id", "type": "UUID", "nullable": false, "references": "amenity(id)"},
+        {"name": "days_before_booking", "type": "INTEGER", "nullable": false},
+        {"name": "refund_percentage", "type": "NUMERIC(6,2)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_amenity_cancel_policy_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_amenity_cancel_policy_amenity", "columns": ["tenant_id", "amenity_id"]}
+      ]
+    },
+    {
+      "name": "meeting_agenda",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meeting_id", "type": "UUID", "nullable": false, "references": "meeting(id)"},
+        {"name": "agenda_item", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "description", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "display_order", "type": "INTEGER", "nullable": false},
+        {"name": "presenter", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "estimated_duration", "type": "INTEGER", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_agenda_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_agenda_meeting", "columns": ["tenant_id", "meeting_id"]}
+      ]
+    },
+    {
+      "name": "meeting_attendee",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meeting_id", "type": "UUID", "nullable": false, "references": "meeting(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "invitation_sent_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "rsvp_status", "type": "VARCHAR(50)", "nullable": false, "default": "'PENDING'"},
+        {"name": "attendance_status", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "joined_at", "type": "TIMESTAMP", "nullable": true},
+        {"name": "left_at", "type": "TIMESTAMP", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_attendee_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_attendee_meeting", "columns": ["tenant_id", "meeting_id"]},
+        {"name": "idx_meeting_attendee_user", "columns": ["tenant_id", "user_id"]}
+      ]
+    },
+    {
+      "name": "meeting_minutes_record",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meeting_id", "type": "UUID", "nullable": false, "references": "meeting(id)"},
+        {"name": "minutes_content", "type": "TEXT", "nullable": false},
+        {"name": "summary", "type": "VARCHAR(4000)", "nullable": true},
+        {"name": "ai_generated_summary", "type": "VARCHAR(4000)", "nullable": true},
+        {"name": "prepared_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "approved_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "approval_date", "type": "DATE", "nullable": true},
+        {"name": "document_url", "type": "VARCHAR(1000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_minutes_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_minutes_meeting", "columns": ["tenant_id", "meeting_id"]}
+      ]
+    },
+    {
+      "name": "meeting_resolution",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meeting_id", "type": "UUID", "nullable": false, "references": "meeting(id)"},
+        {"name": "resolution_number", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "resolution_text", "type": "TEXT", "nullable": false},
+        {"name": "proposed_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "seconded_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "votes_for", "type": "INTEGER", "nullable": false, "default": "0"},
+        {"name": "votes_against", "type": "INTEGER", "nullable": false, "default": "0"},
+        {"name": "votes_abstain", "type": "INTEGER", "nullable": false, "default": "0"}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_resolution_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_resolution_meeting", "columns": ["tenant_id", "meeting_id"]},
+        {"name": "idx_meeting_resolution_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "meeting_vote",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "resolution_id", "type": "UUID", "nullable": false, "references": "meeting_resolution(id)"},
+        {"name": "user_id", "type": "UUID", "nullable": false, "references": "users(id)"},
+        {"name": "vote", "type": "VARCHAR(30)", "nullable": false},
+        {"name": "voted_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_vote_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_vote_resolution", "columns": ["tenant_id", "resolution_id"]},
+        {"name": "idx_meeting_vote_user", "columns": ["tenant_id", "user_id"]}
+      ]
+    },
+    {
+      "name": "meeting_action_item",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meeting_id", "type": "UUID", "nullable": false, "references": "meeting(id)"},
+        {"name": "action_description", "type": "VARCHAR(2000)", "nullable": false},
+        {"name": "assigned_to", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "due_date", "type": "DATE", "nullable": true},
+        {"name": "priority", "type": "VARCHAR(20)", "nullable": true},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false, "default": "'PENDING'"},
+        {"name": "completion_date", "type": "DATE", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_action_item_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_action_item_meeting", "columns": ["tenant_id", "meeting_id"]},
+        {"name": "idx_meeting_action_item_assigned", "columns": ["tenant_id", "assigned_to"]},
+        {"name": "idx_meeting_action_item_status", "columns": ["tenant_id", "status"]}
+      ]
+    },
+    {
+      "name": "meeting_reminder",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "meeting_id", "type": "UUID", "nullable": false, "references": "meeting(id)"},
+        {"name": "reminder_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "sent_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"}
+      ],
+      "indexes": [
+        {"name": "idx_meeting_reminder_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_meeting_reminder_meeting", "columns": ["tenant_id", "meeting_id"]}
+      ]
+    }
+  ]
+}

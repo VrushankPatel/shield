@@ -21,7 +21,46 @@ Services:
 - postgres: `localhost:5432`
 - redis: `localhost:6379`
 
-## 4. Required Environment Variables
+## 4. One-Click Multi-Instance Topology
+Use `run.sh` to generate and run an HA setup with either HAProxy or NGINX:
+
+```bash
+./run.sh --instances 4 --proxy haproxy
+./run.sh --instances 2 --proxy nginx
+```
+
+What `run.sh` does:
+- Creates per-topology folders under `system_topologies/generated/`:
+  - `System4NodesHaProxy`
+  - `System2NodesNginx`
+- Generates:
+  - `docker-compose.yml`
+  - `haproxy.cfg` or `nginx.conf`
+- Starts the generated stack with `docker compose up -d --build`.
+
+Stop a generated topology:
+
+```bash
+./run.sh --instances 4 --proxy haproxy --down
+```
+
+Generate files only (without starting containers):
+
+```bash
+./run.sh --instances 4 --proxy haproxy --generate-only
+```
+
+Versioned reference examples:
+- `system_topologies/examples/System2NodesHaProxy`
+- `system_topologies/examples/System2NodesNginx`
+
+Persistent storage paths:
+- PostgreSQL: `db_files/postgres/`
+- Redis AOF: `db_files/redis/`
+
+These directories are mounted into containers and survive container recreation/restarts.
+
+## 5. Required Environment Variables
 Core:
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
@@ -49,14 +88,14 @@ OTP/SMS and WhatsApp placeholders:
 
 For bootstrap and full integration input list, see `docs/developer_request.md`.
 
-## 5. CI/CD Pipeline
+## 6. CI/CD Pipeline
 GitHub Actions workflow in `.github/workflows/ci.yml`:
 - Build + tests (unit + integration)
 - Coverage artifact upload
 - Docker image build
 - Docker image publish to GitHub Container Registry (GHCR) on push events (configured branches + tags)
 
-## 6. GHCR Image Publishing
+## 7. GHCR Image Publishing
 The pipeline publishes:
 - `ghcr.io/<github-owner>/shield:<project.version>`
 - `ghcr.io/<github-owner>/shield:<git-sha>`

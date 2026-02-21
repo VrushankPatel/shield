@@ -16,8 +16,14 @@ import lombok.Setter;
 @Table(name = "payment")
 public class PaymentEntity extends TenantAwareEntity {
 
-    @Column(name = "bill_id", nullable = false, columnDefinition = "uuid")
+    @Column(name = "bill_id", columnDefinition = "uuid")
     private UUID billId;
+
+    @Column(name = "invoice_id", columnDefinition = "uuid")
+    private UUID invoiceId;
+
+    @Column(name = "unit_id", columnDefinition = "uuid")
+    private UUID unitId;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
@@ -30,4 +36,19 @@ public class PaymentEntity extends TenantAwareEntity {
 
     @Column(name = "paid_at")
     private Instant paidAt;
+
+    @Column(name = "payment_status", length = 50)
+    private String paymentStatus;
+
+    @Column(name = "receipt_url", length = 1000)
+    private String receiptUrl;
+
+    @Column(name = "payment_gateway", length = 50)
+    private String paymentGateway;
+
+    @Column(name = "refunded_at")
+    private Instant refundedAt;
+
+    @Column(name = "refund_reason", length = 500)
+    private String refundReason;
 }

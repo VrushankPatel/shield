@@ -10,6 +10,9 @@ public record ComplaintCreateRequest(
         @NotNull UUID unitId,
         @NotBlank String title,
         @NotBlank String description,
-        @NotNull ComplaintPriority priority
+        @NotNull ComplaintPriority priority,
+        String complaintType,
+        String location,
+        Integer slaHours
 ) {
 }

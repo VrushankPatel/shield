@@ -11,5 +11,7 @@ public interface EmergencyContactRepository extends JpaRepository<EmergencyConta
 
     Page<EmergencyContactEntity> findAllByDeletedFalse(Pageable pageable);
 
+    Page<EmergencyContactEntity> findAllByContactTypeIgnoreCaseAndDeletedFalse(String contactType, Pageable pageable);
+
     Optional<EmergencyContactEntity> findByIdAndDeletedFalse(UUID id);
 }

@@ -30,3 +30,12 @@ coverage/
 
 # Local file storage
 storage/
+
+# Runtime generated deployment topologies
+system_topologies/generated/
+
+# Persistent runtime database/cache files
+db_files/postgres/*
+db_files/redis/*
+!db_files/postgres/.gitkeep
+!db_files/redis/.gitkeep

@@ -19,8 +19,8 @@ Phase 1:
 - Unit: `/units/*`
 - User: `/users/*`
 - Billing: `/billing/*`, `/payments/*`
-- Accounting: `/ledger/*`
-- Visitor: `/visitors/pass/*`
+- Accounting (baseline): `/ledger/*`
+- Visitor (legacy): `/visitors/pass/*`
 - Asset: `/assets/*`
 - Complaint: `/complaints/*`
 - Amenities: `/amenities/*`
@@ -46,6 +46,19 @@ Phase 1:
 - Helpdesk: `/helpdesk-categories/*`, `/helpdesk-tickets/*`
 - Emergency: `/emergency-contacts/*`, `/sos-alerts/*`
 - Documents: `/document-categories/*`, `/documents/*`
+- Helpdesk completion:
+  - `/helpdesk-tickets/my-tickets`, `/helpdesk-tickets/assigned-to-me`, `/helpdesk-tickets/status/{status}`, `/helpdesk-tickets/statistics`
+  - `/helpdesk-tickets/{id}/close`, `/helpdesk-tickets/{id}/reopen`, `/helpdesk-tickets/{id}/rate`
+  - `/helpdesk-tickets/{id}/attachments`, `/ticket-attachments/{id}`
+- Emergency completion:
+  - contact filters and ordering: `/emergency-contacts/type/{type}`, `/emergency-contacts/{id}/order`
+  - alert filters and false-alarm: `/sos-alerts/type/{type}`, `/sos-alerts/date-range`, `/sos-alerts/{id}/mark-false-alarm`
+  - fire drills: `/fire-drill-records/*`, `/fire-drill-records/year/{year}`
+  - safety: `/safety-equipment/*`, `/safety-equipment/type/{type}`, `/safety-equipment/inspection-due`, `/safety-inspections/*`, `/safety-inspections/equipment/{equipmentId}`, `/safety-inspections/date-range`
+- Documents completion:
+  - upload alias: `/documents/upload`
+  - search and filters: `/documents/search`, `/documents/tags/{tag}`, `/documents/expiring`
+  - download/access logging: `/documents/{id}/download`, `/documents/{id}/access-logs`, `/document-access-logs/user/{userId}`, `/document-access-logs/date-range`
 - Staff: `/staff/*`, `/staff-attendance/*`
 - Payroll: `/payroll/*`
 - Utility monitoring: `/water-tanks/*`, `/water-level-logs/*`, `/electricity-meters/*`, `/electricity-readings/*`
@@ -59,8 +72,47 @@ Phase 1:
 - Configuration: `/config/*`, `/settings/*`
 - File management: `/files/*`
 - Payment gateway lifecycle: `/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/webhook/{provider}`, `/payments/transaction/{transactionRef}`
+- Billing and payments expansion:
+  - Billing cycles: `/billing-cycles/*`, `/billing-cycles/{id}/publish`, `/billing-cycles/{id}/close`, `/billing-cycles/current`, `/billing-cycles/year/{year}`
+  - Maintenance charges: `/maintenance-charges/*`, `/maintenance-charges/generate`, `/maintenance-charges/cycle/{cycleId}`, `/maintenance-charges/unit/{unitId}`
+  - Special assessments: `/special-assessments/*`, `/special-assessments/active`
+  - Invoices: `/invoices/*`, `/invoices/generate`, `/invoices/bulk-generate`, `/invoices/unit/{unitId}`, `/invoices/cycle/{cycleId}`, `/invoices/status/{status}`, `/invoices/{id}/download`, `/invoices/defaulters`, `/invoices/outstanding`
+  - Payment reminders: `/payment-reminders/*`, `/payment-reminders/send`, `/payment-reminders/schedule`, `/payment-reminders/invoice/{invoiceId}`
+  - Late fee rules: `/late-fee-rules/*`, `/late-fee-rules/{id}/activate`, `/late-fee-rules/{id}/deactivate`
+  - Extended payment operations: `/payments/invoice/{invoiceId}`, `/payments/unit/{unitId}`, `/payments/{id}/receipt`, `/payments/cash`, `/payments/cheque`, `/payments/{id}/refund`
+- Accounting and treasury expansion:
+  - Account heads: `/account-heads/*`, `/account-heads/type/{type}`, `/account-heads/hierarchy`
+  - Fund categories: `/fund-categories/*`, `/fund-categories/{id}/balance`, `/fund-categories/balances`
+  - Ledger entries: `/ledger-entries/*`, `/ledger-entries/account/{accountHeadId}`, `/ledger-entries/fund/{fundCategoryId}`, `/ledger-entries/date-range`, `/ledger-entries/bulk`, `/ledger-entries/export`
+  - Expenses: `/expenses/*`, `/expenses/{id}/approve`, `/expenses/{id}/reject`, `/expenses/pending-approval`, `/expenses/vendor/{vendorId}`, `/expenses/account/{accountHeadId}`, `/expenses/date-range`, `/expenses/export`
+  - Vendors: `/vendors/*`, `/vendors/type/{type}`, `/vendors/active`, `/vendors/{id}/status`
+  - Vendor payments: `/vendor-payments/*`, `/vendor-payments/vendor/{vendorId}`, `/vendor-payments/expense/{expenseId}`, `/vendor-payments/pending`
+  - Budgets and reports: `/budgets/*`, `/budgets/financial-year/{year}`, `/budgets/vs-actual`, `/reports/income-statement`, `/reports/balance-sheet`, `/reports/cash-flow`, `/reports/trial-balance`, `/reports/fund-summary`, `/reports/export/ca-format`
+- Visitor management expansion:
+  - Visitors: `/visitors/*`, `/visitors/search`, `/visitors/phone/{phone}`
+  - Visitor passes: `/visitor-passes/*`, `/visitor-passes/create`, `/visitor-passes/unit/{unitId}`, `/visitor-passes/date/{date}`, `/visitor-passes/active`, `/visitor-passes/verify/{qrCode}`, `/visitor-passes/pre-approve`
+  - Visitor logs: `/visitor-logs/*`, `/visitor-logs/entry`, `/visitor-logs/exit`, `/visitor-logs/pass/{passId}`, `/visitor-logs/date-range`, `/visitor-logs/currently-inside`
+  - Domestic help: `/domestic-help/*`, `/domestic-help/type/{type}`, `/domestic-help/{id}/verify`, `/domestic-help/{id}/assign-unit`, `/domestic-help/{helpId}/unit/{unitId}`
+  - Blacklist: `/blacklist/*`, `/blacklist/check/{phone}`, `/blacklist/{id}/activate`, `/blacklist/{id}/deactivate`
+  - Delivery logs: `/delivery-logs/*`, `/delivery-logs/unit/{unitId}`, `/delivery-logs/date-range`, `/delivery-logs/partner/{partner}`
+- Asset and complaint expansion:
+  - Asset categories: `/asset-categories/*`
+  - Asset advanced search/export: `/assets/category/{categoryId}`, `/assets/location/{location}`, `/assets/tag/{tag}`, `/assets/verify-qr/{qrCode}`, `/assets/amc-expiring`, `/assets/warranty-expiring`, `/assets/export`
+  - Complaint full lifecycle and filters: `/complaints/{id}`, `/complaints/{id}/assign`, `/complaints/{id}/resolve`, `/complaints/{id}/close`, `/complaints/{id}/reopen`, `/complaints/status/{status}`, `/complaints/priority/{priority}`, `/complaints/asset/{assetId}`, `/complaints/my-complaints`, `/complaints/assigned-to-me`, `/complaints/sla-breached`, `/complaints/statistics`
+  - Complaint comments: `/complaints/{id}/comments`, `/comments/{id}`
+  - Work orders: `/work-orders/*`, `/work-orders/{id}/start`, `/work-orders/{id}/complete`, `/work-orders/{id}/cancel`, `/work-orders/complaint/{complaintId}`, `/work-orders/vendor/{vendorId}`, `/work-orders/status/{status}`
+  - Preventive maintenance: `/preventive-maintenance/*`, `/preventive-maintenance/asset/{assetId}`, `/preventive-maintenance/due`, `/preventive-maintenance/{id}/execute`
+  - Asset depreciation: `/asset-depreciation/asset/{assetId}`, `/asset-depreciation/calculate`, `/asset-depreciation/year/{year}`, `/asset-depreciation/report`
+- Amenities and meeting expansion:
+  - Amenity master + activation: `/amenities/*`, `/amenities/type/{type}`, `/amenities/available`, `/amenities/{id}/activate`, `/amenities/{id}/deactivate`
+  - Amenity slots/pricing: `/amenities/{id}/time-slots`, `/time-slots/{id}`, `/amenities/{id}/pricing`, `/pricing/{id}`
+  - Amenity booking lifecycle: `/amenity-bookings/*`, `/amenity-bookings/check-availability`, `/amenity-bookings/{id}/approve`, `/amenity-bookings/{id}/reject`, `/amenity-bookings/{id}/cancel`, `/amenity-bookings/{id}/complete`
+  - Amenity rules/policies: `/amenities/{id}/rules`, `/booking-rules/{id}`, `/amenities/{id}/cancellation-policy`, `/cancellation-policy/{id}`
+  - Meeting lifecycle: `/meetings/*`, `/meetings/{id}/start`, `/meetings/{id}/end`, `/meetings/{id}/cancel`, `/meetings/upcoming`, `/meetings/past`, `/meetings/type/{type}`
+  - Meeting agenda/attendees/minutes/resolutions/votes: `/meetings/{id}/agenda`, `/agenda/{id}`, `/meetings/{id}/attendees`, `/meetings/{id}/rsvp`, `/meetings/{id}/mark-attendance`, `/meetings/{id}/minutes`, `/minutes/{id}`, `/meetings/{id}/resolutions`, `/resolutions/{id}/vote`, `/resolutions/{id}/results`
+  - Meeting action items/reminders: `/meetings/{id}/action-items`, `/action-items/{id}`, `/action-items/assigned-to-me`, `/action-items/pending`, `/meetings/{id}/send-reminders`, `/meetings/{id}/reminders`
 - Expanded operations:
-  - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
+  - Staff/payroll: `/staff/export`, `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/staff-leaves/*`, `/staff-leaves/pending-approval`, `/staff-leaves/balance/{staffId}`, `/payroll-components/*`, `/staff/{id}/salary-structure`, `/salary-structure/{id}`, `/payroll/process`, `/payroll/bulk-process`, `/payroll/{id}/approve`, `/payroll/{id}/payslip`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`
   - Marketplace: `/marketplace-listings/type/{type}`, `/marketplace-listings/search`
 

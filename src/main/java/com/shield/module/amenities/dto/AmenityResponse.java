@@ -6,7 +6,13 @@ public record AmenityResponse(
         UUID id,
         UUID tenantId,
         String name,
+        String amenityType,
+        String description,
         Integer capacity,
-        boolean requiresApproval
+        String location,
+        boolean bookingAllowed,
+        Integer advanceBookingDays,
+        boolean requiresApproval,
+        boolean active
 ) {
 }

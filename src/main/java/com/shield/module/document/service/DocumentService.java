@@ -2,19 +2,26 @@ package com.shield.module.document.service;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
+import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.document.dto.DocumentAccessLogResponse;
 import com.shield.module.document.dto.DocumentCategoryCreateRequest;
 import com.shield.module.document.dto.DocumentCategoryResponse;
 import com.shield.module.document.dto.DocumentCategoryUpdateRequest;
 import com.shield.module.document.dto.DocumentCreateRequest;
+import com.shield.module.document.dto.DocumentDownloadResponse;
 import com.shield.module.document.dto.DocumentResponse;
 import com.shield.module.document.dto.DocumentUpdateRequest;
+import com.shield.module.document.entity.DocumentAccessLogEntity;
+import com.shield.module.document.entity.DocumentAccessType;
 import com.shield.module.document.entity.DocumentCategoryEntity;
 import com.shield.module.document.entity.DocumentEntity;
+import com.shield.module.document.repository.DocumentAccessLogRepository;
 import com.shield.module.document.repository.DocumentCategoryRepository;
 import com.shield.module.document.repository.DocumentRepository;
 import com.shield.security.model.ShieldPrincipal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,14 +33,17 @@ public class DocumentService {
 
     private final DocumentCategoryRepository documentCategoryRepository;
     private final DocumentRepository documentRepository;
+    private final DocumentAccessLogRepository documentAccessLogRepository;
     private final AuditLogService auditLogService;
 
     public DocumentService(
             DocumentCategoryRepository documentCategoryRepository,
             DocumentRepository documentRepository,
+            DocumentAccessLogRepository documentAccessLogRepository,
             AuditLogService auditLogService) {
         this.documentCategoryRepository = documentCategoryRepository;
         this.documentRepository = documentRepository;
+        this.documentAccessLogRepository = documentAccessLogRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -120,10 +130,39 @@ public class DocumentService {
     }
 
     @Transactional(readOnly = true)
-    public DocumentResponse getDocument(UUID id) {
+    public PagedResponse<DocumentResponse> searchDocuments(String query, Pageable pageable) {
+        return PagedResponse.from(documentRepository.searchByQuery(query, pageable).map(this::toDocumentResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<DocumentResponse> listDocumentsByTag(String tag, Pageable pageable) {
+        return PagedResponse.from(documentRepository.findAllByTag(tag, pageable).map(this::toDocumentResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<DocumentResponse> listExpiringDocuments(LocalDate from, LocalDate to, Pageable pageable) {
+        LocalDate fromDate = from != null ? from : LocalDate.now();
+        LocalDate toDate = to != null ? to : fromDate.plusDays(30);
+        if (toDate.isBefore(fromDate)) {
+            throw new BadRequestException("to date cannot be before from date");
+        }
+        return PagedResponse.from(documentRepository.findAllByExpiryDateBetweenAndDeletedFalse(fromDate, toDate, pageable).map(this::toDocumentResponse));
+    }
+
+    @Transactional
+    public DocumentResponse getDocument(UUID id, ShieldPrincipal principal) {
         DocumentEntity entity = documentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+        recordAccess(entity, principal, DocumentAccessType.VIEW);
         return toDocumentResponse(entity);
+    }
+
+    public DocumentDownloadResponse downloadDocument(UUID id, ShieldPrincipal principal) {
+        DocumentEntity entity = documentRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
+        Instant downloadedAt = Instant.now();
+        recordAccess(entity, principal, DocumentAccessType.DOWNLOAD, downloadedAt);
+        return new DocumentDownloadResponse(entity.getId(), entity.getDocumentName(), entity.getFileUrl(), downloadedAt);
     }
 
     public DocumentResponse updateDocument(UUID id, DocumentUpdateRequest request, ShieldPrincipal principal) {
@@ -155,6 +194,44 @@ public class DocumentService {
         auditLogService.record(principal.tenantId(), principal.userId(), "DOCUMENT_DELETED", "document", entity.getId(), null);
     }
 
+    @Transactional(readOnly = true)
+    public PagedResponse<DocumentAccessLogResponse> listAccessLogsByDocument(UUID documentId, Pageable pageable) {
+        return PagedResponse.from(documentAccessLogRepository.findAllByDocumentIdAndDeletedFalse(documentId, pageable)
+                .map(this::toDocumentAccessLogResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<DocumentAccessLogResponse> listAccessLogsByUser(UUID userId, Pageable pageable) {
+        return PagedResponse.from(documentAccessLogRepository.findAllByAccessedByAndDeletedFalse(userId, pageable)
+                .map(this::toDocumentAccessLogResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<DocumentAccessLogResponse> listAccessLogsByDateRange(Instant from, Instant to, Pageable pageable) {
+        if (from == null || to == null) {
+            throw new BadRequestException("Both from and to date-time values are required");
+        }
+        if (to.isBefore(from)) {
+            throw new BadRequestException("to date-time cannot be before from date-time");
+        }
+        return PagedResponse.from(documentAccessLogRepository.findAllByAccessedAtBetweenAndDeletedFalse(from, to, pageable)
+                .map(this::toDocumentAccessLogResponse));
+    }
+
+    private void recordAccess(DocumentEntity document, ShieldPrincipal principal, DocumentAccessType accessType) {
+        recordAccess(document, principal, accessType, Instant.now());
+    }
+
+    private void recordAccess(DocumentEntity document, ShieldPrincipal principal, DocumentAccessType accessType, Instant accessedAt) {
+        DocumentAccessLogEntity entity = new DocumentAccessLogEntity();
+        entity.setTenantId(document.getTenantId());
+        entity.setDocumentId(document.getId());
+        entity.setAccessedBy(principal.userId());
+        entity.setAccessType(accessType);
+        entity.setAccessedAt(accessedAt);
+        documentAccessLogRepository.save(entity);
+    }
+
     private DocumentCategoryResponse toCategoryResponse(DocumentCategoryEntity entity) {
         return new DocumentCategoryResponse(
                 entity.getId(),
@@ -180,5 +257,15 @@ public class DocumentService {
                 entity.getUploadDate(),
                 entity.getExpiryDate(),
                 entity.getTags());
+    }
+
+    private DocumentAccessLogResponse toDocumentAccessLogResponse(DocumentAccessLogEntity entity) {
+        return new DocumentAccessLogResponse(
+                entity.getId(),
+                entity.getTenantId(),
+                entity.getDocumentId(),
+                entity.getAccessedBy(),
+                entity.getAccessType(),
+                entity.getAccessedAt());
     }
 }

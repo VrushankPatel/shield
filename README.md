@@ -19,12 +19,30 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - User filters/bulk/export (`/users/unit/{unitId}`, `/users/role/{role}`, `/users/bulk-import`, `/users/export`)
   - Unit filters and occupancy/member views (`/units/block/{block}`, `/units/available`, `/units/{id}/members`, `/units/{id}/history`)
 - Billing + Payments
-- Accounting Ledger
-- Visitor Pass
+- Accounting + Treasury
+- Visitor Management
 - Asset
 - Complaint
+- Asset & complaint expansion:
+  - Asset categories: `/asset-categories/*`
+  - Asset advanced queries: `/assets/category/{categoryId}`, `/assets/location/{location}`, `/assets/tag/{tag}`, `/assets/verify-qr/{qrCode}`, `/assets/amc-expiring`, `/assets/warranty-expiring`, `/assets/export`
+  - Complaint lifecycle and filters: `/complaints/{id}`, `/complaints/{id}/close`, `/complaints/{id}/reopen`, `/complaints/status/{status}`, `/complaints/priority/{priority}`, `/complaints/asset/{assetId}`, `/complaints/my-complaints`, `/complaints/assigned-to-me`, `/complaints/sla-breached`, `/complaints/statistics`
+  - Complaint comments: `/complaints/{id}/comments`, `/comments/{id}`
+  - Work orders: `/work-orders/*`
+  - Preventive maintenance: `/preventive-maintenance/*`
+  - Asset depreciation: `/asset-depreciation/*`
 - Amenities + Bookings
 - Meeting + Minutes
+- Amenities expansion:
+  - Time slots: `/amenities/{id}/time-slots`, `/time-slots/{id}`, activate/deactivate
+  - Pricing: `/amenities/{id}/pricing`, `/pricing/{id}`
+  - Booking workflow: `/amenity-bookings/*`, availability check, approve/reject/cancel/complete
+  - Booking rules + cancellation policy: `/amenities/{id}/rules`, `/booking-rules/{id}`, `/amenities/{id}/cancellation-policy`, `/cancellation-policy/{id}`
+- Meeting governance expansion:
+  - Lifecycle: `/meetings/{id}/start`, `/meetings/{id}/end`, `/meetings/{id}/cancel`, `/meetings/upcoming`, `/meetings/past`
+  - Agenda + attendees + RSVP + attendance report: `/meetings/{id}/agenda`, `/agenda/{id}`, `/meetings/{id}/attendees`, `/meetings/{id}/rsvp`, `/meetings/{id}/attendance-report`
+  - Minutes + approvals + AI summary placeholder: `/meetings/{id}/minutes`, `/minutes/{id}`, `/minutes/{id}/approve`, `/minutes/{id}/generate-ai-summary`
+  - Resolutions/voting/action items/reminders: `/meetings/{id}/resolutions`, `/resolutions/{id}/vote`, `/action-items/*`, `/meetings/{id}/send-reminders`
 - Identity operations:
   - KYC (`/kyc/*`)
   - Move records (`/move-records/*`)
@@ -40,7 +58,24 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Helpdesk module (`/helpdesk-categories`, `/helpdesk-tickets`)
 - Emergency module (`/emergency-contacts`, `/sos-alerts`)
 - Document repository module (`/document-categories`, `/documents`)
+- Helpdesk completion:
+  - `/helpdesk-tickets/my-tickets`, `/helpdesk-tickets/assigned-to-me`, `/helpdesk-tickets/status/{status}`, `/helpdesk-tickets/statistics`
+  - `/helpdesk-tickets/{id}/close`, `/helpdesk-tickets/{id}/reopen`, `/helpdesk-tickets/{id}/rate`
+  - `/helpdesk-tickets/{id}/attachments`, `/ticket-attachments/{id}`
+- Emergency completion:
+  - `/emergency-contacts/type/{type}`, `/emergency-contacts/{id}/order`
+  - `/sos-alerts/type/{type}`, `/sos-alerts/date-range`, `/sos-alerts/{id}/mark-false-alarm`
+  - `/fire-drill-records/*`, `/safety-equipment/*`, `/safety-inspections/*`
+- Document completion:
+  - `/documents/upload`, `/documents/search`, `/documents/tags/{tag}`, `/documents/expiring`
+  - `/documents/{id}/download`, `/documents/{id}/access-logs`, `/document-access-logs/*`
 - Staff and payroll module (`/staff`, `/staff-attendance`, `/payroll`)
+- Staff/payroll completion:
+  - Staff export: `/staff/export`
+  - Staff leave management: `/staff-leaves/*`, `/staff-leaves/pending-approval`, `/staff-leaves/balance/{staffId}`
+  - Payroll components: `/payroll-components/*`
+  - Salary structure: `/staff/{id}/salary-structure`, `/salary-structure/{id}`
+  - Payroll completion endpoints: `/payroll/bulk-process`, `/payroll/{id}/payslip`
 - Utility monitoring module (`/water-tanks`, `/water-level-logs`, `/electricity-meters`, `/electricity-readings`)
 - Marketplace module (`/marketplace-categories`, `/marketplace-listings`, `/marketplace-inquiries`)
 - Analytics module (`/report-templates`, `/scheduled-reports`, `/analytics-dashboards`, `/analytics/*`)
@@ -48,6 +83,29 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Configuration/settings APIs (`/config/*`, `/settings/*`)
 - File management APIs (`/files/*`)
 - Payment gateway APIs with webhook signature validation + provider adapters (`/payments/initiate`, `/payments/verify`, `/payments/callback`, `/payments/webhook/{provider}`, `/payments/transaction/{transactionRef}`)
+- Billing and payments expansion:
+  - `/billing-cycles/*`
+  - `/maintenance-charges/*`
+  - `/special-assessments/*`
+  - `/invoices/*`
+  - `/payment-reminders/*`
+  - `/late-fee-rules/*`
+  - extended payment operations: `/payments/invoice/{invoiceId}`, `/payments/unit/{unitId}`, `/payments/{id}/receipt`, `/payments/cash`, `/payments/cheque`, `/payments/{id}/refund`
+- Accounting and treasury expansion:
+  - `/account-heads/*`
+  - `/fund-categories/*`
+  - `/ledger-entries/*`
+  - `/expenses/*`
+  - `/vendors/*`
+  - `/vendor-payments/*`
+  - `/budgets/*`
+  - financial reports: `/reports/income-statement`, `/reports/balance-sheet`, `/reports/cash-flow`, `/reports/trial-balance`, `/reports/fund-summary`, `/reports/export/ca-format`
+- Visitor management expansion:
+  - `/visitors/*`, `/visitors/search`, `/visitors/phone/{phone}`
+  - `/visitor-passes/*`, `/visitor-passes/create`, `/visitor-passes/unit/{unitId}`, `/visitor-passes/date/{date}`, `/visitor-passes/active`, `/visitor-passes/verify/{qrCode}`, `/visitor-passes/pre-approve`
+  - `/visitor-logs/*`, `/visitor-logs/entry`, `/visitor-logs/exit`, `/visitor-logs/pass/{passId}`, `/visitor-logs/date-range`, `/visitor-logs/currently-inside`
+  - `/domestic-help/*`, `/blacklist/*`, `/delivery-logs/*`
+  - legacy compatibility path retained: `/visitors/pass/*`
 - DB model-driven migration generation:
   - `db/model/phase2_schema.json` -> `V3__phase2_generated_modules.sql`
   - `db/model/phase3_schema.json` -> `V4__phase2_staff_utility_marketplace_generated.sql`
@@ -57,13 +115,20 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase7_schema.json` -> `V8__phase6_payment_gateway_generated.sql`
   - `db/model/phase8_schema.json` -> `V9__phase8_identity_extensions_generated.sql`
   - `db/model/phase10_schema.json` -> `V10__phase10_iam_rbac_generated.sql`
+  - `db/model/phase11_schema.json` -> `V12__phase11_billing_expansion_generated.sql` (+ `V13__phase11_billing_payment_alterations.sql`)
+  - `db/model/phase12_schema.json` -> `V14__phase12_accounting_treasury_generated.sql` (+ `V15__phase12_ledger_entry_extensions.sql`)
+  - `db/model/phase13_schema.json` -> `V16__phase13_visitor_expansion_generated.sql` (+ `V17__phase13_visitor_pass_extensions.sql`)
+  - `db/model/phase14_schema.json` -> `V18__phase14_asset_complaint_expansion_generated.sql` (+ `V19__phase14_asset_complaint_extensions.sql`)
+  - `db/model/phase15_schema.json` -> `V20__phase15_amenities_meeting_generated.sql` (+ `V21__phase15_amenities_meeting_extensions.sql`)
+  - `db/model/phase16_schema.json` -> `V22__phase16_staff_payroll_completion_generated.sql`
+  - `db/model/phase17_schema.json` -> `V23__phase17_m9_expansion_generated.sql` (+ `V24__phase17_helpdesk_ticket_extensions.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V10`)
+- Flyway migrations (`V1` to `V24`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -196,6 +261,29 @@ docker build -t shield-api:latest .
 docker compose up -d
 ```
 
+### One-click HA stack generation + run
+```bash
+./run.sh --instances 4 --proxy haproxy
+./run.sh --instances 2 --proxy nginx
+```
+
+Generated topology files are written under:
+- `system_topologies/generated/System{N}NodesHaProxy`
+- `system_topologies/generated/System{N}NodesNginx`
+
+Tracked reference examples:
+- `system_topologies/examples/System2NodesHaProxy`
+- `system_topologies/examples/System2NodesNginx`
+
+Persistent database/cache mounts:
+- `db_files/postgres`
+- `db_files/redis`
+
+Stop a topology:
+```bash
+./run.sh --instances 4 --proxy haproxy --down
+```
+
 ## CI/CD
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 1. Maven build + tests + coverage report
@@ -224,6 +312,11 @@ Required secrets:
 - `docs/generated/phase7_schema_generated.md`
 - `docs/generated/phase8_schema_generated.md`
 - `docs/generated/phase10_schema_generated.md`
+- `docs/generated/phase11_schema_generated.md`
+- `docs/generated/phase12_schema_generated.md`
+- `docs/generated/phase13_schema_generated.md`
+- `docs/generated/phase14_schema_generated.md`
+- `docs/generated/phase15_schema_generated.md`
 - `docs/api-spec.md`
 - `docs/deployment.md`
 - `docs/test-strategy.md`

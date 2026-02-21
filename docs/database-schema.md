@@ -15,6 +15,20 @@ PostgreSQL 15+
 - `V8__phase6_payment_gateway_generated.sql`: generated phase-6 payment gateway transaction tables
 - `V9__phase8_identity_extensions_generated.sql`: generated phase-8 identity extension tables
 - `V10__phase10_iam_rbac_generated.sql`: generated phase-10 IAM RBAC tables
+- `V11__phase9_communication_completion.sql`: communication module completion tables
+- `V12__phase11_billing_expansion_generated.sql`: generated phase-11 billing expansion tables
+- `V13__phase11_billing_payment_alterations.sql`: payment table extensions for invoice-linked flows
+- `V14__phase12_accounting_treasury_generated.sql`: generated phase-12 accounting/treasury tables
+- `V15__phase12_ledger_entry_extensions.sql`: phase-12 ledger enhancements for accounting reports
+- `V16__phase13_visitor_expansion_generated.sql`: generated phase-13 visitor management tables
+- `V17__phase13_visitor_pass_extensions.sql`: phase-13 visitor-pass table enrichments
+- `V18__phase14_asset_complaint_expansion_generated.sql`: generated phase-14 asset/complaint expansion tables
+- `V19__phase14_asset_complaint_extensions.sql`: phase-14 asset/complaint baseline table enrichments
+- `V20__phase15_amenities_meeting_generated.sql`: generated phase-15 amenities/meeting governance tables
+- `V21__phase15_amenities_meeting_extensions.sql`: phase-15 amenities/meeting baseline table enrichments
+- `V22__phase16_staff_payroll_completion_generated.sql`: generated phase-16 staff/payroll completion tables
+- `V23__phase17_m9_expansion_generated.sql`: generated phase-17 helpdesk/emergency/document expansion tables
+- `V24__phase17_helpdesk_ticket_extensions.sql`: phase-17 helpdesk ticket closure/rating column enrichments
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -23,6 +37,13 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase7_schema.json`
 - Generator source model: `db/model/phase8_schema.json`
 - Generator source model: `db/model/phase10_schema.json`
+- Generator source model: `db/model/phase11_schema.json`
+- Generator source model: `db/model/phase12_schema.json`
+- Generator source model: `db/model/phase13_schema.json`
+- Generator source model: `db/model/phase14_schema.json`
+- Generator source model: `db/model/phase15_schema.json`
+- Generator source model: `db/model/phase16_schema.json`
+- Generator source model: `db/model/phase17_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -80,6 +101,49 @@ Phase 2:
 - `permission`
 - `role_permission`
 - `user_additional_role`
+- `billing_cycle`
+- `maintenance_charge`
+- `special_assessment`
+- `invoice`
+- `payment_reminder`
+- `late_fee_rule`
+- `account_head`
+- `fund_category`
+- `vendor`
+- `expense`
+- `vendor_payment`
+- `budget`
+- `visitor`
+- `visitor_entry_exit_log`
+- `domestic_help_registry`
+- `domestic_help_unit_mapping`
+- `blacklist`
+- `delivery_log`
+- `asset_category`
+- `complaint_comment`
+- `work_order`
+- `preventive_maintenance_schedule`
+- `asset_depreciation`
+- `amenity_time_slot`
+- `amenity_pricing`
+- `amenity_booking_rule`
+- `amenity_cancellation_policy`
+- `meeting_agenda`
+- `meeting_attendee`
+- `meeting_minutes_record`
+- `meeting_resolution`
+- `meeting_vote`
+- `meeting_action_item`
+- `meeting_reminder`
+- `staff_leave`
+- `payroll_component`
+- `staff_salary_structure`
+- `payroll_detail`
+- `helpdesk_ticket_attachment`
+- `fire_drill_record`
+- `safety_equipment`
+- `safety_inspection`
+- `document_access_log`
 
 ## Common Columns
 Most domain tables include:

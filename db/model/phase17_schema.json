@@ -1,0 +1,88 @@
+{
+  "version": "phase17-v1",
+  "tables": [
+    {
+      "name": "helpdesk_ticket_attachment",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "ticket_id", "type": "UUID", "nullable": false, "references": "helpdesk_ticket(id)"},
+        {"name": "file_name", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "file_url", "type": "VARCHAR(2000)", "nullable": false},
+        {"name": "uploaded_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "uploaded_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"}
+      ],
+      "indexes": [
+        {"name": "idx_helpdesk_ticket_attachment_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_helpdesk_ticket_attachment_ticket", "columns": ["tenant_id", "ticket_id"]}
+      ]
+    },
+    {
+      "name": "fire_drill_record",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "drill_date", "type": "DATE", "nullable": false},
+        {"name": "drill_time", "type": "TIME", "nullable": true},
+        {"name": "conducted_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "evacuation_time", "type": "INTEGER", "nullable": true},
+        {"name": "participants_count", "type": "INTEGER", "nullable": true},
+        {"name": "observations", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "report_url", "type": "VARCHAR(2000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_fire_drill_record_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_fire_drill_record_date", "columns": ["tenant_id", "drill_date"]}
+      ]
+    },
+    {
+      "name": "safety_equipment",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "equipment_type", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "equipment_tag", "type": "VARCHAR(100)", "nullable": true},
+        {"name": "location", "type": "VARCHAR(255)", "nullable": true},
+        {"name": "installation_date", "type": "DATE", "nullable": true},
+        {"name": "last_inspection_date", "type": "DATE", "nullable": true},
+        {"name": "next_inspection_date", "type": "DATE", "nullable": true},
+        {"name": "inspection_frequency_days", "type": "INTEGER", "nullable": true},
+        {"name": "functional", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_safety_equipment_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_safety_equipment_type", "columns": ["tenant_id", "equipment_type"]},
+        {"name": "idx_safety_equipment_next_inspection", "columns": ["tenant_id", "next_inspection_date"]}
+      ]
+    },
+    {
+      "name": "safety_inspection",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "equipment_id", "type": "UUID", "nullable": false, "references": "safety_equipment(id)"},
+        {"name": "inspection_date", "type": "DATE", "nullable": false},
+        {"name": "inspected_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "inspection_result", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "remarks", "type": "VARCHAR(2000)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_safety_inspection_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_safety_inspection_equipment", "columns": ["tenant_id", "equipment_id"]},
+        {"name": "idx_safety_inspection_date", "columns": ["tenant_id", "inspection_date"]}
+      ]
+    },
+    {
+      "name": "document_access_log",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "document_id", "type": "UUID", "nullable": false, "references": "document(id)"},
+        {"name": "accessed_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "access_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "accessed_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"}
+      ],
+      "indexes": [
+        {"name": "idx_document_access_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_document_access_log_document", "columns": ["tenant_id", "document_id"]},
+        {"name": "idx_document_access_log_user", "columns": ["tenant_id", "accessed_by"]},
+        {"name": "idx_document_access_log_time", "columns": ["tenant_id", "accessed_at"]}
+      ]
+    }
+  ]
+}

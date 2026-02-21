@@ -52,6 +52,12 @@ public class HelpdeskTicketEntity extends TenantAwareEntity {
     @Column(name = "resolved_at")
     private Instant resolvedAt;
 
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
     @Column(name = "resolution_notes", length = 2000)
     private String resolutionNotes;
+
+    @Column(name = "satisfaction_rating")
+    private Integer satisfactionRating;
 }

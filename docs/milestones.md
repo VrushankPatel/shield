@@ -11,8 +11,8 @@ This tracker is the single source of truth for implementation progress against t
   - commit + push
 
 ## Current Status Summary
-- Baseline and major phase-2/3 modules are implemented.
-- Remaining work is to close full-spec gaps (advanced endpoint sets and production-grade integrations).
+- M1 through M9 are complete with unit and integration coverage.
+- Remaining work is to close full-spec gaps (modules M10+ and production-grade integrations).
 
 ## Milestone Plan
 
@@ -61,7 +61,7 @@ Exit Criteria:
 - Full module-2 endpoint coverage in OpenAPI and tests.
 
 ### M3. Billing & Payments Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Billing cycles, maintenance charges, special assessments, invoices, reminders, late-fee rules.
@@ -79,7 +79,7 @@ Exit Criteria:
 - Full module-3 endpoint parity and integration flow coverage.
 
 ### M4. Accounting & Treasury Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - `/account-heads/*`, `/fund-categories/*`, `/ledger-entries/*`, `/expenses/*`, `/vendors/*`, `/vendor-payments/*`, `/budgets/*`
@@ -97,7 +97,7 @@ Exit Criteria:
 - Full module-4 endpoint and reporting parity.
 
 ### M5. Visitor Management Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - `/visitors/*`, `/visitor-passes/*`, `/visitor-logs/*`, `/domestic-help/*`, `/blacklist/*`, `/delivery-logs/*`
@@ -113,7 +113,7 @@ Exit Criteria:
 - Full module-5 endpoint coverage with isolation tests.
 
 ### M6. Asset & Complaint Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Asset categories, complaint comments, work orders, preventive maintenance, depreciation APIs.
@@ -129,7 +129,7 @@ Exit Criteria:
 - Full module-6 parity in OpenAPI and tests.
 
 ### M7. Amenities & Meeting Completion
-Status: `PENDING`
+Status: `COMPLETE`
 
 Deliverables:
 - Amenities:
@@ -147,7 +147,7 @@ Exit Criteria:
 - Full modules 7 and 8 parity.
 
 ### M8. Staff & Payroll Completion
-Status: `PARTIAL`
+Status: `COMPLETE`
 
 Deliverables:
 - Add remaining staff endpoints:
@@ -163,7 +163,7 @@ Exit Criteria:
 - Full module-9 parity.
 
 ### M9. Helpdesk + Emergency + Documents Completion
-Status: `PARTIAL`
+Status: `COMPLETE`
 
 Deliverables:
 - Helpdesk full closure/rating/stats and attachment variants.

@@ -3,13 +3,16 @@ package com.shield.module.payroll.controller;
 import com.shield.common.dto.ApiResponse;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.util.SecurityUtils;
+import com.shield.module.payroll.dto.PayrollBulkProcessRequest;
 import com.shield.module.payroll.dto.PayrollGenerateRequest;
+import com.shield.module.payroll.dto.PayrollPayslipResponse;
 import com.shield.module.payroll.dto.PayrollProcessRequest;
 import com.shield.module.payroll.dto.PayrollResponse;
 import com.shield.module.payroll.dto.PayrollSummaryResponse;
 import com.shield.module.payroll.service.PayrollService;
 import com.shield.security.model.ShieldPrincipal;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +59,13 @@ public class PayrollController {
         return ResponseEntity.ok(ApiResponse.ok("Payroll processed", payrollService.process(request, principal)));
     }
 
+    @PostMapping("/bulk-process")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<List<PayrollResponse>>> bulkProcess(@Valid @RequestBody PayrollBulkProcessRequest request) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Payrolls bulk processed", payrollService.bulkProcess(request, principal)));
+    }
+
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
     public ResponseEntity<ApiResponse<PayrollResponse>> approve(@PathVariable UUID id) {
@@ -78,6 +88,12 @@ public class PayrollController {
             @PathVariable UUID staffId,
             Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok("Payroll by staff fetched", payrollService.listByStaff(staffId, pageable)));
+    }
+
+    @GetMapping("/{id}/payslip")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<PayrollPayslipResponse>> payslip(@PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok("Payroll payslip fetched", payrollService.getPayslip(id)));
     }
 
     @GetMapping("/summary")

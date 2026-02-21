@@ -680,7 +680,392 @@ paths:
       responses:
         '200': {description: Bills fetched}
 
+  /billing-cycles:
+    get:
+      tags: [Billing]
+      summary: List billing cycles
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Billing cycles fetched}
+    post:
+      tags: [Billing]
+      summary: Create billing cycle
+      responses:
+        '200': {description: Billing cycle created}
+  /billing-cycles/{id}:
+    get:
+      tags: [Billing]
+      summary: Get billing cycle by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle fetched}
+    put:
+      tags: [Billing]
+      summary: Update billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle updated}
+    delete:
+      tags: [Billing]
+      summary: Delete billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle deleted}
+  /billing-cycles/{id}/publish:
+    post:
+      tags: [Billing]
+      summary: Publish billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle published}
+  /billing-cycles/{id}/close:
+    post:
+      tags: [Billing]
+      summary: Close billing cycle
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Billing cycle closed}
+  /billing-cycles/current:
+    get:
+      tags: [Billing]
+      summary: Get current billing cycle
+      responses:
+        '200': {description: Current billing cycle fetched}
+  /billing-cycles/year/{year}:
+    get:
+      tags: [Billing]
+      summary: List billing cycles by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: {type: integer}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Billing cycles by year fetched}
+
+  /maintenance-charges:
+    get:
+      tags: [Billing]
+      summary: List maintenance charges
+      responses:
+        '200': {description: Maintenance charges fetched}
+  /maintenance-charges/{id}:
+    get:
+      tags: [Billing]
+      summary: Get maintenance charge by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Maintenance charge fetched}
+    put:
+      tags: [Billing]
+      summary: Update maintenance charge
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Maintenance charge updated}
+    delete:
+      tags: [Billing]
+      summary: Delete maintenance charge
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Maintenance charge deleted}
+  /maintenance-charges/generate:
+    post:
+      tags: [Billing]
+      summary: Generate maintenance charge
+      responses:
+        '200': {description: Maintenance charge generated}
+  /maintenance-charges/cycle/{cycleId}:
+    get:
+      tags: [Billing]
+      summary: List maintenance charges by billing cycle
+      parameters:
+        - in: path
+          name: cycleId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Maintenance charges by cycle fetched}
+  /maintenance-charges/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: List maintenance charges by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Maintenance charges by unit fetched}
+
+  /special-assessments:
+    get:
+      tags: [Billing]
+      summary: List special assessments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Special assessments fetched}
+    post:
+      tags: [Billing]
+      summary: Create special assessment
+      responses:
+        '200': {description: Special assessment created}
+  /special-assessments/{id}:
+    get:
+      tags: [Billing]
+      summary: Get special assessment by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Special assessment fetched}
+    put:
+      tags: [Billing]
+      summary: Update special assessment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Special assessment updated}
+    delete:
+      tags: [Billing]
+      summary: Delete special assessment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Special assessment deleted}
+  /special-assessments/active:
+    get:
+      tags: [Billing]
+      summary: List active special assessments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Active special assessments fetched}
+
+  /invoices:
+    get:
+      tags: [Billing]
+      summary: List invoices
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Invoices fetched}
+  /invoices/{id}:
+    get:
+      tags: [Billing]
+      summary: Get invoice by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice fetched}
+    put:
+      tags: [Billing]
+      summary: Update invoice
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice updated}
+    delete:
+      tags: [Billing]
+      summary: Delete invoice
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice deleted}
+  /invoices/generate:
+    post:
+      tags: [Billing]
+      summary: Generate invoice
+      responses:
+        '200': {description: Invoice generated}
+  /invoices/bulk-generate:
+    post:
+      tags: [Billing]
+      summary: Bulk generate invoices
+      responses:
+        '200': {description: Invoices generated}
+  /invoices/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: List invoices by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Invoices by unit fetched}
+  /invoices/cycle/{cycleId}:
+    get:
+      tags: [Billing]
+      summary: List invoices by cycle
+      parameters:
+        - in: path
+          name: cycleId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Invoices by cycle fetched}
+  /invoices/status/{status}:
+    get:
+      tags: [Billing]
+      summary: List invoices by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Invoices by status fetched}
+  /invoices/{id}/download:
+    get:
+      tags: [Billing]
+      summary: Get invoice download metadata
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Invoice download metadata fetched}
+  /invoices/defaulters:
+    get:
+      tags: [Billing]
+      summary: List invoice defaulters
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Invoice defaulters fetched}
+  /invoices/outstanding:
+    get:
+      tags: [Billing]
+      summary: List outstanding invoices
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Outstanding invoices fetched}
+
+  /payment-reminders:
+    get:
+      tags: [Billing]
+      summary: List payment reminders
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payment reminders fetched}
+  /payment-reminders/send:
+    post:
+      tags: [Billing]
+      summary: Send payment reminder
+      responses:
+        '200': {description: Payment reminder sent}
+  /payment-reminders/schedule:
+    post:
+      tags: [Billing]
+      summary: Schedule payment reminder
+      responses:
+        '200': {description: Payment reminder scheduled}
+  /payment-reminders/invoice/{invoiceId}:
+    get:
+      tags: [Billing]
+      summary: List payment reminders by invoice
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Payment reminders by invoice fetched}
+
+  /late-fee-rules:
+    get:
+      tags: [Billing]
+      summary: List late fee rules
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Late fee rules fetched}
+    post:
+      tags: [Billing]
+      summary: Create late fee rule
+      responses:
+        '200': {description: Late fee rule created}
+  /late-fee-rules/{id}:
+    get:
+      tags: [Billing]
+      summary: Get late fee rule by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule fetched}
+    put:
+      tags: [Billing]
+      summary: Update late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule updated}
+    delete:
+      tags: [Billing]
+      summary: Delete late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule deleted}
+  /late-fee-rules/{id}/activate:
+    post:
+      tags: [Billing]
+      summary: Activate late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule activated}
+  /late-fee-rules/{id}/deactivate:
+    post:
+      tags: [Billing]
+      summary: Deactivate late fee rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Late fee rule deactivated}
+
   /payments:
+    get:
+      tags: [Billing]
+      summary: List payments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payments fetched}
     post:
       tags: [Billing]
       summary: Create payment
@@ -694,6 +1079,56 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Payment fetched}
+  /payments/invoice/{invoiceId}:
+    get:
+      tags: [Billing]
+      summary: List payments by invoice
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Payments by invoice fetched}
+  /payments/unit/{unitId}:
+    get:
+      tags: [Billing]
+      summary: List payments by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Payments by unit fetched}
+  /payments/{id}/receipt:
+    get:
+      tags: [Billing]
+      summary: Get payment receipt
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payment receipt fetched}
+  /payments/cash:
+    post:
+      tags: [Billing]
+      summary: Create cash payment
+      responses:
+        '200': {description: Cash payment created}
+  /payments/cheque:
+    post:
+      tags: [Billing]
+      summary: Create cheque payment
+      responses:
+        '200': {description: Cheque payment created}
+  /payments/{id}/refund:
+    post:
+      tags: [Billing]
+      summary: Refund payment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payment refunded}
   /payments/initiate:
     post:
       tags: [Billing]
@@ -764,16 +1199,1044 @@ paths:
       responses:
         '200': {description: Ledger summary fetched}
 
-  /visitors/pass:
+  /account-heads:
+    get:
+      tags: [Accounting]
+      summary: List account heads
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Account heads fetched}
+    post:
+      tags: [Accounting]
+      summary: Create account head
+      responses:
+        '200': {description: Account head created}
+  /account-heads/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get account head by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Account head fetched}
+    put:
+      tags: [Accounting]
+      summary: Update account head
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Account head updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete account head
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Account head deleted}
+  /account-heads/type/{type}:
+    get:
+      tags: [Accounting]
+      summary: List account heads by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Account heads by type fetched}
+  /account-heads/hierarchy:
+    get:
+      tags: [Accounting]
+      summary: Get account head hierarchy
+      responses:
+        '200': {description: Account head hierarchy fetched}
+
+  /fund-categories:
+    get:
+      tags: [Accounting]
+      summary: List fund categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Fund categories fetched}
+    post:
+      tags: [Accounting]
+      summary: Create fund category
+      responses:
+        '200': {description: Fund category created}
+  /fund-categories/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get fund category by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category fetched}
+    put:
+      tags: [Accounting]
+      summary: Update fund category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete fund category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category deleted}
+  /fund-categories/{id}/balance:
+    get:
+      tags: [Accounting]
+      summary: Get fund category balance
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fund category balance fetched}
+  /fund-categories/balances:
+    get:
+      tags: [Accounting]
+      summary: List balances for all fund categories
+      responses:
+        '200': {description: Fund balances fetched}
+
+  /ledger-entries:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Ledger entries fetched}
+    post:
+      tags: [Accounting]
+      summary: Create ledger entry
+      responses:
+        '200': {description: Ledger entry created}
+  /ledger-entries/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get ledger entry by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Ledger entry fetched}
+    put:
+      tags: [Accounting]
+      summary: Update ledger entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Ledger entry updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete ledger entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Ledger entry deleted}
+  /ledger-entries/account/{accountHeadId}:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries by account head
+      parameters:
+        - in: path
+          name: accountHeadId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Ledger entries by account head fetched}
+  /ledger-entries/fund/{fundCategoryId}:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries by fund category
+      parameters:
+        - in: path
+          name: fundCategoryId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Ledger entries by fund category fetched}
+  /ledger-entries/date-range:
+    get:
+      tags: [Accounting]
+      summary: List ledger entries by date range
+      parameters:
+        - in: query
+          name: fromDate
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: toDate
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Ledger entries by date range fetched}
+  /ledger-entries/bulk:
+    post:
+      tags: [Accounting]
+      summary: Bulk create ledger entries
+      responses:
+        '200': {description: Ledger entries bulk created}
+  /ledger-entries/export:
+    get:
+      tags: [Accounting]
+      summary: Export ledger entries
+      responses:
+        '200': {description: Ledger entries export generated}
+
+  /expenses:
+    get:
+      tags: [Accounting]
+      summary: List expenses
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Expenses fetched}
+    post:
+      tags: [Accounting]
+      summary: Create expense
+      responses:
+        '200': {description: Expense created}
+  /expenses/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get expense by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense fetched}
+    put:
+      tags: [Accounting]
+      summary: Update expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense deleted}
+  /expenses/{id}/approve:
+    post:
+      tags: [Accounting]
+      summary: Approve expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense approved}
+  /expenses/{id}/reject:
+    post:
+      tags: [Accounting]
+      summary: Reject expense
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Expense rejected}
+  /expenses/pending-approval:
+    get:
+      tags: [Accounting]
+      summary: List pending expenses
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending expenses fetched}
+  /expenses/vendor/{vendorId}:
+    get:
+      tags: [Accounting]
+      summary: List expenses by vendor
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Expenses by vendor fetched}
+  /expenses/account/{accountHeadId}:
+    get:
+      tags: [Accounting]
+      summary: List expenses by account head
+      parameters:
+        - in: path
+          name: accountHeadId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Expenses by account head fetched}
+  /expenses/date-range:
+    get:
+      tags: [Accounting]
+      summary: List expenses by date range
+      parameters:
+        - in: query
+          name: fromDate
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: toDate
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Expenses by date range fetched}
+  /expenses/export:
+    get:
+      tags: [Accounting]
+      summary: Export expenses
+      responses:
+        '200': {description: Expense export generated}
+
+  /vendors:
+    get:
+      tags: [Accounting]
+      summary: List vendors
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Vendors fetched}
+    post:
+      tags: [Accounting]
+      summary: Create vendor
+      responses:
+        '200': {description: Vendor created}
+  /vendors/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get vendor by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor fetched}
+    put:
+      tags: [Accounting]
+      summary: Update vendor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete vendor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor deleted}
+  /vendors/type/{type}:
+    get:
+      tags: [Accounting]
+      summary: List vendors by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Vendors by type fetched}
+  /vendors/active:
+    get:
+      tags: [Accounting]
+      summary: List active vendors
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Active vendors fetched}
+  /vendors/{id}/status:
+    patch:
+      tags: [Accounting]
+      summary: Update vendor active status
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor status updated}
+
+  /vendor-payments:
+    get:
+      tags: [Accounting]
+      summary: List vendor payments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Vendor payments fetched}
+    post:
+      tags: [Accounting]
+      summary: Create vendor payment
+      responses:
+        '200': {description: Vendor payment created}
+  /vendor-payments/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get vendor payment by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Vendor payment fetched}
+  /vendor-payments/vendor/{vendorId}:
+    get:
+      tags: [Accounting]
+      summary: List vendor payments by vendor
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Vendor payments by vendor fetched}
+  /vendor-payments/expense/{expenseId}:
+    get:
+      tags: [Accounting]
+      summary: List vendor payments by expense
+      parameters:
+        - in: path
+          name: expenseId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Vendor payments by expense fetched}
+  /vendor-payments/pending:
+    get:
+      tags: [Accounting]
+      summary: List pending vendor payments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending vendor payments fetched}
+
+  /budgets:
+    get:
+      tags: [Accounting]
+      summary: List budgets
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Budgets fetched}
+    post:
+      tags: [Accounting]
+      summary: Create budget
+      responses:
+        '200': {description: Budget created}
+  /budgets/{id}:
+    get:
+      tags: [Accounting]
+      summary: Get budget by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Budget fetched}
+    put:
+      tags: [Accounting]
+      summary: Update budget
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Budget updated}
+    delete:
+      tags: [Accounting]
+      summary: Delete budget
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Budget deleted}
+  /budgets/financial-year/{year}:
+    get:
+      tags: [Accounting]
+      summary: List budgets by financial year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Budgets by year fetched}
+  /budgets/vs-actual:
+    get:
+      tags: [Accounting]
+      summary: Budget vs actual
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Budget vs actual fetched}
+
+  /reports/income-statement:
+    get:
+      tags: [Accounting]
+      summary: Income statement report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Income statement fetched}
+  /reports/balance-sheet:
+    get:
+      tags: [Accounting]
+      summary: Balance sheet report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Balance sheet fetched}
+  /reports/cash-flow:
+    get:
+      tags: [Accounting]
+      summary: Cash flow report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Cash flow fetched}
+  /reports/trial-balance:
+    get:
+      tags: [Accounting]
+      summary: Trial balance report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Trial balance fetched}
+  /reports/fund-summary:
+    get:
+      tags: [Accounting]
+      summary: Fund summary report
+      responses:
+        '200': {description: Fund summary fetched}
+  /reports/export/ca-format:
+    get:
+      tags: [Accounting]
+      summary: Export CA format report
+      parameters:
+        - in: query
+          name: financialYear
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: CA format export generated}
+
+  /visitors:
+    get:
+      tags: [Visitor]
+      summary: List visitors
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Visitors fetched}
+    post:
+      tags: [Visitor]
+      summary: Create visitor
+      responses:
+        '200': {description: Visitor created}
+  /visitors/search:
+    get:
+      tags: [Visitor]
+      summary: Search visitors
+      parameters:
+        - in: query
+          name: q
+          required: false
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitors fetched}
+  /visitors/phone/{phone}:
+    get:
+      tags: [Visitor]
+      summary: List visitors by phone
+      parameters:
+        - in: path
+          name: phone
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitors fetched}
+  /visitors/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor fetched}
+    put:
+      tags: [Visitor]
+      summary: Update visitor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete visitor
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor deleted}
+
+  /visitor-passes:
+    get:
+      tags: [Visitor]
+      summary: List visitor passes
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Visitor passes fetched}
     post:
       tags: [Visitor]
       summary: Create visitor pass
       responses:
         '200': {description: Visitor pass created}
+  /visitor-passes/create:
+    post:
+      tags: [Visitor]
+      summary: Create visitor pass (alias)
+      responses:
+        '200': {description: Visitor pass created}
+  /visitor-passes/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor pass by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass fetched}
+    put:
+      tags: [Visitor]
+      summary: Update visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass deleted}
+  /visitor-passes/{id}/cancel:
+    post:
+      tags: [Visitor]
+      summary: Cancel visitor pass
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor pass cancelled}
+  /visitor-passes/unit/{unitId}:
+    get:
+      tags: [Visitor]
+      summary: List visitor passes by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor passes fetched}
+  /visitor-passes/date/{date}:
+    get:
+      tags: [Visitor]
+      summary: List visitor passes by date
+      parameters:
+        - in: path
+          name: date
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor passes fetched}
+  /visitor-passes/active:
+    get:
+      tags: [Visitor]
+      summary: List active visitor passes
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Active visitor passes fetched}
+  /visitor-passes/verify/{qrCode}:
+    get:
+      tags: [Visitor]
+      summary: Verify visitor pass by QR code
+      parameters:
+        - in: path
+          name: qrCode
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Visitor pass verified}
+  /visitor-passes/pre-approve:
+    post:
+      tags: [Visitor]
+      summary: Pre-approve visitor pass
+      responses:
+        '200': {description: Visitor pass pre-approved}
+
+  /visitor-logs:
+    get:
+      tags: [Visitor]
+      summary: List visitor logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Visitor logs fetched}
+  /visitor-logs/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get visitor log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Visitor log fetched}
+  /visitor-logs/entry:
+    post:
+      tags: [Visitor]
+      summary: Log visitor entry
+      responses:
+        '200': {description: Visitor entry logged}
+  /visitor-logs/exit:
+    post:
+      tags: [Visitor]
+      summary: Log visitor exit
+      responses:
+        '200': {description: Visitor exit logged}
+  /visitor-logs/pass/{passId}:
+    get:
+      tags: [Visitor]
+      summary: List visitor logs by pass
+      parameters:
+        - in: path
+          name: passId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor logs fetched}
+  /visitor-logs/date-range:
+    get:
+      tags: [Visitor]
+      summary: List visitor logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date-time}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date-time}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor logs fetched}
+  /visitor-logs/currently-inside:
+    get:
+      tags: [Visitor]
+      summary: List visitors currently inside
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Visitor logs fetched}
+
+  /domestic-help:
+    get:
+      tags: [Visitor]
+      summary: List domestic help records
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Domestic help records fetched}
+    post:
+      tags: [Visitor]
+      summary: Create domestic help record
+      responses:
+        '200': {description: Domestic help created}
+  /domestic-help/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get domestic help by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help fetched}
+    put:
+      tags: [Visitor]
+      summary: Update domestic help record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete domestic help record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help deleted}
+  /domestic-help/type/{type}:
+    get:
+      tags: [Visitor]
+      summary: List domestic help by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Domestic help fetched}
+  /domestic-help/{id}/verify:
+    post:
+      tags: [Visitor]
+      summary: Verify domestic help
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help verified}
+  /domestic-help/unit/{unitId}:
+    get:
+      tags: [Visitor]
+      summary: List domestic help by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Domestic help fetched}
+  /domestic-help/{id}/assign-unit:
+    post:
+      tags: [Visitor]
+      summary: Assign domestic help to unit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Domestic help mapped to unit}
+  /domestic-help/{helpId}/unit/{unitId}:
+    delete:
+      tags: [Visitor]
+      summary: Remove domestic help unit mapping
+      parameters:
+        - in: path
+          name: helpId
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Domestic help mapping removed}
+
+  /blacklist:
+    get:
+      tags: [Visitor]
+      summary: List blacklist entries
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Blacklist entries fetched}
+    post:
+      tags: [Visitor]
+      summary: Create blacklist entry
+      responses:
+        '200': {description: Blacklist entry created}
+  /blacklist/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get blacklist entry by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry fetched}
+    put:
+      tags: [Visitor]
+      summary: Update blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry updated}
+    delete:
+      tags: [Visitor]
+      summary: Delete blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry deleted}
+  /blacklist/check/{phone}:
+    get:
+      tags: [Visitor]
+      summary: Check blacklist by phone
+      parameters:
+        - in: path
+          name: phone
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Blacklist check completed}
+  /blacklist/{id}/activate:
+    post:
+      tags: [Visitor]
+      summary: Activate blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry activated}
+  /blacklist/{id}/deactivate:
+    post:
+      tags: [Visitor]
+      summary: Deactivate blacklist entry
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Blacklist entry deactivated}
+
+  /delivery-logs:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Delivery logs fetched}
+    post:
+      tags: [Visitor]
+      summary: Create delivery log
+      responses:
+        '200': {description: Delivery log created}
+  /delivery-logs/{id}:
+    get:
+      tags: [Visitor]
+      summary: Get delivery log by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Delivery log fetched}
+  /delivery-logs/unit/{unitId}:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs by unit
+      parameters:
+        - in: path
+          name: unitId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Delivery logs fetched}
+  /delivery-logs/date-range:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date-time}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date-time}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Delivery logs fetched}
+  /delivery-logs/partner/{partner}:
+    get:
+      tags: [Visitor]
+      summary: List delivery logs by partner
+      parameters:
+        - in: path
+          name: partner
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Delivery logs fetched}
+
+  /visitors/pass:
+    post:
+      tags: [Visitor]
+      summary: Create visitor pass (legacy)
+      responses:
+        '200': {description: Visitor pass created}
   /visitors/pass/{id}:
     get:
       tags: [Visitor]
-      summary: Get visitor pass
+      summary: Get visitor pass (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -781,7 +2244,7 @@ paths:
   /visitors/pass/{id}/approve:
     put:
       tags: [Visitor]
-      summary: Approve visitor pass
+      summary: Approve visitor pass (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -789,11 +2252,48 @@ paths:
   /visitors/pass/{id}/reject:
     put:
       tags: [Visitor]
-      summary: Reject visitor pass
+      summary: Reject visitor pass (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Visitor pass rejected}
+
+  /asset-categories:
+    post:
+      tags: [Asset]
+      summary: Create asset category
+      responses:
+        '200': {description: Asset category created}
+    get:
+      tags: [Asset]
+      summary: List asset categories
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Asset categories fetched}
+  /asset-categories/{id}:
+    get:
+      tags: [Asset]
+      summary: Get asset category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset category fetched}
+    put:
+      tags: [Asset]
+      summary: Update asset category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset category updated}
+    delete:
+      tags: [Asset]
+      summary: Delete asset category
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Asset category deleted}
 
   /assets:
     post:
@@ -832,6 +2332,86 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Asset deleted}
+  /assets/category/{categoryId}:
+    get:
+      tags: [Asset]
+      summary: List assets by category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Assets by category fetched}
+  /assets/location/{location}:
+    get:
+      tags: [Asset]
+      summary: List assets by location
+      parameters:
+        - in: path
+          name: location
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Assets by location fetched}
+  /assets/tag/{tag}:
+    get:
+      tags: [Asset]
+      summary: Get asset by tag
+      parameters:
+        - in: path
+          name: tag
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Asset fetched by tag}
+  /assets/verify-qr/{qrCode}:
+    get:
+      tags: [Asset]
+      summary: Verify asset by QR code
+      parameters:
+        - in: path
+          name: qrCode
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Asset verified}
+  /assets/amc-expiring:
+    get:
+      tags: [Asset]
+      summary: List assets with AMC expiry
+      parameters:
+        - in: query
+          name: days
+          required: false
+          schema: {type: integer, default: 30}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: AMC expiring assets fetched}
+  /assets/warranty-expiring:
+    get:
+      tags: [Asset]
+      summary: List assets with warranty expiry
+      parameters:
+        - in: query
+          name: days
+          required: false
+          schema: {type: integer, default: 30}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Warranty expiring assets fetched}
+  /assets/export:
+    get:
+      tags: [Asset]
+      summary: Export assets CSV
+      responses:
+        '200': {description: Asset export generated}
 
   /complaints:
     post:
@@ -848,10 +2428,39 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Complaints fetched}
+  /complaints/{id}:
+    get:
+      tags: [Complaint]
+      summary: Get complaint by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint fetched}
+    put:
+      tags: [Complaint]
+      summary: Update complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint updated}
+    delete:
+      tags: [Complaint]
+      summary: Delete complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint deleted}
   /complaints/{id}/assign:
     put:
       tags: [Complaint]
       summary: Assign complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint assigned}
+    post:
+      tags: [Complaint]
+      summary: Assign complaint (alias)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -864,6 +2473,335 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Complaint resolved}
+    post:
+      tags: [Complaint]
+      summary: Resolve complaint (alias)
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint resolved}
+  /complaints/{id}/close:
+    post:
+      tags: [Complaint]
+      summary: Close complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint closed}
+  /complaints/{id}/reopen:
+    post:
+      tags: [Complaint]
+      summary: Reopen complaint
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint reopened}
+  /complaints/status/{status}:
+    get:
+      tags: [Complaint]
+      summary: List complaints by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaints by status fetched}
+  /complaints/priority/{priority}:
+    get:
+      tags: [Complaint]
+      summary: List complaints by priority
+      parameters:
+        - in: path
+          name: priority
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaints by priority fetched}
+  /complaints/asset/{assetId}:
+    get:
+      tags: [Complaint]
+      summary: List complaints by asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaints by asset fetched}
+  /complaints/my-complaints:
+    get:
+      tags: [Complaint]
+      summary: List my complaints
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My complaints fetched}
+  /complaints/assigned-to-me:
+    get:
+      tags: [Complaint]
+      summary: List complaints assigned to current user
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Assigned complaints fetched}
+  /complaints/sla-breached:
+    get:
+      tags: [Complaint]
+      summary: List SLA breached complaints
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: SLA breached complaints fetched}
+  /complaints/statistics:
+    get:
+      tags: [Complaint]
+      summary: Complaint statistics
+      responses:
+        '200': {description: Complaint statistics fetched}
+  /complaints/{id}/comments:
+    get:
+      tags: [Complaint]
+      summary: List complaint comments
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Complaint comments fetched}
+    post:
+      tags: [Complaint]
+      summary: Add complaint comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint comment added}
+  /comments/{id}:
+    put:
+      tags: [Complaint]
+      summary: Update complaint comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint comment updated}
+    delete:
+      tags: [Complaint]
+      summary: Delete complaint comment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Complaint comment deleted}
+
+  /work-orders:
+    post:
+      tags: [Complaint]
+      summary: Create work order
+      responses:
+        '200': {description: Work order created}
+    get:
+      tags: [Complaint]
+      summary: List work orders
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders fetched}
+  /work-orders/{id}:
+    get:
+      tags: [Complaint]
+      summary: Get work order by id
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order fetched}
+    put:
+      tags: [Complaint]
+      summary: Update work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order updated}
+    delete:
+      tags: [Complaint]
+      summary: Delete work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order deleted}
+  /work-orders/{id}/start:
+    post:
+      tags: [Complaint]
+      summary: Start work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order started}
+  /work-orders/{id}/complete:
+    post:
+      tags: [Complaint]
+      summary: Complete work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order completed}
+  /work-orders/{id}/cancel:
+    post:
+      tags: [Complaint]
+      summary: Cancel work order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Work order cancelled}
+  /work-orders/complaint/{complaintId}:
+    get:
+      tags: [Complaint]
+      summary: List work orders by complaint
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders by complaint fetched}
+  /work-orders/vendor/{vendorId}:
+    get:
+      tags: [Complaint]
+      summary: List work orders by vendor
+      parameters:
+        - in: path
+          name: vendorId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders by vendor fetched}
+  /work-orders/status/{status}:
+    get:
+      tags: [Complaint]
+      summary: List work orders by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Work orders by status fetched}
+
+  /preventive-maintenance:
+    post:
+      tags: [Asset]
+      summary: Create preventive maintenance schedule
+      responses:
+        '200': {description: Preventive maintenance schedule created}
+    get:
+      tags: [Asset]
+      summary: List preventive maintenance schedules
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Preventive maintenance schedules fetched}
+  /preventive-maintenance/{id}:
+    get:
+      tags: [Asset]
+      summary: Get preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule fetched}
+    put:
+      tags: [Asset]
+      summary: Update preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule updated}
+    delete:
+      tags: [Asset]
+      summary: Delete preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule deleted}
+  /preventive-maintenance/asset/{assetId}:
+    get:
+      tags: [Asset]
+      summary: List preventive maintenance by asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Preventive maintenance by asset fetched}
+  /preventive-maintenance/due:
+    get:
+      tags: [Asset]
+      summary: List due preventive maintenance schedules
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Due preventive maintenance schedules fetched}
+  /preventive-maintenance/{id}/execute:
+    post:
+      tags: [Asset]
+      summary: Execute preventive maintenance schedule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Preventive maintenance schedule executed}
+
+  /asset-depreciation/asset/{assetId}:
+    get:
+      tags: [Asset]
+      summary: List asset depreciation by asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Asset depreciation by asset fetched}
+  /asset-depreciation/calculate:
+    post:
+      tags: [Asset]
+      summary: Calculate asset depreciation
+      responses:
+        '200': {description: Asset depreciation calculated}
+  /asset-depreciation/year/{year}:
+    get:
+      tags: [Asset]
+      summary: List asset depreciation by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema: {type: integer}
+      responses:
+        '200': {description: Asset depreciation by year fetched}
+  /asset-depreciation/report:
+    get:
+      tags: [Asset]
+      summary: Asset depreciation report
+      responses:
+        '200': {description: Asset depreciation report fetched}
 
   /amenities:
     post:
@@ -880,10 +2818,282 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Amenities fetched}
+  /amenities/{id}:
+    get:
+      tags: [Amenities]
+      summary: Get amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity fetched}
+    put:
+      tags: [Amenities]
+      summary: Update amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity deleted}
+  /amenities/type/{type}:
+    get:
+      tags: [Amenities]
+      summary: List amenities by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenities by type fetched}
+  /amenities/available:
+    get:
+      tags: [Amenities]
+      summary: List available amenities
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Available amenities fetched}
+  /amenities/{id}/activate:
+    post:
+      tags: [Amenities]
+      summary: Activate amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity activated}
+  /amenities/{id}/deactivate:
+    post:
+      tags: [Amenities]
+      summary: Deactivate amenity
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity deactivated}
+  /amenities/{id}/time-slots:
+    get:
+      tags: [Amenities]
+      summary: List amenity time slots
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slots fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot created}
+  /time-slots/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot deleted}
+  /time-slots/{id}/activate:
+    post:
+      tags: [Amenities]
+      summary: Activate amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot activated}
+  /time-slots/{id}/deactivate:
+    post:
+      tags: [Amenities]
+      summary: Deactivate amenity time slot
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity time slot deactivated}
+  /amenities/{id}/pricing:
+    get:
+      tags: [Amenities]
+      summary: List amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing created}
+  /pricing/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity pricing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity pricing deleted}
+  /amenity-bookings:
+    post:
+      tags: [Amenities]
+      summary: Create amenity booking
+      parameters:
+        - in: query
+          name: amenityId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Amenity booking created}
+    get:
+      tags: [Amenities]
+      summary: List amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenity bookings fetched}
+  /amenity-bookings/{id}:
+    get:
+      tags: [Amenities]
+      summary: Get amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking fetched}
+    put:
+      tags: [Amenities]
+      summary: Update amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking deleted}
+  /amenity-bookings/{id}/approve:
+    post:
+      tags: [Amenities]
+      summary: Approve amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking approved}
+  /amenity-bookings/{id}/reject:
+    post:
+      tags: [Amenities]
+      summary: Reject amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rejected}
+  /amenity-bookings/{id}/cancel:
+    post:
+      tags: [Amenities]
+      summary: Cancel amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking cancelled}
+  /amenity-bookings/{id}/complete:
+    post:
+      tags: [Amenities]
+      summary: Complete amenity booking
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking completed}
+  /amenity-bookings/amenity/{amenityId}:
+    get:
+      tags: [Amenities]
+      summary: List bookings by amenity
+      parameters:
+        - in: path
+          name: amenityId
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenity bookings by amenity fetched}
+  /amenity-bookings/my-bookings:
+    get:
+      tags: [Amenities]
+      summary: List my amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My amenity bookings fetched}
+  /amenity-bookings/pending-approval:
+    get:
+      tags: [Amenities]
+      summary: List pending amenity bookings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending amenity bookings fetched}
+  /amenity-bookings/date/{date}:
+    get:
+      tags: [Amenities]
+      summary: List amenity bookings by date
+      parameters:
+        - in: path
+          name: date
+          required: true
+          schema: {type: string, format: date}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Amenity bookings by date fetched}
+  /amenity-bookings/check-availability:
+    get:
+      tags: [Amenities]
+      summary: Check amenity booking availability
+      parameters:
+        - in: query
+          name: amenityId
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: startTime
+          required: true
+          schema: {type: string, format: date-time}
+        - in: query
+          name: endTime
+          required: true
+          schema: {type: string, format: date-time}
+      responses:
+        '200': {description: Amenity availability fetched}
   /amenities/{id}/book:
     post:
       tags: [Amenities]
-      summary: Book amenity
+      summary: Book amenity (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
@@ -891,13 +3101,73 @@ paths:
   /amenities/bookings:
     get:
       tags: [Amenities]
-      summary: List amenity bookings
+      summary: List amenity bookings (legacy)
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Size'
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Amenity bookings fetched}
+  /amenities/{id}/rules:
+    get:
+      tags: [Amenities]
+      summary: List amenity booking rules
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rules fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity booking rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rule created}
+  /booking-rules/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity booking rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rule updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity booking rule
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity booking rule deleted}
+  /amenities/{id}/cancellation-policy:
+    get:
+      tags: [Amenities]
+      summary: Get amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy fetched}
+    post:
+      tags: [Amenities]
+      summary: Create amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy created}
+  /cancellation-policy/{id}:
+    put:
+      tags: [Amenities]
+      summary: Update amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy updated}
+    delete:
+      tags: [Amenities]
+      summary: Delete amenity cancellation policy
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Amenity cancellation policy deleted}
 
   /meetings:
     post:
@@ -914,14 +3184,385 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Meetings fetched}
-  /meetings/{id}/minutes:
+  /meetings/{id}:
+    get:
+      tags: [Meeting]
+      summary: Get meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting fetched}
     put:
       tags: [Meeting]
-      summary: Update meeting minutes
+      summary: Update meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting deleted}
+  /meetings/{id}/start:
+    post:
+      tags: [Meeting]
+      summary: Start meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting started}
+  /meetings/{id}/end:
+    post:
+      tags: [Meeting]
+      summary: End meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting ended}
+  /meetings/{id}/cancel:
+    post:
+      tags: [Meeting]
+      summary: Cancel meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting cancelled}
+  /meetings/upcoming:
+    get:
+      tags: [Meeting]
+      summary: List upcoming meetings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Upcoming meetings fetched}
+  /meetings/past:
+    get:
+      tags: [Meeting]
+      summary: List past meetings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Past meetings fetched}
+  /meetings/type/{type}:
+    get:
+      tags: [Meeting]
+      summary: List meetings by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Meetings by type fetched}
+  /meetings/{id}/agenda:
+    get:
+      tags: [Meeting]
+      summary: List meeting agenda
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda item created}
+  /agenda/{id}:
+    put:
+      tags: [Meeting]
+      summary: Update meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda item updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda item deleted}
+  /agenda/{id}/order:
+    patch:
+      tags: [Meeting]
+      summary: Reorder meeting agenda item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting agenda order updated}
+  /meetings/{id}/attendees:
+    get:
+      tags: [Meeting]
+      summary: List meeting attendees
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendees fetched}
+    post:
+      tags: [Meeting]
+      summary: Add meeting attendee
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendee added}
+  /meetings/{meetingId}/attendees/{userId}:
+    delete:
+      tags: [Meeting]
+      summary: Remove meeting attendee
+      parameters:
+        - in: path
+          name: meetingId
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Meeting attendee removed}
+  /meetings/{id}/rsvp:
+    post:
+      tags: [Meeting]
+      summary: RSVP to meeting
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting RSVP updated}
+  /meetings/{id}/mark-attendance:
+    post:
+      tags: [Meeting]
+      summary: Mark meeting attendance
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendance marked}
+  /meetings/{id}/attendance-report:
+    get:
+      tags: [Meeting]
+      summary: Get meeting attendance report
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting attendance report fetched}
+  /meetings/{id}/minutes:
+    get:
+      tags: [Meeting]
+      summary: Get meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes created}
+    put:
+      tags: [Meeting]
+      summary: Update meeting minutes (legacy)
       parameters:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Meeting minutes updated}
+  /minutes/{id}:
+    put:
+      tags: [Meeting]
+      summary: Update meeting minutes record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes record updated}
+  /minutes/{id}/approve:
+    post:
+      tags: [Meeting]
+      summary: Approve meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes approved}
+  /minutes/{id}/download:
+    get:
+      tags: [Meeting]
+      summary: Download meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting minutes download details fetched}
+  /minutes/{id}/generate-ai-summary:
+    post:
+      tags: [Meeting]
+      summary: Generate AI summary for meeting minutes
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting AI summary generated}
+  /meetings/{id}/resolutions:
+    get:
+      tags: [Meeting]
+      summary: List meeting resolutions
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolutions fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution created}
+  /resolutions/{id}:
+    get:
+      tags: [Meeting]
+      summary: Get meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution fetched}
+    put:
+      tags: [Meeting]
+      summary: Update meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution deleted}
+  /resolutions/status/{status}:
+    get:
+      tags: [Meeting]
+      summary: List meeting resolutions by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Meeting resolutions by status fetched}
+  /resolutions/{id}/vote:
+    post:
+      tags: [Meeting]
+      summary: Vote on meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution vote submitted}
+  /resolutions/{id}/votes:
+    get:
+      tags: [Meeting]
+      summary: List votes for meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution votes fetched}
+  /resolutions/{id}/results:
+    get:
+      tags: [Meeting]
+      summary: Get meeting resolution vote results
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting resolution vote results fetched}
+  /resolutions/{id}/my-vote:
+    get:
+      tags: [Meeting]
+      summary: Get my vote for meeting resolution
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: My meeting vote fetched}
+  /meetings/{id}/action-items:
+    get:
+      tags: [Meeting]
+      summary: List meeting action items
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action items fetched}
+    post:
+      tags: [Meeting]
+      summary: Create meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item created}
+  /action-items/{id}:
+    put:
+      tags: [Meeting]
+      summary: Update meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item updated}
+    delete:
+      tags: [Meeting]
+      summary: Delete meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item deleted}
+  /action-items/{id}/complete:
+    post:
+      tags: [Meeting]
+      summary: Complete meeting action item
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting action item completed}
+  /action-items/assigned-to-me:
+    get:
+      tags: [Meeting]
+      summary: List meeting action items assigned to current user
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Meeting action items assigned to me fetched}
+  /action-items/pending:
+    get:
+      tags: [Meeting]
+      summary: List pending meeting action items
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending meeting action items fetched}
+  /meetings/{id}/send-reminders:
+    post:
+      tags: [Meeting]
+      summary: Send meeting reminder
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - in: query
+          name: reminderType
+          required: false
+          schema: {type: string}
+      responses:
+        '200': {description: Meeting reminder sent}
+  /meetings/{id}/reminders:
+    get:
+      tags: [Meeting]
+      summary: List meeting reminders
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Meeting reminders fetched}
 
   /announcements:
     post:
@@ -1275,6 +3916,47 @@ paths:
       summary: Create helpdesk ticket
       responses:
         '200': {description: Helpdesk ticket created}
+  /helpdesk-tickets/my-tickets:
+    get:
+      tags: [Helpdesk]
+      summary: List my helpdesk tickets
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: My helpdesk tickets fetched}
+  /helpdesk-tickets/assigned-to-me:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk tickets assigned to me
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Assigned helpdesk tickets fetched}
+  /helpdesk-tickets/status/{status}:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk tickets by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Helpdesk tickets by status fetched}
+  /helpdesk-tickets/statistics:
+    get:
+      tags: [Helpdesk]
+      summary: Get helpdesk ticket statistics
+      responses:
+        '200': {description: Helpdesk ticket statistics fetched}
   /helpdesk-tickets/{id}:
     get:
       tags: [Helpdesk]
@@ -1313,6 +3995,30 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Helpdesk ticket resolved}
+  /helpdesk-tickets/{id}/close:
+    post:
+      tags: [Helpdesk]
+      summary: Close helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket closed}
+  /helpdesk-tickets/{id}/reopen:
+    post:
+      tags: [Helpdesk]
+      summary: Reopen helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket reopened}
+  /helpdesk-tickets/{id}/rate:
+    post:
+      tags: [Helpdesk]
+      summary: Rate helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket rated}
   /helpdesk-tickets/{id}/comments:
     get:
       tags: [Helpdesk]
@@ -1330,6 +4036,31 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Helpdesk comment added}
+  /helpdesk-tickets/{id}/attachments:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk ticket attachments
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Helpdesk attachments fetched}
+    post:
+      tags: [Helpdesk]
+      summary: Add helpdesk ticket attachment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk attachment added}
+  /ticket-attachments/{id}:
+    delete:
+      tags: [Helpdesk]
+      summary: Delete helpdesk ticket attachment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk attachment deleted}
 
   /emergency-contacts:
     get:
@@ -1346,6 +4077,21 @@ paths:
       summary: Create emergency contact
       responses:
         '200': {description: Emergency contact created}
+  /emergency-contacts/type/{type}:
+    get:
+      tags: [Emergency]
+      summary: List emergency contacts by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Emergency contacts by type fetched}
   /emergency-contacts/{id}:
     get:
       tags: [Emergency]
@@ -1368,6 +4114,14 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Emergency contact deleted}
+  /emergency-contacts/{id}/order:
+    patch:
+      tags: [Emergency]
+      summary: Update emergency contact display order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Emergency contact order updated}
 
   /sos-alerts:
     get:
@@ -1389,6 +4143,43 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Active SOS alerts fetched}
+  /sos-alerts/type/{type}:
+    get:
+      tags: [Emergency]
+      summary: List SOS alerts by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: SOS alerts by type fetched}
+  /sos-alerts/date-range:
+    get:
+      tags: [Emergency]
+      summary: List SOS alerts by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: SOS alerts by date range fetched}
   /sos-alerts/{id}:
     get:
       tags: [Emergency]
@@ -1419,6 +4210,209 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: SOS alert resolved}
+  /sos-alerts/{id}/mark-false-alarm:
+    post:
+      tags: [Emergency]
+      summary: Mark SOS alert as false alarm
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: SOS alert marked false alarm}
+  /fire-drill-records:
+    get:
+      tags: [Emergency]
+      summary: List fire drill records
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Fire drill records fetched}
+    post:
+      tags: [Emergency]
+      summary: Create fire drill record
+      responses:
+        '200': {description: Fire drill record created}
+  /fire-drill-records/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get fire drill record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fire drill record fetched}
+    put:
+      tags: [Emergency]
+      summary: Update fire drill record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fire drill record updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete fire drill record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fire drill record deleted}
+  /fire-drill-records/year/{year}:
+    get:
+      tags: [Emergency]
+      summary: List fire drill records by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Fire drill records by year fetched}
+  /safety-equipment:
+    get:
+      tags: [Emergency]
+      summary: List safety equipment
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety equipment fetched}
+    post:
+      tags: [Emergency]
+      summary: Create safety equipment
+      responses:
+        '200': {description: Safety equipment created}
+  /safety-equipment/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get safety equipment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety equipment fetched}
+    put:
+      tags: [Emergency]
+      summary: Update safety equipment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety equipment updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete safety equipment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety equipment deleted}
+  /safety-equipment/type/{type}:
+    get:
+      tags: [Emergency]
+      summary: List safety equipment by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety equipment by type fetched}
+  /safety-equipment/inspection-due:
+    get:
+      tags: [Emergency]
+      summary: List safety equipment with inspection due
+      parameters:
+        - in: query
+          name: onOrBefore
+          required: false
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety equipment inspection due fetched}
+  /safety-inspections:
+    get:
+      tags: [Emergency]
+      summary: List safety inspections
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety inspections fetched}
+    post:
+      tags: [Emergency]
+      summary: Create safety inspection
+      responses:
+        '200': {description: Safety inspection created}
+  /safety-inspections/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get safety inspection
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety inspection fetched}
+    put:
+      tags: [Emergency]
+      summary: Update safety inspection
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety inspection updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete safety inspection
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety inspection deleted}
+  /safety-inspections/equipment/{equipmentId}:
+    get:
+      tags: [Emergency]
+      summary: List safety inspections by equipment
+      parameters:
+        - in: path
+          name: equipmentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety inspections by equipment fetched}
+  /safety-inspections/date-range:
+    get:
+      tags: [Emergency]
+      summary: List safety inspections by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety inspections by date range fetched}
 
   /document-categories:
     get:
@@ -1473,6 +4467,12 @@ paths:
       summary: Create document
       responses:
         '200': {description: Document created}
+  /documents/upload:
+    post:
+      tags: [Documents]
+      summary: Upload document
+      responses:
+        '200': {description: Document created}
   /documents/public:
     get:
       tags: [Documents]
@@ -1499,6 +4499,58 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Category documents fetched}
+  /documents/search:
+    get:
+      tags: [Documents]
+      summary: Search documents
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Documents search fetched}
+  /documents/tags/{tag}:
+    get:
+      tags: [Documents]
+      summary: List documents by tag
+      parameters:
+        - in: path
+          name: tag
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Documents by tag fetched}
+  /documents/expiring:
+    get:
+      tags: [Documents]
+      summary: List expiring documents
+      parameters:
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Expiring documents fetched}
   /documents/{id}:
     get:
       tags: [Documents]
@@ -1521,6 +4573,60 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Document deleted}
+  /documents/{id}/download:
+    get:
+      tags: [Documents]
+      summary: Download document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document download details fetched}
+  /documents/{id}/access-logs:
+    get:
+      tags: [Documents]
+      summary: List access logs for a document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Document access logs fetched}
+  /document-access-logs/user/{userId}:
+    get:
+      tags: [Documents]
+      summary: List document access logs by user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Document access logs by user fetched}
+  /document-access-logs/date-range:
+    get:
+      tags: [Documents]
+      summary: List document access logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Document access logs by date range fetched}
 
   /staff:
     get:
@@ -1584,6 +4690,18 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Staff deleted}
+  /staff/export:
+    get:
+      tags: [Staff]
+      summary: Export staff CSV
+      parameters:
+        - in: query
+          name: filename
+          required: false
+          schema:
+            type: string
+      responses:
+        '200': {description: Staff CSV exported}
   /staff/{id}/status:
     patch:
       tags: [Staff]
@@ -1700,6 +4818,96 @@ paths:
             format: date
       responses:
         '200': {description: Staff attendance summary fetched}
+  /staff-leaves:
+    get:
+      tags: [Staff]
+      summary: List staff leaves
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Staff leaves fetched}
+    post:
+      tags: [Staff]
+      summary: Create staff leave
+      responses:
+        '200': {description: Staff leave created}
+  /staff-leaves/{id}:
+    get:
+      tags: [Staff]
+      summary: Get staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave fetched}
+    put:
+      tags: [Staff]
+      summary: Update staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave updated}
+    delete:
+      tags: [Staff]
+      summary: Delete staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave deleted}
+  /staff-leaves/{id}/approve:
+    post:
+      tags: [Staff]
+      summary: Approve staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave approved}
+  /staff-leaves/{id}/reject:
+    post:
+      tags: [Staff]
+      summary: Reject staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave rejected}
+  /staff-leaves/staff/{staffId}:
+    get:
+      tags: [Staff]
+      summary: List staff leaves by staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Staff leaves by staff fetched}
+  /staff-leaves/pending-approval:
+    get:
+      tags: [Staff]
+      summary: List pending staff leaves
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending staff leaves fetched}
+  /staff-leaves/balance/{staffId}:
+    get:
+      tags: [Staff]
+      summary: Get staff leave balance
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Staff leave balance fetched}
 
   /payroll:
     get:
@@ -1731,6 +4939,12 @@ paths:
       summary: Process payroll
       responses:
         '200': {description: Payroll processed}
+  /payroll/bulk-process:
+    post:
+      tags: [Payroll]
+      summary: Bulk process payroll
+      responses:
+        '200': {description: Payrolls bulk processed}
   /payroll/{id}/approve:
     post:
       tags: [Payroll]
@@ -1739,6 +4953,14 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Payroll approved}
+  /payroll/{id}/payslip:
+    get:
+      tags: [Payroll]
+      summary: Get payroll payslip
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll payslip fetched}
   /payroll/month/{month}/year/{year}:
     get:
       tags: [Payroll]
@@ -1790,6 +5012,85 @@ paths:
             type: integer
       responses:
         '200': {description: Payroll summary fetched}
+  /payroll-components:
+    get:
+      tags: [Payroll]
+      summary: List payroll components
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payroll components fetched}
+    post:
+      tags: [Payroll]
+      summary: Create payroll component
+      responses:
+        '200': {description: Payroll component created}
+  /payroll-components/{id}:
+    get:
+      tags: [Payroll]
+      summary: Get payroll component
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll component fetched}
+    put:
+      tags: [Payroll]
+      summary: Update payroll component
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll component updated}
+    delete:
+      tags: [Payroll]
+      summary: Delete payroll component
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll component deleted}
+  /staff/{staffId}/salary-structure:
+    get:
+      tags: [Payroll]
+      summary: List salary structures by staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Salary structures fetched}
+    post:
+      tags: [Payroll]
+      summary: Create salary structure for staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Salary structure created}
+  /salary-structure/{id}:
+    put:
+      tags: [Payroll]
+      summary: Update salary structure
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Salary structure updated}
+    delete:
+      tags: [Payroll]
+      summary: Delete salary structure
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Salary structure deleted}
 
   /water-tanks:
     get:
