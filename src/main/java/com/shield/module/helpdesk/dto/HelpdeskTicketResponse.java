@@ -19,6 +19,8 @@ public record HelpdeskTicketResponse(
         UUID assignedTo,
         Instant assignedAt,
         Instant resolvedAt,
-        String resolutionNotes
+        Instant closedAt,
+        String resolutionNotes,
+        Integer satisfactionRating
 ) {
 }

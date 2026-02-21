@@ -3916,6 +3916,47 @@ paths:
       summary: Create helpdesk ticket
       responses:
         '200': {description: Helpdesk ticket created}
+  /helpdesk-tickets/my-tickets:
+    get:
+      tags: [Helpdesk]
+      summary: List my helpdesk tickets
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: My helpdesk tickets fetched}
+  /helpdesk-tickets/assigned-to-me:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk tickets assigned to me
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Assigned helpdesk tickets fetched}
+  /helpdesk-tickets/status/{status}:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk tickets by status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Helpdesk tickets by status fetched}
+  /helpdesk-tickets/statistics:
+    get:
+      tags: [Helpdesk]
+      summary: Get helpdesk ticket statistics
+      responses:
+        '200': {description: Helpdesk ticket statistics fetched}
   /helpdesk-tickets/{id}:
     get:
       tags: [Helpdesk]
@@ -3954,6 +3995,30 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Helpdesk ticket resolved}
+  /helpdesk-tickets/{id}/close:
+    post:
+      tags: [Helpdesk]
+      summary: Close helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket closed}
+  /helpdesk-tickets/{id}/reopen:
+    post:
+      tags: [Helpdesk]
+      summary: Reopen helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket reopened}
+  /helpdesk-tickets/{id}/rate:
+    post:
+      tags: [Helpdesk]
+      summary: Rate helpdesk ticket
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk ticket rated}
   /helpdesk-tickets/{id}/comments:
     get:
       tags: [Helpdesk]
@@ -3971,6 +4036,31 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Helpdesk comment added}
+  /helpdesk-tickets/{id}/attachments:
+    get:
+      tags: [Helpdesk]
+      summary: List helpdesk ticket attachments
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Helpdesk attachments fetched}
+    post:
+      tags: [Helpdesk]
+      summary: Add helpdesk ticket attachment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk attachment added}
+  /ticket-attachments/{id}:
+    delete:
+      tags: [Helpdesk]
+      summary: Delete helpdesk ticket attachment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Helpdesk attachment deleted}
 
   /emergency-contacts:
     get:
@@ -3987,6 +4077,21 @@ paths:
       summary: Create emergency contact
       responses:
         '200': {description: Emergency contact created}
+  /emergency-contacts/type/{type}:
+    get:
+      tags: [Emergency]
+      summary: List emergency contacts by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Emergency contacts by type fetched}
   /emergency-contacts/{id}:
     get:
       tags: [Emergency]
@@ -4009,6 +4114,14 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Emergency contact deleted}
+  /emergency-contacts/{id}/order:
+    patch:
+      tags: [Emergency]
+      summary: Update emergency contact display order
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Emergency contact order updated}
 
   /sos-alerts:
     get:
@@ -4030,6 +4143,43 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Active SOS alerts fetched}
+  /sos-alerts/type/{type}:
+    get:
+      tags: [Emergency]
+      summary: List SOS alerts by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: SOS alerts by type fetched}
+  /sos-alerts/date-range:
+    get:
+      tags: [Emergency]
+      summary: List SOS alerts by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: SOS alerts by date range fetched}
   /sos-alerts/{id}:
     get:
       tags: [Emergency]
@@ -4060,6 +4210,209 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: SOS alert resolved}
+  /sos-alerts/{id}/mark-false-alarm:
+    post:
+      tags: [Emergency]
+      summary: Mark SOS alert as false alarm
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: SOS alert marked false alarm}
+  /fire-drill-records:
+    get:
+      tags: [Emergency]
+      summary: List fire drill records
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Fire drill records fetched}
+    post:
+      tags: [Emergency]
+      summary: Create fire drill record
+      responses:
+        '200': {description: Fire drill record created}
+  /fire-drill-records/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get fire drill record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fire drill record fetched}
+    put:
+      tags: [Emergency]
+      summary: Update fire drill record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fire drill record updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete fire drill record
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Fire drill record deleted}
+  /fire-drill-records/year/{year}:
+    get:
+      tags: [Emergency]
+      summary: List fire drill records by year
+      parameters:
+        - in: path
+          name: year
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Fire drill records by year fetched}
+  /safety-equipment:
+    get:
+      tags: [Emergency]
+      summary: List safety equipment
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety equipment fetched}
+    post:
+      tags: [Emergency]
+      summary: Create safety equipment
+      responses:
+        '200': {description: Safety equipment created}
+  /safety-equipment/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get safety equipment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety equipment fetched}
+    put:
+      tags: [Emergency]
+      summary: Update safety equipment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety equipment updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete safety equipment
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety equipment deleted}
+  /safety-equipment/type/{type}:
+    get:
+      tags: [Emergency]
+      summary: List safety equipment by type
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety equipment by type fetched}
+  /safety-equipment/inspection-due:
+    get:
+      tags: [Emergency]
+      summary: List safety equipment with inspection due
+      parameters:
+        - in: query
+          name: onOrBefore
+          required: false
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety equipment inspection due fetched}
+  /safety-inspections:
+    get:
+      tags: [Emergency]
+      summary: List safety inspections
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety inspections fetched}
+    post:
+      tags: [Emergency]
+      summary: Create safety inspection
+      responses:
+        '200': {description: Safety inspection created}
+  /safety-inspections/{id}:
+    get:
+      tags: [Emergency]
+      summary: Get safety inspection
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety inspection fetched}
+    put:
+      tags: [Emergency]
+      summary: Update safety inspection
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety inspection updated}
+    delete:
+      tags: [Emergency]
+      summary: Delete safety inspection
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Safety inspection deleted}
+  /safety-inspections/equipment/{equipmentId}:
+    get:
+      tags: [Emergency]
+      summary: List safety inspections by equipment
+      parameters:
+        - in: path
+          name: equipmentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety inspections by equipment fetched}
+  /safety-inspections/date-range:
+    get:
+      tags: [Emergency]
+      summary: List safety inspections by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Safety inspections by date range fetched}
 
   /document-categories:
     get:
@@ -4114,6 +4467,12 @@ paths:
       summary: Create document
       responses:
         '200': {description: Document created}
+  /documents/upload:
+    post:
+      tags: [Documents]
+      summary: Upload document
+      responses:
+        '200': {description: Document created}
   /documents/public:
     get:
       tags: [Documents]
@@ -4140,6 +4499,58 @@ paths:
         - $ref: '#/components/parameters/Sort'
       responses:
         '200': {description: Category documents fetched}
+  /documents/search:
+    get:
+      tags: [Documents]
+      summary: Search documents
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Documents search fetched}
+  /documents/tags/{tag}:
+    get:
+      tags: [Documents]
+      summary: List documents by tag
+      parameters:
+        - in: path
+          name: tag
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Documents by tag fetched}
+  /documents/expiring:
+    get:
+      tags: [Documents]
+      summary: List expiring documents
+      parameters:
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Expiring documents fetched}
   /documents/{id}:
     get:
       tags: [Documents]
@@ -4162,6 +4573,60 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Document deleted}
+  /documents/{id}/download:
+    get:
+      tags: [Documents]
+      summary: Download document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Document download details fetched}
+  /documents/{id}/access-logs:
+    get:
+      tags: [Documents]
+      summary: List access logs for a document
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Document access logs fetched}
+  /document-access-logs/user/{userId}:
+    get:
+      tags: [Documents]
+      summary: List document access logs by user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Document access logs by user fetched}
+  /document-access-logs/date-range:
+    get:
+      tags: [Documents]
+      summary: List document access logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Document access logs by date range fetched}
 
   /staff:
     get:

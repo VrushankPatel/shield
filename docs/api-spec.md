@@ -46,6 +46,19 @@ Phase 1:
 - Helpdesk: `/helpdesk-categories/*`, `/helpdesk-tickets/*`
 - Emergency: `/emergency-contacts/*`, `/sos-alerts/*`
 - Documents: `/document-categories/*`, `/documents/*`
+- Helpdesk completion:
+  - `/helpdesk-tickets/my-tickets`, `/helpdesk-tickets/assigned-to-me`, `/helpdesk-tickets/status/{status}`, `/helpdesk-tickets/statistics`
+  - `/helpdesk-tickets/{id}/close`, `/helpdesk-tickets/{id}/reopen`, `/helpdesk-tickets/{id}/rate`
+  - `/helpdesk-tickets/{id}/attachments`, `/ticket-attachments/{id}`
+- Emergency completion:
+  - contact filters and ordering: `/emergency-contacts/type/{type}`, `/emergency-contacts/{id}/order`
+  - alert filters and false-alarm: `/sos-alerts/type/{type}`, `/sos-alerts/date-range`, `/sos-alerts/{id}/mark-false-alarm`
+  - fire drills: `/fire-drill-records/*`, `/fire-drill-records/year/{year}`
+  - safety: `/safety-equipment/*`, `/safety-equipment/type/{type}`, `/safety-equipment/inspection-due`, `/safety-inspections/*`, `/safety-inspections/equipment/{equipmentId}`, `/safety-inspections/date-range`
+- Documents completion:
+  - upload alias: `/documents/upload`
+  - search and filters: `/documents/search`, `/documents/tags/{tag}`, `/documents/expiring`
+  - download/access logging: `/documents/{id}/download`, `/documents/{id}/access-logs`, `/document-access-logs/user/{userId}`, `/document-access-logs/date-range`
 - Staff: `/staff/*`, `/staff-attendance/*`
 - Payroll: `/payroll/*`
 - Utility monitoring: `/water-tanks/*`, `/water-level-logs/*`, `/electricity-meters/*`, `/electricity-readings/*`

@@ -27,6 +27,8 @@ PostgreSQL 15+
 - `V20__phase15_amenities_meeting_generated.sql`: generated phase-15 amenities/meeting governance tables
 - `V21__phase15_amenities_meeting_extensions.sql`: phase-15 amenities/meeting baseline table enrichments
 - `V22__phase16_staff_payroll_completion_generated.sql`: generated phase-16 staff/payroll completion tables
+- `V23__phase17_m9_expansion_generated.sql`: generated phase-17 helpdesk/emergency/document expansion tables
+- `V24__phase17_helpdesk_ticket_extensions.sql`: phase-17 helpdesk ticket closure/rating column enrichments
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -41,6 +43,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase14_schema.json`
 - Generator source model: `db/model/phase15_schema.json`
 - Generator source model: `db/model/phase16_schema.json`
+- Generator source model: `db/model/phase17_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -136,6 +139,11 @@ Phase 2:
 - `payroll_component`
 - `staff_salary_structure`
 - `payroll_detail`
+- `helpdesk_ticket_attachment`
+- `fire_drill_record`
+- `safety_equipment`
+- `safety_inspection`
+- `document_access_log`
 
 ## Common Columns
 Most domain tables include:

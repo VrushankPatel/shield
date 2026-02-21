@@ -4,6 +4,7 @@ import com.shield.common.dto.ApiResponse;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.util.SecurityUtils;
 import com.shield.module.emergency.dto.EmergencyContactCreateRequest;
+import com.shield.module.emergency.dto.EmergencyContactOrderUpdateRequest;
 import com.shield.module.emergency.dto.EmergencyContactResponse;
 import com.shield.module.emergency.dto.EmergencyContactUpdateRequest;
 import com.shield.module.emergency.service.EmergencyService;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,6 +35,13 @@ public class EmergencyContactController {
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<EmergencyContactResponse>>> list(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok("Emergency contacts fetched", emergencyService.listContacts(pageable)));
+    }
+
+    @GetMapping("/type/{type}")
+    public ResponseEntity<ApiResponse<PagedResponse<EmergencyContactResponse>>> listByType(
+            @PathVariable("type") String type,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("Emergency contacts by type fetched", emergencyService.listContactsByType(type, pageable)));
     }
 
     @GetMapping("/{id}")
@@ -54,6 +63,15 @@ public class EmergencyContactController {
             @Valid @RequestBody EmergencyContactUpdateRequest request) {
         ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
         return ResponseEntity.ok(ApiResponse.ok("Emergency contact updated", emergencyService.updateContact(id, request, principal)));
+    }
+
+    @PatchMapping("/{id}/order")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<EmergencyContactResponse>> updateOrder(
+            @PathVariable UUID id,
+            @Valid @RequestBody EmergencyContactOrderUpdateRequest request) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("Emergency contact order updated", emergencyService.updateContactOrder(id, request, principal)));
     }
 
     @DeleteMapping("/{id}")

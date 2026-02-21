@@ -11,8 +11,8 @@ This tracker is the single source of truth for implementation progress against t
   - commit + push
 
 ## Current Status Summary
-- M1 through M7 are complete with unit and integration coverage.
-- Remaining work is to close full-spec gaps (modules M6+ and production-grade integrations).
+- M1 through M9 are complete with unit and integration coverage.
+- Remaining work is to close full-spec gaps (modules M10+ and production-grade integrations).
 
 ## Milestone Plan
 
@@ -163,7 +163,7 @@ Exit Criteria:
 - Full module-9 parity.
 
 ### M9. Helpdesk + Emergency + Documents Completion
-Status: `PARTIAL`
+Status: `COMPLETE`
 
 Deliverables:
 - Helpdesk full closure/rating/stats and attachment variants.

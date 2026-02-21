@@ -10,15 +10,18 @@ import com.shield.module.emergency.dto.SosAlertResponseRequest;
 import com.shield.module.emergency.service.EmergencyService;
 import com.shield.security.model.ShieldPrincipal;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -36,6 +39,21 @@ public class SosAlertController {
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<PagedResponse<SosAlertResponse>>> listActive(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok("Active SOS alerts fetched", emergencyService.listActiveAlerts(pageable)));
+    }
+
+    @GetMapping("/type/{type}")
+    public ResponseEntity<ApiResponse<PagedResponse<SosAlertResponse>>> listByType(
+            @PathVariable("type") String type,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("SOS alerts by type fetched", emergencyService.listAlertsByType(type, pageable)));
+    }
+
+    @GetMapping("/date-range")
+    public ResponseEntity<ApiResponse<PagedResponse<SosAlertResponse>>> listByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok("SOS alerts by date range fetched", emergencyService.listAlertsByDateRange(from, to, pageable)));
     }
 
     @GetMapping("/{id}")
@@ -63,5 +81,11 @@ public class SosAlertController {
             @Valid @RequestBody SosAlertResolveRequest request) {
         ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
         return ResponseEntity.ok(ApiResponse.ok("SOS alert resolved", emergencyService.resolveAlert(id, request, principal)));
+    }
+
+    @PostMapping("/{id}/mark-false-alarm")
+    public ResponseEntity<ApiResponse<SosAlertResponse>> markFalseAlarm(@PathVariable UUID id) {
+        ShieldPrincipal principal = SecurityUtils.getCurrentPrincipal();
+        return ResponseEntity.ok(ApiResponse.ok("SOS alert marked false alarm", emergencyService.markFalseAlarm(id, principal)));
     }
 }

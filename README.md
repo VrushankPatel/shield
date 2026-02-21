@@ -58,6 +58,17 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Helpdesk module (`/helpdesk-categories`, `/helpdesk-tickets`)
 - Emergency module (`/emergency-contacts`, `/sos-alerts`)
 - Document repository module (`/document-categories`, `/documents`)
+- Helpdesk completion:
+  - `/helpdesk-tickets/my-tickets`, `/helpdesk-tickets/assigned-to-me`, `/helpdesk-tickets/status/{status}`, `/helpdesk-tickets/statistics`
+  - `/helpdesk-tickets/{id}/close`, `/helpdesk-tickets/{id}/reopen`, `/helpdesk-tickets/{id}/rate`
+  - `/helpdesk-tickets/{id}/attachments`, `/ticket-attachments/{id}`
+- Emergency completion:
+  - `/emergency-contacts/type/{type}`, `/emergency-contacts/{id}/order`
+  - `/sos-alerts/type/{type}`, `/sos-alerts/date-range`, `/sos-alerts/{id}/mark-false-alarm`
+  - `/fire-drill-records/*`, `/safety-equipment/*`, `/safety-inspections/*`
+- Document completion:
+  - `/documents/upload`, `/documents/search`, `/documents/tags/{tag}`, `/documents/expiring`
+  - `/documents/{id}/download`, `/documents/{id}/access-logs`, `/document-access-logs/*`
 - Staff and payroll module (`/staff`, `/staff-attendance`, `/payroll`)
 - Staff/payroll completion:
   - Staff export: `/staff/export`
@@ -110,13 +121,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase14_schema.json` -> `V18__phase14_asset_complaint_expansion_generated.sql` (+ `V19__phase14_asset_complaint_extensions.sql`)
   - `db/model/phase15_schema.json` -> `V20__phase15_amenities_meeting_generated.sql` (+ `V21__phase15_amenities_meeting_extensions.sql`)
   - `db/model/phase16_schema.json` -> `V22__phase16_staff_payroll_completion_generated.sql`
+  - `db/model/phase17_schema.json` -> `V23__phase17_m9_expansion_generated.sql` (+ `V24__phase17_helpdesk_ticket_extensions.sql`)
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V22`)
+- Flyway migrations (`V1` to `V24`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
