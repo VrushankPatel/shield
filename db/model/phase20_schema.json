@@ -1,0 +1,22 @@
+{
+  "version": "phase20-v1",
+  "tables": [
+    {
+      "name": "unit_ownership_history",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "unit_id", "type": "UUID", "nullable": false, "references": "unit(id)"},
+        {"name": "previous_ownership_status", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "new_ownership_status", "type": "VARCHAR(20)", "nullable": false},
+        {"name": "changed_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "changed_at", "type": "TIMESTAMP", "nullable": false, "default": "CURRENT_TIMESTAMP"},
+        {"name": "notes", "type": "VARCHAR(500)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_unit_ownership_history_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_unit_ownership_history_unit", "columns": ["tenant_id", "unit_id"]},
+        {"name": "idx_unit_ownership_history_changed_at", "columns": ["tenant_id", "changed_at"]}
+      ]
+    }
+  ]
+}

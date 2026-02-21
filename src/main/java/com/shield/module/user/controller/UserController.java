@@ -9,6 +9,7 @@ import com.shield.module.user.dto.UserBulkImportRequest;
 import com.shield.module.user.dto.UserBulkImportResponse;
 import com.shield.module.user.dto.UserCreateRequest;
 import com.shield.module.user.dto.UserResponse;
+import com.shield.module.user.dto.UserStatusUpdateRequest;
 import com.shield.module.user.dto.UserUpdateRequest;
 import com.shield.module.user.entity.UserRole;
 import com.shield.module.user.service.UserService;
@@ -24,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -82,6 +84,14 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         userService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("User deleted", null));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<UserResponse>> updateStatus(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserStatusUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("User status updated", userService.updateStatus(id, request)));
     }
 
     @PostMapping("/bulk-import")

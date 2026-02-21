@@ -7,16 +7,22 @@ import com.shield.module.move.entity.MoveRecordEntity;
 import com.shield.module.move.repository.MoveRecordRepository;
 import com.shield.module.unit.dto.UnitCreateRequest;
 import com.shield.module.unit.dto.UnitHistoryResponse;
+import com.shield.module.unit.dto.UnitOwnershipUpdateRequest;
+import com.shield.module.unit.dto.UnitOwnershipUpdateResponse;
 import com.shield.module.unit.dto.UnitResponse;
 import com.shield.module.unit.dto.UnitUpdateRequest;
 import com.shield.module.unit.entity.UnitEntity;
+import com.shield.module.unit.entity.UnitOwnershipHistoryEntity;
+import com.shield.module.unit.entity.UnitOwnershipStatus;
 import com.shield.module.unit.entity.UnitStatus;
 import com.shield.module.unit.mapper.UnitMapper;
+import com.shield.module.unit.repository.UnitOwnershipHistoryRepository;
 import com.shield.module.unit.repository.UnitRepository;
 import com.shield.module.user.dto.UserResponse;
 import com.shield.module.user.mapper.UserMapper;
 import com.shield.module.user.repository.UserRepository;
 import com.shield.tenant.context.TenantContext;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UnitService {
 
     private final UnitRepository unitRepository;
+    private final UnitOwnershipHistoryRepository unitOwnershipHistoryRepository;
     private final UnitMapper unitMapper;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -45,6 +52,7 @@ public class UnitService {
         unit.setType(request.type());
         unit.setSquareFeet(request.squareFeet());
         unit.setStatus(request.status());
+        unit.setOwnershipStatus(UnitOwnershipStatus.OWNED);
 
         UnitEntity saved = unitRepository.save(unit);
         auditLogService.logEvent(tenantId, null, "UNIT_CREATED", "unit", saved.getId(), null);
@@ -86,6 +94,48 @@ public class UnitService {
         UnitEntity saved = unitRepository.save(unit);
         auditLogService.logEvent(saved.getTenantId(), null, "UNIT_UPDATED", "unit", saved.getId(), null);
         return unitMapper.toResponse(saved);
+    }
+
+    public UnitOwnershipUpdateResponse updateOwnership(UUID unitId, UnitOwnershipUpdateRequest request, UUID changedBy) {
+        UnitEntity unit = unitRepository.findByIdAndDeletedFalse(unitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unit not found: " + unitId));
+
+        UnitOwnershipStatus previousStatus = unit.getOwnershipStatus() == null
+                ? UnitOwnershipStatus.OWNED
+                : unit.getOwnershipStatus();
+        UnitOwnershipStatus newStatus = request.ownershipStatus();
+        Instant changedAt = Instant.now();
+
+        if (previousStatus != newStatus) {
+            unit.setOwnershipStatus(newStatus);
+            unitRepository.save(unit);
+
+            UnitOwnershipHistoryEntity history = new UnitOwnershipHistoryEntity();
+            history.setTenantId(unit.getTenantId());
+            history.setUnitId(unit.getId());
+            history.setPreviousOwnershipStatus(previousStatus);
+            history.setNewOwnershipStatus(newStatus);
+            history.setChangedBy(changedBy);
+            history.setChangedAt(changedAt);
+            history.setNotes(request.notes());
+            unitOwnershipHistoryRepository.save(history);
+
+            auditLogService.logEvent(
+                    unit.getTenantId(),
+                    changedBy,
+                    "UNIT_OWNERSHIP_UPDATED",
+                    "unit",
+                    unit.getId(),
+                    "from=" + previousStatus + ",to=" + newStatus);
+        }
+
+        return new UnitOwnershipUpdateResponse(
+                unit.getId(),
+                previousStatus,
+                newStatus,
+                changedBy,
+                changedAt,
+                request.notes());
     }
 
     public void delete(UUID id) {

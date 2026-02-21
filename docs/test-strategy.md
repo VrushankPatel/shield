@@ -5,6 +5,7 @@
 - Focus:
   - platform root auth service behavior (first-login change-password, token invalidation, society onboarding guardrails)
   - auth service credential paths
+  - identity status-transition behavior (user activation/deactivation and unit ownership updates)
   - notification dispatch behavior (enabled/disabled)
   - announcement publish audience filtering
   - announcement read-tracking behavior (active/category/priority filtering, mark-read idempotency, read statistics)
@@ -33,6 +34,7 @@
   - Flyway migrations applied on fresh database
   - full auth -> JWT -> secured endpoint lifecycle
   - identity lifecycle flows (register, verify-email, forgot/reset/change password)
+  - identity admin transitions (unit ownership update and user status patch with auth impact)
   - KYC + move-record + parking + digital ID operational lifecycle
   - tenant isolation behavior
   - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)

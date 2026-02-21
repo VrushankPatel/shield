@@ -8,6 +8,7 @@ import com.shield.module.user.dto.UserBulkImportRequest;
 import com.shield.module.user.dto.UserBulkImportResponse;
 import com.shield.module.user.dto.UserCreateRequest;
 import com.shield.module.user.dto.UserResponse;
+import com.shield.module.user.dto.UserStatusUpdateRequest;
 import com.shield.module.user.dto.UserUpdateRequest;
 import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.entity.UserRole;
@@ -77,6 +78,16 @@ public class UserService {
 
         UserEntity saved = userRepository.save(entity);
         auditLogService.logEvent(saved.getTenantId(), saved.getId(), "USER_UPDATED", ENTITY_USERS, saved.getId(), null);
+        return userMapper.toResponse(saved);
+    }
+
+    public UserResponse updateStatus(UUID id, UserStatusUpdateRequest request) {
+        UserEntity entity = userRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+
+        entity.setStatus(request.status());
+        UserEntity saved = userRepository.save(entity);
+        auditLogService.logEvent(saved.getTenantId(), saved.getId(), "USER_STATUS_UPDATED", ENTITY_USERS, saved.getId(), null);
         return userMapper.toResponse(saved);
     }
 

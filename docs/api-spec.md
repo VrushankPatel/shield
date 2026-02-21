@@ -49,6 +49,11 @@ Root lifecycle behavior:
   - read tracking: `POST /announcements/{id}/mark-read`
   - read visibility: `GET /announcements/{id}/read-receipts`, `GET /announcements/{id}/statistics`
 
+### Identity Notes
+- Unit and user lifecycle now include:
+  - unit ownership transition: `PATCH /units/{id}/ownership`
+  - user activation state transition: `PATCH /users/{id}/status`
+
 ## Mobile App Readiness
 The backend is API-first and frontend-agnostic. React Native clients should use:
 - short-lived access token + refresh flow

@@ -389,6 +389,19 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.content.size()", greaterThanOrEqualTo(1));
 
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of(
+                        "ownershipStatus", "RENTED",
+                        "notes", "Marked as rented"))
+                .when()
+                .patch("/units/{id}/ownership", unitOne.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.previousOwnershipStatus", equalTo("OWNED"))
+                .body("data.ownershipStatus", equalTo("RENTED"));
+
         String parkingSlotId = given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + adminToken)
@@ -481,6 +494,34 @@ class IdentityAccessFlowsIT extends IntegrationTestBase {
                 .delete("/roles/{id}", customRoleId)
                 .then()
                 .statusCode(HttpStatus.OK.value());
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of("status", "INACTIVE"))
+                .when()
+                .patch("/users/{id}/status", residentUuid)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.status", equalTo("INACTIVE"));
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("email", residentEmail, "password", "Resident#789"))
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + adminToken)
+                .body(Map.of("status", "ACTIVE"))
+                .when()
+                .patch("/users/{id}/status", residentUuid)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.status", equalTo("ACTIVE"));
 
         String outsiderToken = login(outsider.getEmail(), ADMIN_PASSWORD);
 

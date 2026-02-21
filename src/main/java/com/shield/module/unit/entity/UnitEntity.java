@@ -31,4 +31,8 @@ public class UnitEntity extends TenantAwareEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UnitStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ownership_status", nullable = false, length = 20)
+    private UnitOwnershipStatus ownershipStatus = UnitOwnershipStatus.OWNED;
 }

@@ -15,6 +15,7 @@ import com.shield.module.user.dto.UserBulkImportRequest;
 import com.shield.module.user.dto.UserBulkImportResponse;
 import com.shield.module.user.dto.UserCreateRequest;
 import com.shield.module.user.dto.UserResponse;
+import com.shield.module.user.dto.UserStatusUpdateRequest;
 import com.shield.module.user.dto.UserUpdateRequest;
 import com.shield.module.user.entity.UserEntity;
 import com.shield.module.user.entity.UserRole;
@@ -238,5 +239,38 @@ class UserServiceTest {
 
         assertTrue(csv.startsWith("id,tenantId,unitId,name,email,phone,role,status,createdAt"));
         assertTrue(csv.contains("export@shield.dev"));
+    }
+
+    @Test
+    void updateStatusShouldPersistAndAudit() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        UserEntity entity = new UserEntity();
+        entity.setId(userId);
+        entity.setTenantId(tenantId);
+        entity.setStatus(UserStatus.ACTIVE);
+
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.of(entity));
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userMapper.toResponse(any(UserEntity.class))).thenAnswer(invocation -> {
+            UserEntity mapped = invocation.getArgument(0);
+            return new UserResponse(
+                    mapped.getId(),
+                    mapped.getTenantId(),
+                    mapped.getUnitId(),
+                    mapped.getName(),
+                    mapped.getEmail(),
+                    mapped.getPhone(),
+                    mapped.getRole(),
+                    mapped.getStatus(),
+                    Instant.now(),
+                    Instant.now());
+        });
+
+        UserResponse response = userService.updateStatus(userId, new UserStatusUpdateRequest(UserStatus.INACTIVE));
+
+        assertEquals(UserStatus.INACTIVE, response.status());
+        verify(auditLogService).logEvent(eq(tenantId), eq(userId), eq("USER_STATUS_UPDATED"), eq("users"), eq(userId), any());
     }
 }

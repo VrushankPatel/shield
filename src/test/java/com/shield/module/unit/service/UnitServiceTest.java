@@ -15,11 +15,15 @@ import com.shield.module.move.entity.MoveStatus;
 import com.shield.module.move.entity.MoveType;
 import com.shield.module.move.repository.MoveRecordRepository;
 import com.shield.module.unit.dto.UnitCreateRequest;
+import com.shield.module.unit.dto.UnitOwnershipUpdateRequest;
 import com.shield.module.unit.dto.UnitResponse;
 import com.shield.module.unit.dto.UnitUpdateRequest;
 import com.shield.module.unit.entity.UnitEntity;
+import com.shield.module.unit.entity.UnitOwnershipHistoryEntity;
+import com.shield.module.unit.entity.UnitOwnershipStatus;
 import com.shield.module.unit.entity.UnitStatus;
 import com.shield.module.unit.mapper.UnitMapper;
+import com.shield.module.unit.repository.UnitOwnershipHistoryRepository;
 import com.shield.module.unit.repository.UnitRepository;
 import com.shield.module.user.dto.UserResponse;
 import com.shield.module.user.entity.UserRole;
@@ -52,6 +56,9 @@ class UnitServiceTest {
     private UnitMapper unitMapper;
 
     @Mock
+    private UnitOwnershipHistoryRepository unitOwnershipHistoryRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -67,7 +74,14 @@ class UnitServiceTest {
 
     @BeforeEach
     void setUp() {
-        unitService = new UnitService(unitRepository, unitMapper, userRepository, userMapper, moveRecordRepository, auditLogService);
+        unitService = new UnitService(
+                unitRepository,
+                unitOwnershipHistoryRepository,
+                unitMapper,
+                userRepository,
+                userMapper,
+                moveRecordRepository,
+                auditLogService);
     }
 
     @AfterEach
@@ -320,6 +334,38 @@ class UnitServiceTest {
                 .thenReturn(new PageImpl<>(List.of(moveRecord)));
 
         assertEquals(1, unitService.listHistory(unitId, Pageable.ofSize(10)).content().size());
+    }
+
+    @Test
+    void updateOwnershipShouldPersistHistoryAndAudit() {
+        UUID unitId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID changedBy = UUID.randomUUID();
+
+        UnitEntity unit = new UnitEntity();
+        unit.setId(unitId);
+        unit.setTenantId(tenantId);
+        unit.setOwnershipStatus(UnitOwnershipStatus.OWNED);
+
+        when(unitRepository.findByIdAndDeletedFalse(unitId)).thenReturn(Optional.of(unit));
+        when(unitRepository.save(any(UnitEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(unitOwnershipHistoryRepository.save(any(UnitOwnershipHistoryEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        unitService.updateOwnership(
+                unitId,
+                new UnitOwnershipUpdateRequest(UnitOwnershipStatus.RENTED, "Converted to leased"),
+                changedBy);
+
+        assertEquals(UnitOwnershipStatus.RENTED, unit.getOwnershipStatus());
+        verify(unitOwnershipHistoryRepository).save(any(UnitOwnershipHistoryEntity.class));
+        verify(auditLogService).logEvent(
+                eq(tenantId),
+                eq(changedBy),
+                eq("UNIT_OWNERSHIP_UPDATED"),
+                eq("unit"),
+                eq(unitId),
+                any());
     }
 
     private static final class UserEntityStub {

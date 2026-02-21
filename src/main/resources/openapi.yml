@@ -507,6 +507,14 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Unit deleted}
+  /units/{id}/ownership:
+    patch:
+      tags: [Unit]
+      summary: Update unit ownership status
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Unit ownership updated}
   /units/block/{block}:
     get:
       tags: [Unit]
@@ -592,6 +600,14 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: User deleted}
+  /users/{id}/status:
+    patch:
+      tags: [User]
+      summary: Update user status
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: User status updated}
   /users/unit/{unitId}:
     get:
       tags: [User]

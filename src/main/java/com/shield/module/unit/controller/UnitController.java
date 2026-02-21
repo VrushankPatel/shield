@@ -4,17 +4,23 @@ import com.shield.common.dto.ApiResponse;
 import com.shield.common.dto.PagedResponse;
 import com.shield.module.unit.dto.UnitCreateRequest;
 import com.shield.module.unit.dto.UnitHistoryResponse;
+import com.shield.module.unit.dto.UnitOwnershipUpdateRequest;
+import com.shield.module.unit.dto.UnitOwnershipUpdateResponse;
 import com.shield.module.unit.dto.UnitResponse;
 import com.shield.module.unit.dto.UnitUpdateRequest;
 import com.shield.module.unit.service.UnitService;
 import com.shield.module.user.dto.UserResponse;
+import com.shield.security.model.ShieldPrincipal;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -67,6 +73,18 @@ public class UnitController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         unitService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Unit deleted", null));
+    }
+
+    @PatchMapping("/{id}/ownership")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<ApiResponse<UnitOwnershipUpdateResponse>> updateOwnership(
+            @PathVariable UUID id,
+            @Valid @RequestBody UnitOwnershipUpdateRequest request,
+            @AuthenticationPrincipal ShieldPrincipal principal) {
+        UUID changedBy = principal == null ? null : principal.userId();
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Unit ownership updated",
+                unitService.updateOwnership(id, request, changedBy)));
     }
 
     @GetMapping("/{id}/members")
