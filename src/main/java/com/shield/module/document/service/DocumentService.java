@@ -7,6 +7,7 @@ import com.shield.common.exception.ResourceNotFoundException;
 import com.shield.module.document.dto.DocumentAccessLogResponse;
 import com.shield.module.document.dto.DocumentCategoryCreateRequest;
 import com.shield.module.document.dto.DocumentCategoryResponse;
+import com.shield.module.document.dto.DocumentCategoryTreeResponse;
 import com.shield.module.document.dto.DocumentCategoryUpdateRequest;
 import com.shield.module.document.dto.DocumentCreateRequest;
 import com.shield.module.document.dto.DocumentDownloadResponse;
@@ -22,6 +23,11 @@ import com.shield.module.document.repository.DocumentRepository;
 import com.shield.security.model.ShieldPrincipal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,6 +73,16 @@ public class DocumentService {
     @Transactional(readOnly = true)
     public PagedResponse<DocumentCategoryResponse> listCategories(Pageable pageable) {
         return PagedResponse.from(documentCategoryRepository.findAllByDeletedFalse(pageable).map(this::toCategoryResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DocumentCategoryTreeResponse> listCategoryHierarchy() {
+        List<DocumentCategoryEntity> allCategories = documentCategoryRepository.findAllByDeletedFalse();
+        Map<UUID, List<DocumentCategoryEntity>> groupedByParent = new HashMap<>();
+        for (DocumentCategoryEntity category : allCategories) {
+            groupedByParent.computeIfAbsent(category.getParentCategoryId(), ignored -> new ArrayList<>()).add(category);
+        }
+        return buildCategoryTree(groupedByParent, null);
     }
 
     @Transactional(readOnly = true)
@@ -272,5 +288,20 @@ public class DocumentService {
                 entity.getAccessedBy(),
                 entity.getAccessType(),
                 entity.getAccessedAt());
+    }
+
+    private List<DocumentCategoryTreeResponse> buildCategoryTree(
+            Map<UUID, List<DocumentCategoryEntity>> groupedByParent,
+            UUID parentCategoryId) {
+        return groupedByParent.getOrDefault(parentCategoryId, List.of()).stream()
+                .sorted(Comparator.comparing(DocumentCategoryEntity::getCategoryName, String.CASE_INSENSITIVE_ORDER))
+                .map(category -> new DocumentCategoryTreeResponse(
+                        category.getId(),
+                        category.getTenantId(),
+                        category.getCategoryName(),
+                        category.getDescription(),
+                        category.getParentCategoryId(),
+                        buildCategoryTree(groupedByParent, category.getId())))
+                .toList();
     }
 }

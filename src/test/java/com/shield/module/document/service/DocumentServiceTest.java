@@ -8,15 +8,18 @@ import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.exception.BadRequestException;
+import com.shield.module.document.dto.DocumentCategoryTreeResponse;
 import com.shield.module.document.dto.DocumentCreateRequest;
 import com.shield.module.document.dto.DocumentResponse;
 import com.shield.module.document.entity.DocumentAccessLogEntity;
+import com.shield.module.document.entity.DocumentCategoryEntity;
 import com.shield.module.document.entity.DocumentEntity;
 import com.shield.module.document.repository.DocumentAccessLogRepository;
 import com.shield.module.document.repository.DocumentCategoryRepository;
 import com.shield.module.document.repository.DocumentRepository;
 import com.shield.security.model.ShieldPrincipal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,5 +105,31 @@ class DocumentServiceTest {
         LocalDate to = LocalDate.now();
         PageRequest pageable = PageRequest.of(0, 10);
         assertThrows(BadRequestException.class, () -> documentService.listExpiringDocuments(from, to, pageable));
+    }
+
+    @Test
+    void listCategoryHierarchyShouldReturnNestedTree() {
+        UUID tenantId = UUID.randomUUID();
+        UUID rootId = UUID.randomUUID();
+
+        DocumentCategoryEntity root = new DocumentCategoryEntity();
+        root.setId(rootId);
+        root.setTenantId(tenantId);
+        root.setCategoryName("Policies");
+
+        DocumentCategoryEntity child = new DocumentCategoryEntity();
+        child.setId(UUID.randomUUID());
+        child.setTenantId(tenantId);
+        child.setCategoryName("Bylaws");
+        child.setParentCategoryId(rootId);
+
+        when(documentCategoryRepository.findAllByDeletedFalse()).thenReturn(List.of(root, child));
+
+        List<DocumentCategoryTreeResponse> hierarchy = documentService.listCategoryHierarchy();
+
+        assertEquals(1, hierarchy.size());
+        assertEquals(rootId, hierarchy.get(0).id());
+        assertEquals(1, hierarchy.get(0).children().size());
+        assertEquals("Bylaws", hierarchy.get(0).children().get(0).categoryName());
     }
 }

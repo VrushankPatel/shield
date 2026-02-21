@@ -339,10 +339,74 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .body("data.totalReadings", equalTo(1))
                 .body("data.totalUnitsConsumed", equalTo(220.0f));
 
+        String generatorId = given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokenOne)
+                .body(Map.of(
+                        "generatorName", "DG-MAIN-1",
+                        "capacityKva", 125.50,
+                        "location", "Generator Room"))
+                .when()
+                .post("/diesel-generators")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.generatorName", equalTo("DG-MAIN-1"))
+                .extract()
+                .path("data.id");
+
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + tokenOne)
+                .body(Map.ofEntries(
+                        Map.entry("generatorId", generatorId),
+                        Map.entry("logDate", "2026-02-17"),
+                        Map.entry("startTime", "2026-02-17T09:30:00Z"),
+                        Map.entry("stopTime", "2026-02-17T10:30:00Z"),
+                        Map.entry("runtimeHours", 1.0),
+                        Map.entry("dieselConsumed", 3.5),
+                        Map.entry("dieselCost", 350),
+                        Map.entry("meterReadingBefore", 12000),
+                        Map.entry("meterReadingAfter", 12025),
+                        Map.entry("unitsGenerated", 40)))
+                .when()
+                .post("/generator-logs")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.generatorId", equalTo(generatorId));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/generator-logs/generator/{generatorId}", generatorId)
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1));
+
+        given()
+                .header("Authorization", "Bearer " + tokenOne)
+                .queryParam("from", "2026-02-01")
+                .queryParam("to", "2026-02-28")
+                .queryParam("generatorId", generatorId)
+                .when()
+                .get("/generator-logs/summary")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalLogs", equalTo(1))
+                .body("data.totalUnitsGenerated", equalTo(40.0f));
+
         given()
                 .header("Authorization", "Bearer " + tokenTwo)
                 .when()
                 .get("/water-tanks/{id}", tankId)
+                .then()
+                .statusCode(HttpStatus.NOT_FOUND.value());
+
+        given()
+                .header("Authorization", "Bearer " + tokenTwo)
+                .when()
+                .get("/diesel-generators/{id}", generatorId)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
     }
@@ -461,6 +525,49 @@ class Phase2ExpansionFlowsIT extends IntegrationTestBase {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.content.size()", equalTo(1))
                 .body("data.content[0].listingId", equalTo(listingId));
+
+        String carpoolId = given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + sellerToken)
+                .body(Map.of(
+                        "routeFrom", "Borivali",
+                        "routeTo", "BKC",
+                        "departureTime", "08:30:00",
+                        "availableSeats", 3,
+                        "daysOfWeek", "Mon,Tue,Wed",
+                        "vehicleType", "CAR",
+                        "contactPreference", "PHONE",
+                        "active", true))
+                .when()
+                .post("/carpool-listings")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .path("data.id");
+
+        given()
+                .header("Authorization", "Bearer " + buyerToken)
+                .queryParam("from", "Borivali")
+                .queryParam("to", "BKC")
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/carpool-listings/route")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1))
+                .body("data.content[0].id", equalTo(carpoolId));
+
+        given()
+                .header("Authorization", "Bearer " + sellerToken)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .when()
+                .get("/carpool-listings/my-listings")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.content.size()", equalTo(1))
+                .body("data.content[0].id", equalTo(carpoolId));
     }
 
     private TenantEntity createTenant(String name) {

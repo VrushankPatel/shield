@@ -39,8 +39,8 @@ Root lifecycle behavior:
 - Amenities/Meetings: `/amenities/*`, `/amenity-bookings/*`, `/meetings/*`, `/resolutions/*`
 - Communication: `/announcements/*`, `/polls/*`, `/newsletters/*`, `/notifications/*`
 - Staff/Payroll: `/staff/*`, `/staff-attendance/*`, `/staff-leaves/*`, `/payroll*`
-- Utility/Marketplace: `/water-*`, `/electricity-*`, `/marketplace-*`
-- Helpdesk/Emergency/Documents: `/helpdesk-*`, `/emergency-*`, `/sos-alerts/*`, `/documents/*`
+- Utility/Marketplace: `/water-*`, `/electricity-*`, `/diesel-generators/*`, `/generator-logs/*`, `/marketplace-*`, `/carpool-listings/*`
+- Helpdesk/Emergency/Documents: `/helpdesk-*`, `/emergency-*`, `/sos-alerts/*`, `/documents/*`, `/document-categories/hierarchy`
 - Analytics/Config/Files/Logs: `/analytics/*`, `/config/*`, `/settings/*`, `/files/*`, `/audit-logs/*`
 
 ## Mobile App Readiness

@@ -4,23 +4,34 @@ import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.utility.dto.DieselGeneratorCreateRequest;
+import com.shield.module.utility.dto.DieselGeneratorResponse;
+import com.shield.module.utility.dto.DieselGeneratorUpdateRequest;
 import com.shield.module.utility.dto.ElectricityConsumptionReportResponse;
 import com.shield.module.utility.dto.ElectricityMeterCreateRequest;
 import com.shield.module.utility.dto.ElectricityMeterResponse;
 import com.shield.module.utility.dto.ElectricityMeterUpdateRequest;
 import com.shield.module.utility.dto.ElectricityReadingCreateRequest;
 import com.shield.module.utility.dto.ElectricityReadingResponse;
+import com.shield.module.utility.dto.GeneratorLogCreateRequest;
+import com.shield.module.utility.dto.GeneratorLogResponse;
+import com.shield.module.utility.dto.GeneratorLogSummaryResponse;
+import com.shield.module.utility.dto.GeneratorLogUpdateRequest;
 import com.shield.module.utility.dto.WaterLevelLogCreateRequest;
 import com.shield.module.utility.dto.WaterLevelLogResponse;
 import com.shield.module.utility.dto.WaterTankCreateRequest;
 import com.shield.module.utility.dto.WaterTankResponse;
 import com.shield.module.utility.dto.WaterTankUpdateRequest;
+import com.shield.module.utility.entity.DieselGeneratorEntity;
 import com.shield.module.utility.entity.ElectricityMeterEntity;
 import com.shield.module.utility.entity.ElectricityReadingEntity;
+import com.shield.module.utility.entity.GeneratorLogEntity;
 import com.shield.module.utility.entity.WaterLevelLogEntity;
 import com.shield.module.utility.entity.WaterTankEntity;
+import com.shield.module.utility.repository.DieselGeneratorRepository;
 import com.shield.module.utility.repository.ElectricityMeterRepository;
 import com.shield.module.utility.repository.ElectricityReadingRepository;
+import com.shield.module.utility.repository.GeneratorLogRepository;
 import com.shield.module.utility.repository.WaterLevelLogRepository;
 import com.shield.module.utility.repository.WaterTankRepository;
 import com.shield.security.model.ShieldPrincipal;
@@ -38,10 +49,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UtilityService {
 
+    private static final String ENTITY_WATER_TANK = "water_tank";
+    private static final String ENTITY_WATER_LEVEL_LOG = "water_level_log";
+    private static final String ENTITY_ELECTRICITY_METER = "electricity_meter";
+    private static final String ENTITY_ELECTRICITY_READING = "electricity_reading";
+    private static final String ENTITY_DIESEL_GENERATOR = "diesel_generator";
+    private static final String ENTITY_GENERATOR_LOG = "generator_log";
+
     private final WaterTankRepository waterTankRepository;
     private final WaterLevelLogRepository waterLevelLogRepository;
     private final ElectricityMeterRepository electricityMeterRepository;
     private final ElectricityReadingRepository electricityReadingRepository;
+    private final DieselGeneratorRepository dieselGeneratorRepository;
+    private final GeneratorLogRepository generatorLogRepository;
     private final AuditLogService auditLogService;
 
     public UtilityService(
@@ -49,11 +69,15 @@ public class UtilityService {
             WaterLevelLogRepository waterLevelLogRepository,
             ElectricityMeterRepository electricityMeterRepository,
             ElectricityReadingRepository electricityReadingRepository,
+            DieselGeneratorRepository dieselGeneratorRepository,
+            GeneratorLogRepository generatorLogRepository,
             AuditLogService auditLogService) {
         this.waterTankRepository = waterTankRepository;
         this.waterLevelLogRepository = waterLevelLogRepository;
         this.electricityMeterRepository = electricityMeterRepository;
         this.electricityReadingRepository = electricityReadingRepository;
+        this.dieselGeneratorRepository = dieselGeneratorRepository;
+        this.generatorLogRepository = generatorLogRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -66,7 +90,7 @@ public class UtilityService {
         entity.setLocation(request.location());
 
         WaterTankEntity saved = waterTankRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_CREATED", "water_tank", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_CREATED", ENTITY_WATER_TANK, saved.getId(), null);
         return toWaterTankResponse(saved);
     }
 
@@ -92,7 +116,7 @@ public class UtilityService {
         entity.setLocation(request.location());
 
         WaterTankEntity saved = waterTankRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_UPDATED", "water_tank", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_UPDATED", ENTITY_WATER_TANK, saved.getId(), null);
         return toWaterTankResponse(saved);
     }
 
@@ -102,7 +126,7 @@ public class UtilityService {
 
         entity.setDeleted(true);
         waterTankRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_DELETED", "water_tank", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_TANK_DELETED", ENTITY_WATER_TANK, entity.getId(), null);
     }
 
     public WaterLevelLogResponse createWaterLevelLog(WaterLevelLogCreateRequest request, ShieldPrincipal principal) {
@@ -118,7 +142,7 @@ public class UtilityService {
         entity.setRecordedBy(principal.userId());
 
         WaterLevelLogEntity saved = waterLevelLogRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_LEVEL_LOG_CREATED", "water_level_log", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "WATER_LEVEL_LOG_CREATED", ENTITY_WATER_LEVEL_LOG, saved.getId(), null);
         return toWaterLevelLogResponse(saved);
     }
 
@@ -149,7 +173,7 @@ public class UtilityService {
         entity.setUnitId(request.unitId());
 
         ElectricityMeterEntity saved = electricityMeterRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_CREATED", "electricity_meter", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_CREATED", ENTITY_ELECTRICITY_METER, saved.getId(), null);
         return toElectricityMeterResponse(saved);
     }
 
@@ -186,7 +210,7 @@ public class UtilityService {
         entity.setUnitId(request.unitId());
 
         ElectricityMeterEntity saved = electricityMeterRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_UPDATED", "electricity_meter", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_UPDATED", ENTITY_ELECTRICITY_METER, saved.getId(), null);
         return toElectricityMeterResponse(saved);
     }
 
@@ -196,7 +220,7 @@ public class UtilityService {
 
         entity.setDeleted(true);
         electricityMeterRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_DELETED", "electricity_meter", entity.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_METER_DELETED", ENTITY_ELECTRICITY_METER, entity.getId(), null);
     }
 
     public ElectricityReadingResponse createElectricityReading(ElectricityReadingCreateRequest request, ShieldPrincipal principal) {
@@ -213,7 +237,7 @@ public class UtilityService {
         entity.setRecordedBy(principal.userId());
 
         ElectricityReadingEntity saved = electricityReadingRepository.save(entity);
-        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_READING_CREATED", "electricity_reading", saved.getId(), null);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "ELECTRICITY_READING_CREATED", ENTITY_ELECTRICITY_READING, saved.getId(), null);
         return toElectricityReadingResponse(saved);
     }
 
@@ -276,17 +300,8 @@ public class UtilityService {
                 ? electricityReadingRepository.findAllByReadingDateBetweenAndDeletedFalse(from, to)
                 : electricityReadingRepository.findAllByMeterIdAndReadingDateBetweenAndDeletedFalse(meterId, from, to);
 
-        BigDecimal totalUnits = rows.stream()
-                .map(ElectricityReadingEntity::getUnitsConsumed)
-                .filter(value -> value != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .setScale(2, RoundingMode.HALF_UP);
-
-        BigDecimal totalCost = rows.stream()
-                .map(ElectricityReadingEntity::getCost)
-                .filter(value -> value != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalUnits = sumScale2(rows.stream().map(ElectricityReadingEntity::getUnitsConsumed).toList());
+        BigDecimal totalCost = sumScale2(rows.stream().map(ElectricityReadingEntity::getCost).toList());
 
         return new ElectricityConsumptionReportResponse(
                 meterId,
@@ -295,6 +310,159 @@ public class UtilityService {
                 rows.size(),
                 totalUnits,
                 totalCost);
+    }
+
+    public DieselGeneratorResponse createDieselGenerator(DieselGeneratorCreateRequest request, ShieldPrincipal principal) {
+        DieselGeneratorEntity entity = new DieselGeneratorEntity();
+        entity.setTenantId(principal.tenantId());
+        entity.setGeneratorName(request.generatorName());
+        entity.setCapacityKva(request.capacityKva());
+        entity.setLocation(request.location());
+
+        DieselGeneratorEntity saved = dieselGeneratorRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIESEL_GENERATOR_CREATED", ENTITY_DIESEL_GENERATOR, saved.getId(), null);
+        return toDieselGeneratorResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<DieselGeneratorResponse> listDieselGenerators(Pageable pageable) {
+        return PagedResponse.from(dieselGeneratorRepository.findAllByDeletedFalse(pageable).map(this::toDieselGeneratorResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public DieselGeneratorResponse getDieselGenerator(UUID id) {
+        DieselGeneratorEntity entity = dieselGeneratorRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Diesel generator not found: " + id));
+        return toDieselGeneratorResponse(entity);
+    }
+
+    public DieselGeneratorResponse updateDieselGenerator(UUID id, DieselGeneratorUpdateRequest request, ShieldPrincipal principal) {
+        DieselGeneratorEntity entity = dieselGeneratorRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Diesel generator not found: " + id));
+
+        entity.setGeneratorName(request.generatorName());
+        entity.setCapacityKva(request.capacityKva());
+        entity.setLocation(request.location());
+
+        DieselGeneratorEntity saved = dieselGeneratorRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIESEL_GENERATOR_UPDATED", ENTITY_DIESEL_GENERATOR, saved.getId(), null);
+        return toDieselGeneratorResponse(saved);
+    }
+
+    public void deleteDieselGenerator(UUID id, ShieldPrincipal principal) {
+        DieselGeneratorEntity entity = dieselGeneratorRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Diesel generator not found: " + id));
+
+        entity.setDeleted(true);
+        dieselGeneratorRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "DIESEL_GENERATOR_DELETED", ENTITY_DIESEL_GENERATOR, entity.getId(), null);
+    }
+
+    public GeneratorLogResponse createGeneratorLog(GeneratorLogCreateRequest request, ShieldPrincipal principal) {
+        dieselGeneratorRepository.findByIdAndDeletedFalse(request.generatorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Diesel generator not found: " + request.generatorId()));
+
+        GeneratorLogEntity entity = new GeneratorLogEntity();
+        entity.setTenantId(principal.tenantId());
+        entity.setGeneratorId(request.generatorId());
+        entity.setLogDate(request.logDate());
+        entity.setStartTime(request.startTime());
+        entity.setStopTime(request.stopTime());
+        entity.setRuntimeHours(request.runtimeHours());
+        entity.setDieselConsumed(request.dieselConsumed());
+        entity.setDieselCost(request.dieselCost());
+        entity.setMeterReadingBefore(request.meterReadingBefore());
+        entity.setMeterReadingAfter(request.meterReadingAfter());
+        entity.setUnitsGenerated(request.unitsGenerated());
+        entity.setOperatorId(request.operatorId() != null ? request.operatorId() : principal.userId());
+
+        GeneratorLogEntity saved = generatorLogRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "GENERATOR_LOG_CREATED", ENTITY_GENERATOR_LOG, saved.getId(), null);
+        return toGeneratorLogResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<GeneratorLogResponse> listGeneratorLogs(Pageable pageable) {
+        return PagedResponse.from(generatorLogRepository.findAllByDeletedFalse(pageable).map(this::toGeneratorLogResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public GeneratorLogResponse getGeneratorLog(UUID id) {
+        GeneratorLogEntity entity = generatorLogRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Generator log not found: " + id));
+        return toGeneratorLogResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<GeneratorLogResponse> listGeneratorLogsByGenerator(UUID generatorId, Pageable pageable) {
+        return PagedResponse.from(generatorLogRepository.findAllByGeneratorIdAndDeletedFalse(generatorId, pageable)
+                .map(this::toGeneratorLogResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<GeneratorLogResponse> listGeneratorLogsByDateRange(
+            LocalDate from,
+            LocalDate to,
+            UUID generatorId,
+            Pageable pageable) {
+        validateLocalDateRange(from, to);
+        if (generatorId != null) {
+            return PagedResponse.from(generatorLogRepository
+                    .findAllByGeneratorIdAndLogDateBetweenAndDeletedFalse(generatorId, from, to, pageable)
+                    .map(this::toGeneratorLogResponse));
+        }
+        return PagedResponse.from(generatorLogRepository.findAllByLogDateBetweenAndDeletedFalse(from, to, pageable)
+                .map(this::toGeneratorLogResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public GeneratorLogSummaryResponse getGeneratorLogSummary(LocalDate from, LocalDate to, UUID generatorId) {
+        validateLocalDateRange(from, to);
+
+        List<GeneratorLogEntity> rows = generatorId == null
+                ? generatorLogRepository.findAllByLogDateBetweenAndDeletedFalse(from, to)
+                : generatorLogRepository.findAllByGeneratorIdAndLogDateBetweenAndDeletedFalse(generatorId, from, to);
+
+        return new GeneratorLogSummaryResponse(
+                generatorId,
+                from,
+                to,
+                rows.size(),
+                sumScale2(rows.stream().map(GeneratorLogEntity::getRuntimeHours).toList()),
+                sumScale2(rows.stream().map(GeneratorLogEntity::getDieselConsumed).toList()),
+                sumScale2(rows.stream().map(GeneratorLogEntity::getDieselCost).toList()),
+                sumScale2(rows.stream().map(GeneratorLogEntity::getUnitsGenerated).toList()));
+    }
+
+    public GeneratorLogResponse updateGeneratorLog(UUID id, GeneratorLogUpdateRequest request, ShieldPrincipal principal) {
+        GeneratorLogEntity entity = generatorLogRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Generator log not found: " + id));
+
+        entity.setLogDate(request.logDate());
+        entity.setStartTime(request.startTime());
+        entity.setStopTime(request.stopTime());
+        entity.setRuntimeHours(request.runtimeHours());
+        entity.setDieselConsumed(request.dieselConsumed());
+        entity.setDieselCost(request.dieselCost());
+        entity.setMeterReadingBefore(request.meterReadingBefore());
+        entity.setMeterReadingAfter(request.meterReadingAfter());
+        entity.setUnitsGenerated(request.unitsGenerated());
+        if (request.operatorId() != null) {
+            entity.setOperatorId(request.operatorId());
+        }
+
+        GeneratorLogEntity saved = generatorLogRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "GENERATOR_LOG_UPDATED", ENTITY_GENERATOR_LOG, saved.getId(), null);
+        return toGeneratorLogResponse(saved);
+    }
+
+    public void deleteGeneratorLog(UUID id, ShieldPrincipal principal) {
+        GeneratorLogEntity entity = generatorLogRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Generator log not found: " + id));
+
+        entity.setDeleted(true);
+        generatorLogRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "GENERATOR_LOG_DELETED", ENTITY_GENERATOR_LOG, entity.getId(), null);
     }
 
     private void validateInstantRange(Instant from, Instant to) {
@@ -313,6 +481,13 @@ public class UtilityService {
         if (to.isBefore(from)) {
             throw new BadRequestException("to date cannot be before from date");
         }
+    }
+
+    private BigDecimal sumScale2(List<BigDecimal> values) {
+        return values.stream()
+                .filter(value -> value != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     private WaterTankResponse toWaterTankResponse(WaterTankEntity entity) {
@@ -356,5 +531,31 @@ public class UtilityService {
                 entity.getUnitsConsumed(),
                 entity.getCost(),
                 entity.getRecordedBy());
+    }
+
+    private DieselGeneratorResponse toDieselGeneratorResponse(DieselGeneratorEntity entity) {
+        return new DieselGeneratorResponse(
+                entity.getId(),
+                entity.getTenantId(),
+                entity.getGeneratorName(),
+                entity.getCapacityKva(),
+                entity.getLocation());
+    }
+
+    private GeneratorLogResponse toGeneratorLogResponse(GeneratorLogEntity entity) {
+        return new GeneratorLogResponse(
+                entity.getId(),
+                entity.getTenantId(),
+                entity.getGeneratorId(),
+                entity.getLogDate(),
+                entity.getStartTime(),
+                entity.getStopTime(),
+                entity.getRuntimeHours(),
+                entity.getDieselConsumed(),
+                entity.getDieselCost(),
+                entity.getMeterReadingBefore(),
+                entity.getMeterReadingAfter(),
+                entity.getUnitsGenerated(),
+                entity.getOperatorId());
     }
 }

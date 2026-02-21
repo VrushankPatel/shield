@@ -8,19 +8,27 @@ import static org.mockito.Mockito.when;
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.exception.BadRequestException;
 import com.shield.common.exception.ResourceNotFoundException;
+import com.shield.module.utility.dto.DieselGeneratorCreateRequest;
+import com.shield.module.utility.dto.DieselGeneratorResponse;
 import com.shield.module.utility.dto.ElectricityConsumptionReportResponse;
 import com.shield.module.utility.dto.ElectricityReadingCreateRequest;
 import com.shield.module.utility.dto.ElectricityReadingResponse;
+import com.shield.module.utility.dto.GeneratorLogCreateRequest;
+import com.shield.module.utility.dto.GeneratorLogSummaryResponse;
 import com.shield.module.utility.dto.WaterLevelLogCreateRequest;
 import com.shield.module.utility.dto.WaterLevelLogResponse;
 import com.shield.module.utility.dto.WaterTankCreateRequest;
 import com.shield.module.utility.dto.WaterTankResponse;
+import com.shield.module.utility.entity.DieselGeneratorEntity;
 import com.shield.module.utility.entity.ElectricityMeterEntity;
 import com.shield.module.utility.entity.ElectricityReadingEntity;
+import com.shield.module.utility.entity.GeneratorLogEntity;
 import com.shield.module.utility.entity.WaterLevelLogEntity;
 import com.shield.module.utility.entity.WaterTankEntity;
+import com.shield.module.utility.repository.DieselGeneratorRepository;
 import com.shield.module.utility.repository.ElectricityMeterRepository;
 import com.shield.module.utility.repository.ElectricityReadingRepository;
+import com.shield.module.utility.repository.GeneratorLogRepository;
 import com.shield.module.utility.repository.WaterLevelLogRepository;
 import com.shield.module.utility.repository.WaterTankRepository;
 import com.shield.security.model.ShieldPrincipal;
@@ -54,6 +62,12 @@ class UtilityServiceTest {
     private ElectricityReadingRepository electricityReadingRepository;
 
     @Mock
+    private DieselGeneratorRepository dieselGeneratorRepository;
+
+    @Mock
+    private GeneratorLogRepository generatorLogRepository;
+
+    @Mock
     private AuditLogService auditLogService;
 
     private UtilityService utilityService;
@@ -65,6 +79,8 @@ class UtilityServiceTest {
                 waterLevelLogRepository,
                 electricityMeterRepository,
                 electricityReadingRepository,
+                dieselGeneratorRepository,
+                generatorLogRepository,
                 auditLogService);
     }
 
@@ -286,5 +302,86 @@ class UtilityServiceTest {
 
         WaterLevelLogResponse response = utilityService.getCurrentWaterLevelLog(tankId);
         assertEquals(tankId, response.tankId());
+    }
+
+    @Test
+    void createDieselGeneratorShouldSetTenantFromPrincipal() {
+        when(dieselGeneratorRepository.save(any(DieselGeneratorEntity.class))).thenAnswer(invocation -> {
+            DieselGeneratorEntity entity = invocation.getArgument(0);
+            entity.setId(UUID.randomUUID());
+            return entity;
+        });
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        DieselGeneratorResponse response = utilityService.createDieselGenerator(
+                new DieselGeneratorCreateRequest("DG-1", BigDecimal.valueOf(125.50), "Generator Room"),
+                principal);
+
+        assertEquals(principal.tenantId(), response.tenantId());
+        assertEquals("DG-1", response.generatorName());
+    }
+
+    @Test
+    void createGeneratorLogShouldSetOperatorFromPrincipalWhenMissing() {
+        UUID generatorId = UUID.randomUUID();
+        DieselGeneratorEntity generator = new DieselGeneratorEntity();
+        generator.setId(generatorId);
+        when(dieselGeneratorRepository.findByIdAndDeletedFalse(generatorId)).thenReturn(Optional.of(generator));
+
+        when(generatorLogRepository.save(any(GeneratorLogEntity.class))).thenAnswer(invocation -> {
+            GeneratorLogEntity entity = invocation.getArgument(0);
+            entity.setId(UUID.randomUUID());
+            return entity;
+        });
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "committee@shield.dev", "COMMITTEE");
+        GeneratorLogCreateRequest request = new GeneratorLogCreateRequest(
+                generatorId,
+                LocalDate.of(2026, 2, 20),
+                Instant.parse("2026-02-20T10:00:00Z"),
+                Instant.parse("2026-02-20T12:00:00Z"),
+                BigDecimal.valueOf(2),
+                BigDecimal.valueOf(8.5),
+                BigDecimal.valueOf(850),
+                BigDecimal.valueOf(12000),
+                BigDecimal.valueOf(12020),
+                BigDecimal.valueOf(50),
+                null);
+
+        assertEquals(principal.userId(), utilityService.createGeneratorLog(request, principal).operatorId());
+    }
+
+    @Test
+    void getGeneratorLogSummaryShouldAggregateRuntimeFuelAndCost() {
+        UUID generatorId = UUID.randomUUID();
+
+        GeneratorLogEntity one = new GeneratorLogEntity();
+        one.setRuntimeHours(BigDecimal.valueOf(2.5));
+        one.setDieselConsumed(BigDecimal.valueOf(8.2));
+        one.setDieselCost(BigDecimal.valueOf(820));
+        one.setUnitsGenerated(BigDecimal.valueOf(55));
+
+        GeneratorLogEntity two = new GeneratorLogEntity();
+        two.setRuntimeHours(BigDecimal.valueOf(3.0));
+        two.setDieselConsumed(BigDecimal.valueOf(9.8));
+        two.setDieselCost(BigDecimal.valueOf(980));
+        two.setUnitsGenerated(BigDecimal.valueOf(60));
+
+        when(generatorLogRepository.findAllByGeneratorIdAndLogDateBetweenAndDeletedFalse(
+                generatorId,
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 2, 28)))
+                .thenReturn(List.of(one, two));
+
+        GeneratorLogSummaryResponse summary = utilityService.getGeneratorLogSummary(
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 2, 28),
+                generatorId);
+
+        assertEquals(2, summary.totalLogs());
+        assertEquals(BigDecimal.valueOf(5.50).setScale(2), summary.totalRuntimeHours());
+        assertEquals(BigDecimal.valueOf(18.00).setScale(2), summary.totalDieselConsumed());
+        assertEquals(BigDecimal.valueOf(1800.00).setScale(2), summary.totalDieselCost());
+        assertEquals(BigDecimal.valueOf(115.00).setScale(2), summary.totalUnitsGenerated());
     }
 }

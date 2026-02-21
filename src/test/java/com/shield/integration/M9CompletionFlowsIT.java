@@ -405,6 +405,28 @@ class M9CompletionFlowsIT extends IntegrationTestBase {
                 .extract()
                 .path("data.id");
 
+        given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + token)
+                .body(Map.of(
+                        "categoryName", "AGM",
+                        "description", "AGM specific documents",
+                        "parentCategoryId", categoryId))
+                .when()
+                .post("/document-categories")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+
+        given()
+                .header("Authorization", "Bearer " + token)
+                .when()
+                .get("/document-categories/hierarchy")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.size()", equalTo(1))
+                .body("data[0].id", equalTo(categoryId))
+                .body("data[0].children.size()", equalTo(1));
+
         LocalDate expiry = LocalDate.now().plusDays(15);
         String documentId = given()
                 .contentType("application/json")

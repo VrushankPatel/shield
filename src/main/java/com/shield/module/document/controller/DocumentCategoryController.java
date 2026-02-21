@@ -5,10 +5,12 @@ import com.shield.common.dto.PagedResponse;
 import com.shield.common.util.SecurityUtils;
 import com.shield.module.document.dto.DocumentCategoryCreateRequest;
 import com.shield.module.document.dto.DocumentCategoryResponse;
+import com.shield.module.document.dto.DocumentCategoryTreeResponse;
 import com.shield.module.document.dto.DocumentCategoryUpdateRequest;
 import com.shield.module.document.service.DocumentService;
 import com.shield.security.model.ShieldPrincipal;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,11 @@ public class DocumentCategoryController {
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<DocumentCategoryResponse>>> list(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.ok("Document categories fetched", documentService.listCategories(pageable)));
+    }
+
+    @GetMapping("/hierarchy")
+    public ResponseEntity<ApiResponse<List<DocumentCategoryTreeResponse>>> hierarchy() {
+        return ResponseEntity.ok(ApiResponse.ok("Document category hierarchy fetched", documentService.listCategoryHierarchy()));
     }
 
     @GetMapping("/{id}")

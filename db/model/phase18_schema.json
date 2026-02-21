@@ -1,0 +1,60 @@
+{
+  "version": "phase18-v1",
+  "tables": [
+    {
+      "name": "diesel_generator",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "generator_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "capacity_kva", "type": "NUMERIC(10, 2)", "nullable": false},
+        {"name": "location", "type": "VARCHAR(255)", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_diesel_generator_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_diesel_generator_name", "columns": ["tenant_id", "generator_name"]}
+      ]
+    },
+    {
+      "name": "generator_log",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "generator_id", "type": "UUID", "nullable": false, "references": "diesel_generator(id)"},
+        {"name": "log_date", "type": "DATE", "nullable": false},
+        {"name": "start_time", "type": "TIMESTAMP", "nullable": true},
+        {"name": "stop_time", "type": "TIMESTAMP", "nullable": true},
+        {"name": "runtime_hours", "type": "NUMERIC(5, 2)", "nullable": true},
+        {"name": "diesel_consumed", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "diesel_cost", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "meter_reading_before", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "meter_reading_after", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "units_generated", "type": "NUMERIC(10, 2)", "nullable": true},
+        {"name": "operator_id", "type": "UUID", "nullable": true, "references": "users(id)"}
+      ],
+      "indexes": [
+        {"name": "idx_generator_log_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_generator_log_generator_date", "columns": ["tenant_id", "generator_id", "log_date"]},
+        {"name": "idx_generator_log_date", "columns": ["tenant_id", "log_date"]}
+      ]
+    },
+    {
+      "name": "carpool_listing",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "posted_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "route_from", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "route_to", "type": "VARCHAR(255)", "nullable": false},
+        {"name": "departure_time", "type": "TIME", "nullable": false},
+        {"name": "available_seats", "type": "INTEGER", "nullable": false},
+        {"name": "days_of_week", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "vehicle_type", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "contact_preference", "type": "VARCHAR(50)", "nullable": true},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_carpool_listing_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_carpool_listing_posted_by", "columns": ["tenant_id", "posted_by"]},
+        {"name": "idx_carpool_listing_route", "columns": ["tenant_id", "route_from", "route_to"]}
+      ]
+    }
+  ]
+}

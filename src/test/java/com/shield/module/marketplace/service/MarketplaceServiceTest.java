@@ -11,6 +11,9 @@ import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.exception.ResourceNotFoundException;
 import com.shield.common.exception.UnauthorizedException;
+import com.shield.module.marketplace.dto.CarpoolListingCreateRequest;
+import com.shield.module.marketplace.dto.CarpoolListingResponse;
+import com.shield.module.marketplace.dto.CarpoolListingUpdateRequest;
 import com.shield.module.marketplace.dto.MarketplaceCategoryCreateRequest;
 import com.shield.module.marketplace.dto.MarketplaceCategoryResponse;
 import com.shield.module.marketplace.dto.MarketplaceCategoryUpdateRequest;
@@ -19,10 +22,12 @@ import com.shield.module.marketplace.dto.MarketplaceInquiryResponse;
 import com.shield.module.marketplace.dto.MarketplaceListingCreateRequest;
 import com.shield.module.marketplace.dto.MarketplaceListingResponse;
 import com.shield.module.marketplace.dto.MarketplaceListingUpdateRequest;
+import com.shield.module.marketplace.entity.CarpoolListingEntity;
 import com.shield.module.marketplace.entity.MarketplaceCategoryEntity;
 import com.shield.module.marketplace.entity.MarketplaceInquiryEntity;
 import com.shield.module.marketplace.entity.MarketplaceListingEntity;
 import com.shield.module.marketplace.entity.MarketplaceListingStatus;
+import com.shield.module.marketplace.repository.CarpoolListingRepository;
 import com.shield.module.marketplace.repository.MarketplaceCategoryRepository;
 import com.shield.module.marketplace.repository.MarketplaceInquiryRepository;
 import com.shield.module.marketplace.repository.MarketplaceListingRepository;
@@ -53,6 +58,9 @@ class MarketplaceServiceTest {
     private MarketplaceInquiryRepository marketplaceInquiryRepository;
 
     @Mock
+    private CarpoolListingRepository carpoolListingRepository;
+
+    @Mock
     private AuditLogService auditLogService;
 
     private MarketplaceService marketplaceService;
@@ -63,6 +71,7 @@ class MarketplaceServiceTest {
                 marketplaceCategoryRepository,
                 marketplaceListingRepository,
                 marketplaceInquiryRepository,
+                carpoolListingRepository,
                 auditLogService);
     }
 
@@ -354,5 +363,52 @@ class MarketplaceServiceTest {
 
         assertEquals(1, page.content().size());
         assertEquals("Dining Table", page.content().get(0).title());
+    }
+
+    @Test
+    void createCarpoolListingShouldSetPostedByFromPrincipal() {
+        when(carpoolListingRepository.save(any(CarpoolListingEntity.class))).thenAnswer(invocation -> {
+            CarpoolListingEntity entity = invocation.getArgument(0);
+            entity.setId(UUID.randomUUID());
+            return entity;
+        });
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "tenant@shield.dev", "TENANT");
+        CarpoolListingResponse response = marketplaceService.createCarpoolListing(
+                new CarpoolListingCreateRequest(
+                        "Borivali",
+                        "BKC",
+                        java.time.LocalTime.of(8, 30),
+                        3,
+                        "Mon,Tue,Wed",
+                        "CAR",
+                        "PHONE",
+                        true),
+                principal);
+
+        assertEquals(principal.userId(), response.postedBy());
+        assertEquals("Borivali", response.routeFrom());
+    }
+
+    @Test
+    void updateCarpoolListingShouldRejectNonOwnerWithoutPrivilegedRole() {
+        UUID listingId = UUID.randomUUID();
+        CarpoolListingEntity entity = new CarpoolListingEntity();
+        entity.setId(listingId);
+        entity.setPostedBy(UUID.randomUUID());
+        when(carpoolListingRepository.findByIdAndDeletedFalse(listingId)).thenReturn(Optional.of(entity));
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "tenant@shield.dev", "TENANT");
+        CarpoolListingUpdateRequest request = new CarpoolListingUpdateRequest(
+                "Andheri",
+                "Powai",
+                java.time.LocalTime.of(9, 0),
+                2,
+                "Thu,Fri",
+                "CAR",
+                "CHAT",
+                true);
+
+        assertThrows(UnauthorizedException.class, () -> marketplaceService.updateCarpoolListing(listingId, request, principal));
     }
 }

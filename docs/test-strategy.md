@@ -11,6 +11,8 @@
   - staff leave, payroll component, salary structure, payroll-detail/payslip, and bulk payroll processing logic
   - expanded staff/payroll lifecycle behavior (attendance summary/date-range, process/approve/summarize payroll)
   - expanded utility and marketplace query/report behavior (consumption report, current logs, listing search/type)
+  - diesel generator and generator-log behavior (date-range and summary aggregation)
+  - carpool listing ownership and route search behavior
   - phase-3 module service behavior (configuration/settings/files)
   - billing payment-gateway service behavior (initiation, verification, callbacks, idempotency)
   - billing management and payment operations behavior (billing cycles, invoices, reminders, late-fee rules, cash/cheque/refund flows)
@@ -35,6 +37,8 @@
   - real-life flow scenarios (announcements, helpdesk, SOS, staff/payroll, utility, marketplace, analytics)
   - M8 completion flow (salary-structure + payroll-components + payroll-detail/payslip + staff-leave approvals and balances)
   - expanded phase-2 flow coverage for new staff/payroll/utility/marketplace endpoints
+  - utility diesel-generator lifecycle and generator-log summary flow
+  - marketplace carpool lifecycle and route-based discovery flow
   - configuration/settings governance flows and file upload/download flows
   - payment gateway initiation/verification/callback flows
   - M3 billing lifecycle flow (cycle -> invoice -> reminder -> payment -> refund)

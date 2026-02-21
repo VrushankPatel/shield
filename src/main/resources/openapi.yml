@@ -4504,6 +4504,12 @@ paths:
       summary: Create document category
       responses:
         '200': {description: Document category created}
+  /document-categories/hierarchy:
+    get:
+      tags: [Documents]
+      summary: Get document category hierarchy
+      responses:
+        '200': {description: Document category hierarchy fetched}
   /document-categories/{id}:
     get:
       tags: [Documents]
@@ -5436,6 +5442,149 @@ paths:
       responses:
         '200': {description: Electricity consumption report fetched}
 
+  /diesel-generators:
+    get:
+      tags: [Utility]
+      summary: List diesel generators
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Diesel generators fetched}
+    post:
+      tags: [Utility]
+      summary: Create diesel generator
+      responses:
+        '200': {description: Diesel generator created}
+  /diesel-generators/{id}:
+    get:
+      tags: [Utility]
+      summary: Get diesel generator
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Diesel generator fetched}
+    put:
+      tags: [Utility]
+      summary: Update diesel generator
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Diesel generator updated}
+    delete:
+      tags: [Utility]
+      summary: Delete diesel generator
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Diesel generator deleted}
+
+  /generator-logs:
+    get:
+      tags: [Utility]
+      summary: List generator logs
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Generator logs fetched}
+    post:
+      tags: [Utility]
+      summary: Create generator log
+      responses:
+        '200': {description: Generator log created}
+  /generator-logs/{id}:
+    get:
+      tags: [Utility]
+      summary: Get generator log
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Generator log fetched}
+    put:
+      tags: [Utility]
+      summary: Update generator log
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Generator log updated}
+    delete:
+      tags: [Utility]
+      summary: Delete generator log
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Generator log deleted}
+  /generator-logs/generator/{generatorId}:
+    get:
+      tags: [Utility]
+      summary: List generator logs by generator
+      parameters:
+        - in: path
+          name: generatorId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Generator logs by generator fetched}
+  /generator-logs/date-range:
+    get:
+      tags: [Utility]
+      summary: List generator logs by date range
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: generatorId
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Generator logs by date range fetched}
+  /generator-logs/summary:
+    get:
+      tags: [Utility]
+      summary: Generator log summary
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: generatorId
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Generator logs summary fetched}
+
   /marketplace-categories:
     get:
       tags: [Marketplace]
@@ -5628,6 +5777,72 @@ paths:
         - $ref: '#/components/parameters/Size'
       responses:
         '200': {description: My marketplace inquiries fetched}
+
+  /carpool-listings:
+    get:
+      tags: [Marketplace]
+      summary: List carpool listings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Carpool listings fetched}
+    post:
+      tags: [Marketplace]
+      summary: Create carpool listing
+      responses:
+        '200': {description: Carpool listing created}
+  /carpool-listings/{id}:
+    get:
+      tags: [Marketplace]
+      summary: Get carpool listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Carpool listing fetched}
+    put:
+      tags: [Marketplace]
+      summary: Update carpool listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Carpool listing updated}
+    delete:
+      tags: [Marketplace]
+      summary: Delete carpool listing
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Carpool listing deleted}
+  /carpool-listings/route:
+    get:
+      tags: [Marketplace]
+      summary: List carpool listings by route
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Carpool listings by route fetched}
+  /carpool-listings/my-listings:
+    get:
+      tags: [Marketplace]
+      summary: List current user carpool listings
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: My carpool listings fetched}
 
   /report-templates:
     get:

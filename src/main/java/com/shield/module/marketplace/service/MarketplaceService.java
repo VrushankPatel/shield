@@ -4,6 +4,9 @@ import com.shield.audit.service.AuditLogService;
 import com.shield.common.dto.PagedResponse;
 import com.shield.common.exception.ResourceNotFoundException;
 import com.shield.common.exception.UnauthorizedException;
+import com.shield.module.marketplace.dto.CarpoolListingCreateRequest;
+import com.shield.module.marketplace.dto.CarpoolListingResponse;
+import com.shield.module.marketplace.dto.CarpoolListingUpdateRequest;
 import com.shield.module.marketplace.dto.MarketplaceCategoryCreateRequest;
 import com.shield.module.marketplace.dto.MarketplaceCategoryResponse;
 import com.shield.module.marketplace.dto.MarketplaceCategoryUpdateRequest;
@@ -12,10 +15,12 @@ import com.shield.module.marketplace.dto.MarketplaceInquiryResponse;
 import com.shield.module.marketplace.dto.MarketplaceListingCreateRequest;
 import com.shield.module.marketplace.dto.MarketplaceListingResponse;
 import com.shield.module.marketplace.dto.MarketplaceListingUpdateRequest;
+import com.shield.module.marketplace.entity.CarpoolListingEntity;
 import com.shield.module.marketplace.entity.MarketplaceCategoryEntity;
 import com.shield.module.marketplace.entity.MarketplaceInquiryEntity;
 import com.shield.module.marketplace.entity.MarketplaceListingEntity;
 import com.shield.module.marketplace.entity.MarketplaceListingStatus;
+import com.shield.module.marketplace.repository.CarpoolListingRepository;
 import com.shield.module.marketplace.repository.MarketplaceCategoryRepository;
 import com.shield.module.marketplace.repository.MarketplaceInquiryRepository;
 import com.shield.module.marketplace.repository.MarketplaceListingRepository;
@@ -33,20 +38,25 @@ public class MarketplaceService {
     private static final String MARKETPLACE_CATEGORY_NOT_FOUND_PREFIX = "Marketplace category not found: ";
     private static final String ENTITY_MARKETPLACE_LISTING = "marketplace_listing";
     private static final String MARKETPLACE_LISTING_NOT_FOUND_PREFIX = "Marketplace listing not found: ";
+    private static final String ENTITY_CARPOOL_LISTING = "carpool_listing";
+    private static final String CARPOOL_LISTING_NOT_FOUND_PREFIX = "Carpool listing not found: ";
 
     private final MarketplaceCategoryRepository marketplaceCategoryRepository;
     private final MarketplaceListingRepository marketplaceListingRepository;
     private final MarketplaceInquiryRepository marketplaceInquiryRepository;
+    private final CarpoolListingRepository carpoolListingRepository;
     private final AuditLogService auditLogService;
 
     public MarketplaceService(
             MarketplaceCategoryRepository marketplaceCategoryRepository,
             MarketplaceListingRepository marketplaceListingRepository,
             MarketplaceInquiryRepository marketplaceInquiryRepository,
+            CarpoolListingRepository carpoolListingRepository,
             AuditLogService auditLogService) {
         this.marketplaceCategoryRepository = marketplaceCategoryRepository;
         this.marketplaceListingRepository = marketplaceListingRepository;
         this.marketplaceInquiryRepository = marketplaceInquiryRepository;
+        this.carpoolListingRepository = carpoolListingRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -242,6 +252,78 @@ public class MarketplaceService {
                 .map(this::toInquiryResponse));
     }
 
+    public CarpoolListingResponse createCarpoolListing(CarpoolListingCreateRequest request, ShieldPrincipal principal) {
+        CarpoolListingEntity entity = new CarpoolListingEntity();
+        entity.setTenantId(principal.tenantId());
+        entity.setPostedBy(principal.userId());
+        entity.setRouteFrom(request.routeFrom());
+        entity.setRouteTo(request.routeTo());
+        entity.setDepartureTime(request.departureTime());
+        entity.setAvailableSeats(request.availableSeats());
+        entity.setDaysOfWeek(request.daysOfWeek());
+        entity.setVehicleType(request.vehicleType());
+        entity.setContactPreference(request.contactPreference());
+        entity.setActive(request.active() == null || request.active());
+
+        CarpoolListingEntity saved = carpoolListingRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "CARPOOL_LISTING_CREATED", ENTITY_CARPOOL_LISTING, saved.getId(), null);
+        return toCarpoolListingResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<CarpoolListingResponse> listCarpoolListings(Pageable pageable) {
+        return PagedResponse.from(carpoolListingRepository.findAllByDeletedFalse(pageable).map(this::toCarpoolListingResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public CarpoolListingResponse getCarpoolListing(UUID id) {
+        CarpoolListingEntity entity = carpoolListingRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException(CARPOOL_LISTING_NOT_FOUND_PREFIX + id));
+        return toCarpoolListingResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<CarpoolListingResponse> listCarpoolListingsByRoute(String routeFrom, String routeTo, Pageable pageable) {
+        return PagedResponse.from(carpoolListingRepository
+                .findAllByRouteFromIgnoreCaseAndRouteToIgnoreCaseAndDeletedFalse(routeFrom, routeTo, pageable)
+                .map(this::toCarpoolListingResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<CarpoolListingResponse> listMyCarpoolListings(UUID postedBy, Pageable pageable) {
+        return PagedResponse.from(carpoolListingRepository.findAllByPostedByAndDeletedFalse(postedBy, pageable)
+                .map(this::toCarpoolListingResponse));
+    }
+
+    public CarpoolListingResponse updateCarpoolListing(UUID id, CarpoolListingUpdateRequest request, ShieldPrincipal principal) {
+        CarpoolListingEntity entity = carpoolListingRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException(CARPOOL_LISTING_NOT_FOUND_PREFIX + id));
+        assertCanManageCarpool(principal, entity);
+
+        entity.setRouteFrom(request.routeFrom());
+        entity.setRouteTo(request.routeTo());
+        entity.setDepartureTime(request.departureTime());
+        entity.setAvailableSeats(request.availableSeats());
+        entity.setDaysOfWeek(request.daysOfWeek());
+        entity.setVehicleType(request.vehicleType());
+        entity.setContactPreference(request.contactPreference());
+        entity.setActive(request.active() != null ? request.active() : entity.isActive());
+
+        CarpoolListingEntity saved = carpoolListingRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "CARPOOL_LISTING_UPDATED", ENTITY_CARPOOL_LISTING, saved.getId(), null);
+        return toCarpoolListingResponse(saved);
+    }
+
+    public void deleteCarpoolListing(UUID id, ShieldPrincipal principal) {
+        CarpoolListingEntity entity = carpoolListingRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException(CARPOOL_LISTING_NOT_FOUND_PREFIX + id));
+        assertCanManageCarpool(principal, entity);
+
+        entity.setDeleted(true);
+        carpoolListingRepository.save(entity);
+        auditLogService.logEvent(principal.tenantId(), principal.userId(), "CARPOOL_LISTING_DELETED", ENTITY_CARPOOL_LISTING, entity.getId(), null);
+    }
+
     private MarketplaceListingResponse updateStatus(
             UUID id,
             MarketplaceListingStatus status,
@@ -265,6 +347,16 @@ public class MarketplaceService {
         }
         if (!principal.userId().equals(listing.getPostedBy())) {
             throw new UnauthorizedException("You are not authorized to manage this listing");
+        }
+    }
+
+    private void assertCanManageCarpool(ShieldPrincipal principal, CarpoolListingEntity listing) {
+        boolean privilegedRole = "ADMIN".equals(principal.role()) || "COMMITTEE".equals(principal.role());
+        if (privilegedRole) {
+            return;
+        }
+        if (!principal.userId().equals(listing.getPostedBy())) {
+            throw new UnauthorizedException("You are not authorized to manage this carpool listing");
         }
     }
 
@@ -303,5 +395,20 @@ public class MarketplaceService {
                 entity.getInquiredBy(),
                 entity.getMessage(),
                 entity.getCreatedAt());
+    }
+
+    private CarpoolListingResponse toCarpoolListingResponse(CarpoolListingEntity entity) {
+        return new CarpoolListingResponse(
+                entity.getId(),
+                entity.getTenantId(),
+                entity.getPostedBy(),
+                entity.getRouteFrom(),
+                entity.getRouteTo(),
+                entity.getDepartureTime(),
+                entity.getAvailableSeats(),
+                entity.getDaysOfWeek(),
+                entity.getVehicleType(),
+                entity.getContactPreference(),
+                entity.isActive());
     }
 }
