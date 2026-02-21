@@ -59,6 +59,12 @@ This repository contains a **multi-tenant modular monolith** backend built with 
 - Emergency module (`/emergency-contacts`, `/sos-alerts`)
 - Document repository module (`/document-categories`, `/documents`)
 - Staff and payroll module (`/staff`, `/staff-attendance`, `/payroll`)
+- Staff/payroll completion:
+  - Staff export: `/staff/export`
+  - Staff leave management: `/staff-leaves/*`, `/staff-leaves/pending-approval`, `/staff-leaves/balance/{staffId}`
+  - Payroll components: `/payroll-components/*`
+  - Salary structure: `/staff/{id}/salary-structure`, `/salary-structure/{id}`
+  - Payroll completion endpoints: `/payroll/bulk-process`, `/payroll/{id}/payslip`
 - Utility monitoring module (`/water-tanks`, `/water-level-logs`, `/electricity-meters`, `/electricity-readings`)
 - Marketplace module (`/marketplace-categories`, `/marketplace-listings`, `/marketplace-inquiries`)
 - Analytics module (`/report-templates`, `/scheduled-reports`, `/analytics-dashboards`, `/analytics/*`)
@@ -103,13 +109,14 @@ This repository contains a **multi-tenant modular monolith** backend built with 
   - `db/model/phase13_schema.json` -> `V16__phase13_visitor_expansion_generated.sql` (+ `V17__phase13_visitor_pass_extensions.sql`)
   - `db/model/phase14_schema.json` -> `V18__phase14_asset_complaint_expansion_generated.sql` (+ `V19__phase14_asset_complaint_extensions.sql`)
   - `db/model/phase15_schema.json` -> `V20__phase15_amenities_meeting_generated.sql` (+ `V21__phase15_amenities_meeting_extensions.sql`)
+  - `db/model/phase16_schema.json` -> `V22__phase16_staff_payroll_completion_generated.sql`
 
 Cross-cutting:
 - Tenant context + Hibernate tenant filter
 - RBAC with Spring Security
 - Login rate limiting
 - Global error handler
-- Flyway migrations (`V1` to `V19`)
+- Flyway migrations (`V1` to `V22`)
 - Structured JSON logs + correlation id
 - Actuator + Prometheus endpoint
 
@@ -240,6 +247,29 @@ docker build -t shield-api:latest .
 ### Run full stack
 ```bash
 docker compose up -d
+```
+
+### One-click HA stack generation + run
+```bash
+./run.sh --instances 4 --proxy haproxy
+./run.sh --instances 2 --proxy nginx
+```
+
+Generated topology files are written under:
+- `system_topologies/generated/System{N}NodesHaProxy`
+- `system_topologies/generated/System{N}NodesNginx`
+
+Tracked reference examples:
+- `system_topologies/examples/System2NodesHaProxy`
+- `system_topologies/examples/System2NodesNginx`
+
+Persistent database/cache mounts:
+- `db_files/postgres`
+- `db_files/redis`
+
+Stop a topology:
+```bash
+./run.sh --instances 4 --proxy haproxy --down
 ```
 
 ## CI/CD

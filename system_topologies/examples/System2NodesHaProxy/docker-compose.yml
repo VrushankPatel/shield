@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shield
+      POSTGRES_USER: shield
+      POSTGRES_PASSWORD: shield
+    volumes:
+      - ../../../db_files/postgres:/var/lib/postgresql/data
+    networks: [shield-net]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ../../../db_files/redis:/data
+    networks: [shield-net]
+
+  app1:
+    build:
+      context: ../../..
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shield
+      SPRING_DATASOURCE_USERNAME: shield
+      SPRING_DATASOURCE_PASSWORD: shield
+      JWT_SECRET: change-me-change-me-change-me-change-me
+    depends_on:
+      - postgres
+      - redis
+    networks: [shield-net]
+
+  app2:
+    build:
+      context: ../../..
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shield
+      SPRING_DATASOURCE_USERNAME: shield
+      SPRING_DATASOURCE_PASSWORD: shield
+      JWT_SECRET: change-me-change-me-change-me-change-me
+    depends_on:
+      - postgres
+      - redis
+    networks: [shield-net]
+
+  proxy:
+    image: haproxy:2.9
+    restart: unless-stopped
+    depends_on:
+      - app1
+      - app2
+    ports:
+      - "8080:80"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks: [shield-net]
+
+networks:
+  shield-net:
+    driver: bridge
