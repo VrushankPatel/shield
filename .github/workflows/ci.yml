@@ -18,8 +18,8 @@ permissions:
 
 env:
   SONAR_HOST_URL: https://sonarcloud.io
-  SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY || 'VrushankPatel_shield' }}
-  SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'vrushankpatel' }}
+  SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+  SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
 
 jobs:
   build-test:
@@ -61,8 +61,8 @@ jobs:
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.token=${SONAR_TOKEN}
           -Dsonar.host.url=${SONAR_HOST_URL}
-          -Dsonar.organization=${SONAR_ORGANIZATION}
-          -Dsonar.projectKey=${SONAR_PROJECT_KEY}
+          -Dsonar.organization=${SONAR_ORGANIZATION:-vrushankpatel}
+          -Dsonar.projectKey=${SONAR_PROJECT_KEY:-VrushankPatel_shield}
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
 
       - name: Generate SonarCloud PDF report
