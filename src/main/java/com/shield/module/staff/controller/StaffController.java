@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,12 +25,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/staff")
 @RequiredArgsConstructor
 public class StaffController {
+
+    private static final MediaType CSV_MEDIA_TYPE = new MediaType("text", "csv");
 
     private final StaffService staffService;
 
@@ -54,6 +59,16 @@ public class StaffController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<StaffResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok("Staff fetched", staffService.getById(id)));
+    }
+
+    @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('ADMIN','COMMITTEE')")
+    public ResponseEntity<String> export(@RequestParam(required = false, defaultValue = "staff.csv") String filename) {
+        String safeFilename = filename.isBlank() ? "staff.csv" : filename;
+        return ResponseEntity.ok()
+                .contentType(CSV_MEDIA_TYPE)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + safeFilename)
+                .body(staffService.exportCsv());
     }
 
     @PostMapping

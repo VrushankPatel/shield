@@ -4225,6 +4225,18 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Staff deleted}
+  /staff/export:
+    get:
+      tags: [Staff]
+      summary: Export staff CSV
+      parameters:
+        - in: query
+          name: filename
+          required: false
+          schema:
+            type: string
+      responses:
+        '200': {description: Staff CSV exported}
   /staff/{id}/status:
     patch:
       tags: [Staff]
@@ -4341,6 +4353,96 @@ paths:
             format: date
       responses:
         '200': {description: Staff attendance summary fetched}
+  /staff-leaves:
+    get:
+      tags: [Staff]
+      summary: List staff leaves
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Staff leaves fetched}
+    post:
+      tags: [Staff]
+      summary: Create staff leave
+      responses:
+        '200': {description: Staff leave created}
+  /staff-leaves/{id}:
+    get:
+      tags: [Staff]
+      summary: Get staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave fetched}
+    put:
+      tags: [Staff]
+      summary: Update staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave updated}
+    delete:
+      tags: [Staff]
+      summary: Delete staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave deleted}
+  /staff-leaves/{id}/approve:
+    post:
+      tags: [Staff]
+      summary: Approve staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave approved}
+  /staff-leaves/{id}/reject:
+    post:
+      tags: [Staff]
+      summary: Reject staff leave
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Staff leave rejected}
+  /staff-leaves/staff/{staffId}:
+    get:
+      tags: [Staff]
+      summary: List staff leaves by staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Staff leaves by staff fetched}
+  /staff-leaves/pending-approval:
+    get:
+      tags: [Staff]
+      summary: List pending staff leaves
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Pending staff leaves fetched}
+  /staff-leaves/balance/{staffId}:
+    get:
+      tags: [Staff]
+      summary: Get staff leave balance
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Staff leave balance fetched}
 
   /payroll:
     get:
@@ -4372,6 +4474,12 @@ paths:
       summary: Process payroll
       responses:
         '200': {description: Payroll processed}
+  /payroll/bulk-process:
+    post:
+      tags: [Payroll]
+      summary: Bulk process payroll
+      responses:
+        '200': {description: Payrolls bulk processed}
   /payroll/{id}/approve:
     post:
       tags: [Payroll]
@@ -4380,6 +4488,14 @@ paths:
         - $ref: '#/components/parameters/IdPath'
       responses:
         '200': {description: Payroll approved}
+  /payroll/{id}/payslip:
+    get:
+      tags: [Payroll]
+      summary: Get payroll payslip
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll payslip fetched}
   /payroll/month/{month}/year/{year}:
     get:
       tags: [Payroll]
@@ -4431,6 +4547,85 @@ paths:
             type: integer
       responses:
         '200': {description: Payroll summary fetched}
+  /payroll-components:
+    get:
+      tags: [Payroll]
+      summary: List payroll components
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200': {description: Payroll components fetched}
+    post:
+      tags: [Payroll]
+      summary: Create payroll component
+      responses:
+        '200': {description: Payroll component created}
+  /payroll-components/{id}:
+    get:
+      tags: [Payroll]
+      summary: Get payroll component
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll component fetched}
+    put:
+      tags: [Payroll]
+      summary: Update payroll component
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll component updated}
+    delete:
+      tags: [Payroll]
+      summary: Delete payroll component
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Payroll component deleted}
+  /staff/{staffId}/salary-structure:
+    get:
+      tags: [Payroll]
+      summary: List salary structures by staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200': {description: Salary structures fetched}
+    post:
+      tags: [Payroll]
+      summary: Create salary structure for staff
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200': {description: Salary structure created}
+  /salary-structure/{id}:
+    put:
+      tags: [Payroll]
+      summary: Update salary structure
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Salary structure updated}
+    delete:
+      tags: [Payroll]
+      summary: Delete salary structure
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': {description: Salary structure deleted}
 
   /water-tanks:
     get:

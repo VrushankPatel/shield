@@ -99,7 +99,7 @@ Phase 1:
   - Meeting agenda/attendees/minutes/resolutions/votes: `/meetings/{id}/agenda`, `/agenda/{id}`, `/meetings/{id}/attendees`, `/meetings/{id}/rsvp`, `/meetings/{id}/mark-attendance`, `/meetings/{id}/minutes`, `/minutes/{id}`, `/meetings/{id}/resolutions`, `/resolutions/{id}/vote`, `/resolutions/{id}/results`
   - Meeting action items/reminders: `/meetings/{id}/action-items`, `/action-items/{id}`, `/action-items/assigned-to-me`, `/action-items/pending`, `/meetings/{id}/send-reminders`, `/meetings/{id}/reminders`
 - Expanded operations:
-  - Staff/payroll: `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/payroll/process`, `/payroll/{id}/approve`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
+  - Staff/payroll: `/staff/export`, `/staff/designation/{designation}`, `/staff-attendance/date/{date}`, `/staff-attendance/date-range`, `/staff-attendance/summary`, `/staff-leaves/*`, `/staff-leaves/pending-approval`, `/staff-leaves/balance/{staffId}`, `/payroll-components/*`, `/staff/{id}/salary-structure`, `/salary-structure/{id}`, `/payroll/process`, `/payroll/bulk-process`, `/payroll/{id}/approve`, `/payroll/{id}/payslip`, `/payroll/month/{month}/year/{year}`, `/payroll/staff/{staffId}`, `/payroll/summary`
   - Utility monitoring: `/water-level-logs/current`, `/water-level-logs/date-range`, `/electricity-meters/type/{type}`, `/electricity-readings/date-range`, `/electricity-readings/consumption-report`
   - Marketplace: `/marketplace-listings/type/{type}`, `/marketplace-listings/search`
 

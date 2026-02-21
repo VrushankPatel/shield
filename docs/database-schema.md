@@ -26,6 +26,7 @@ PostgreSQL 15+
 - `V19__phase14_asset_complaint_extensions.sql`: phase-14 asset/complaint baseline table enrichments
 - `V20__phase15_amenities_meeting_generated.sql`: generated phase-15 amenities/meeting governance tables
 - `V21__phase15_amenities_meeting_extensions.sql`: phase-15 amenities/meeting baseline table enrichments
+- `V22__phase16_staff_payroll_completion_generated.sql`: generated phase-16 staff/payroll completion tables
 - Generator source model: `db/model/phase2_schema.json`
 - Generator source model: `db/model/phase3_schema.json`
 - Generator source model: `db/model/phase4_schema.json`
@@ -39,6 +40,7 @@ PostgreSQL 15+
 - Generator source model: `db/model/phase13_schema.json`
 - Generator source model: `db/model/phase14_schema.json`
 - Generator source model: `db/model/phase15_schema.json`
+- Generator source model: `db/model/phase16_schema.json`
 - Generator script: `scripts/generate_db_artifacts.py`
 
 ## Core Tables
@@ -130,6 +132,10 @@ Phase 2:
 - `meeting_vote`
 - `meeting_action_item`
 - `meeting_reminder`
+- `staff_leave`
+- `payroll_component`
+- `staff_salary_structure`
+- `payroll_detail`
 
 ## Common Columns
 Most domain tables include:

@@ -3,16 +3,26 @@ package com.shield.module.payroll.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shield.audit.service.AuditLogService;
 import com.shield.common.exception.BadRequestException;
+import com.shield.module.payroll.dto.PayrollBulkProcessRequest;
 import com.shield.module.payroll.dto.PayrollGenerateRequest;
+import com.shield.module.payroll.dto.PayrollPayslipResponse;
 import com.shield.module.payroll.dto.PayrollProcessRequest;
 import com.shield.module.payroll.dto.PayrollResponse;
+import com.shield.module.payroll.entity.PayrollComponentEntity;
+import com.shield.module.payroll.entity.PayrollComponentType;
+import com.shield.module.payroll.entity.PayrollDetailEntity;
 import com.shield.module.payroll.entity.PayrollEntity;
 import com.shield.module.payroll.entity.PayrollStatus;
+import com.shield.module.payroll.entity.StaffSalaryStructureEntity;
+import com.shield.module.payroll.repository.PayrollComponentRepository;
+import com.shield.module.payroll.repository.PayrollDetailRepository;
 import com.shield.module.payroll.repository.PayrollRepository;
+import com.shield.module.payroll.repository.StaffSalaryStructureRepository;
 import com.shield.module.staff.entity.StaffAttendanceEntity;
 import com.shield.module.staff.entity.StaffAttendanceStatus;
 import com.shield.module.staff.entity.StaffEntity;
@@ -44,13 +54,29 @@ class PayrollServiceTest {
     private StaffAttendanceRepository staffAttendanceRepository;
 
     @Mock
+    private StaffSalaryStructureRepository staffSalaryStructureRepository;
+
+    @Mock
+    private PayrollComponentRepository payrollComponentRepository;
+
+    @Mock
+    private PayrollDetailRepository payrollDetailRepository;
+
+    @Mock
     private AuditLogService auditLogService;
 
     private PayrollService payrollService;
 
     @BeforeEach
     void setUp() {
-        payrollService = new PayrollService(payrollRepository, staffRepository, staffAttendanceRepository, auditLogService);
+        payrollService = new PayrollService(
+                payrollRepository,
+                staffRepository,
+                staffAttendanceRepository,
+                staffSalaryStructureRepository,
+                payrollComponentRepository,
+                payrollDetailRepository,
+                auditLogService);
     }
 
     @Test
@@ -89,12 +115,15 @@ class PayrollServiceTest {
         when(staffRepository.findByIdAndDeletedFalse(staffId)).thenReturn(Optional.of(staff));
         when(staffAttendanceRepository.findAllByStaffIdAndAttendanceDateBetweenAndDeletedFalse(
                 any(UUID.class), any(LocalDate.class), any(LocalDate.class))).thenReturn(attendance);
+        when(staffSalaryStructureRepository.findAllByStaffIdAndActiveTrueAndEffectiveFromLessThanEqualAndDeletedFalse(
+                any(UUID.class), any(LocalDate.class))).thenReturn(List.of());
         when(payrollRepository.findByStaffIdAndYearAndMonthAndDeletedFalse(staffId, 2026, 2)).thenReturn(Optional.empty());
         when(payrollRepository.save(any(PayrollEntity.class))).thenAnswer(invocation -> {
             PayrollEntity entity = invocation.getArgument(0);
             entity.setId(UUID.randomUUID());
             return entity;
         });
+        when(payrollDetailRepository.findAllByPayrollIdAndDeletedFalse(any(UUID.class))).thenReturn(List.of());
 
         PayrollGenerateRequest request = new PayrollGenerateRequest(
                 staffId,
@@ -111,6 +140,68 @@ class PayrollServiceTest {
         assertEquals(20, response.presentDays());
         assertEquals(BigDecimal.valueOf(20000).setScale(2), response.grossSalary());
         assertEquals(BigDecimal.valueOf(19000).setScale(2), response.netSalary());
+    }
+
+    @Test
+    void generateWithSalaryStructureShouldPersistPayrollDetails() {
+        UUID staffId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID earningComponentId = UUID.randomUUID();
+        UUID deductionComponentId = UUID.randomUUID();
+
+        StaffEntity staff = new StaffEntity();
+        staff.setId(staffId);
+        staff.setTenantId(tenantId);
+        staff.setBasicSalary(BigDecimal.valueOf(20000));
+
+        StaffSalaryStructureEntity earning = new StaffSalaryStructureEntity();
+        earning.setStaffId(staffId);
+        earning.setPayrollComponentId(earningComponentId);
+        earning.setAmount(BigDecimal.valueOf(30000));
+        earning.setActive(true);
+        earning.setEffectiveFrom(LocalDate.of(2026, 1, 1));
+
+        StaffSalaryStructureEntity deduction = new StaffSalaryStructureEntity();
+        deduction.setStaffId(staffId);
+        deduction.setPayrollComponentId(deductionComponentId);
+        deduction.setAmount(BigDecimal.valueOf(1500));
+        deduction.setActive(true);
+        deduction.setEffectiveFrom(LocalDate.of(2026, 1, 1));
+
+        PayrollComponentEntity earningComponent = new PayrollComponentEntity();
+        earningComponent.setId(earningComponentId);
+        earningComponent.setComponentName("Basic");
+        earningComponent.setComponentType(PayrollComponentType.EARNING);
+
+        PayrollComponentEntity deductionComponent = new PayrollComponentEntity();
+        deductionComponent.setId(deductionComponentId);
+        deductionComponent.setComponentName("PF");
+        deductionComponent.setComponentType(PayrollComponentType.DEDUCTION);
+
+        when(staffRepository.findByIdAndDeletedFalse(staffId)).thenReturn(Optional.of(staff));
+        when(staffAttendanceRepository.findAllByStaffIdAndAttendanceDateBetweenAndDeletedFalse(
+                any(UUID.class), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(attendance(staffId, LocalDate.of(2026, 2, 10)), attendance(staffId, LocalDate.of(2026, 2, 11))));
+        when(staffSalaryStructureRepository.findAllByStaffIdAndActiveTrueAndEffectiveFromLessThanEqualAndDeletedFalse(
+                any(UUID.class), any(LocalDate.class))).thenReturn(List.of(earning, deduction));
+        when(payrollComponentRepository.findAllByIdInAndDeletedFalse(any())).thenReturn(List.of(earningComponent, deductionComponent));
+        when(payrollRepository.findByStaffIdAndYearAndMonthAndDeletedFalse(staffId, 2026, 2)).thenReturn(Optional.empty());
+        when(payrollRepository.save(any(PayrollEntity.class))).thenAnswer(invocation -> {
+            PayrollEntity entity = invocation.getArgument(0);
+            entity.setId(UUID.randomUUID());
+            return entity;
+        });
+        when(payrollDetailRepository.findAllByPayrollIdAndDeletedFalse(any(UUID.class))).thenReturn(List.of());
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), tenantId, "admin@shield.dev", "ADMIN");
+        PayrollResponse response = payrollService.generate(
+                new PayrollGenerateRequest(staffId, 2, 2026, 2, BigDecimal.valueOf(200), null, null),
+                principal);
+
+        assertEquals(BigDecimal.valueOf(30000).setScale(2), response.grossSalary());
+        assertEquals(BigDecimal.valueOf(1700).setScale(2), response.totalDeductions());
+        assertEquals(BigDecimal.valueOf(28300).setScale(2), response.netSalary());
+        verify(payrollDetailRepository).saveAll(any());
     }
 
     @Test
@@ -139,6 +230,78 @@ class PayrollServiceTest {
         assertEquals(PayrollStatus.PROCESSED, response.status());
         assertEquals("BANK_TRANSFER", response.paymentMethod());
         assertEquals("PAY-123", response.paymentReference());
+    }
+
+    @Test
+    void bulkProcessShouldProcessMultiplePayrolls() {
+        UUID payrollOneId = UUID.randomUUID();
+        UUID payrollTwoId = UUID.randomUUID();
+
+        PayrollEntity payrollOne = new PayrollEntity();
+        payrollOne.setId(payrollOneId);
+        payrollOne.setStatus(PayrollStatus.DRAFT);
+
+        PayrollEntity payrollTwo = new PayrollEntity();
+        payrollTwo.setId(payrollTwoId);
+        payrollTwo.setStatus(PayrollStatus.DRAFT);
+
+        when(payrollRepository.findByIdAndDeletedFalse(payrollOneId)).thenReturn(Optional.of(payrollOne));
+        when(payrollRepository.findByIdAndDeletedFalse(payrollTwoId)).thenReturn(Optional.of(payrollTwo));
+        when(payrollRepository.save(any(PayrollEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ShieldPrincipal principal = new ShieldPrincipal(UUID.randomUUID(), UUID.randomUUID(), "admin@shield.dev", "ADMIN");
+        List<PayrollResponse> response = payrollService.bulkProcess(
+                new PayrollBulkProcessRequest(
+                        List.of(payrollOneId, payrollTwoId),
+                        "BANK_TRANSFER",
+                        "BATCH-APR",
+                        LocalDate.of(2026, 4, 30),
+                        "https://files.example/payslips"),
+                principal);
+
+        assertEquals(2, response.size());
+        assertEquals(PayrollStatus.PROCESSED, response.get(0).status());
+        assertEquals("BATCH-APR-1", response.get(0).paymentReference());
+        assertEquals("https://files.example/payslips/" + payrollOneId + ".pdf", response.get(0).payslipUrl());
+    }
+
+    @Test
+    void getPayslipShouldIncludeManualDeductions() {
+        UUID payrollId = UUID.randomUUID();
+        UUID componentId = UUID.randomUUID();
+
+        PayrollEntity payroll = new PayrollEntity();
+        payroll.setId(payrollId);
+        payroll.setStaffId(UUID.randomUUID());
+        payroll.setMonth(2);
+        payroll.setYear(2026);
+        payroll.setGrossSalary(BigDecimal.valueOf(30000).setScale(2));
+        payroll.setTotalDeductions(BigDecimal.valueOf(1500).setScale(2));
+        payroll.setNetSalary(BigDecimal.valueOf(28500).setScale(2));
+        payroll.setStatus(PayrollStatus.PROCESSED);
+        payroll.setCreatedAt(Instant.parse("2026-02-28T10:00:00Z"));
+
+        PayrollDetailEntity detail = new PayrollDetailEntity();
+        detail.setId(UUID.randomUUID());
+        detail.setPayrollId(payrollId);
+        detail.setPayrollComponentId(componentId);
+        detail.setAmount(BigDecimal.valueOf(1000).setScale(2));
+
+        PayrollComponentEntity component = new PayrollComponentEntity();
+        component.setId(componentId);
+        component.setComponentName("PF");
+        component.setComponentType(PayrollComponentType.DEDUCTION);
+        component.setTaxable(false);
+
+        when(payrollRepository.findByIdAndDeletedFalse(payrollId)).thenReturn(Optional.of(payroll));
+        when(payrollDetailRepository.findAllByPayrollIdAndDeletedFalseOrderByCreatedAtAsc(payrollId))
+                .thenReturn(List.of(detail));
+        when(payrollComponentRepository.findAllByIdInAndDeletedFalse(any())).thenReturn(List.of(component));
+
+        PayrollPayslipResponse response = payrollService.getPayslip(payrollId);
+
+        assertEquals(1, response.deductions().size());
+        assertEquals(BigDecimal.valueOf(500).setScale(2), response.manualDeductions());
     }
 
     @Test

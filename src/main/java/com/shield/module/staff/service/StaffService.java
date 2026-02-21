@@ -261,6 +261,31 @@ public class StaffService {
                 openCheckOut);
     }
 
+    @Transactional(readOnly = true)
+    public String exportCsv() {
+        List<StaffEntity> rows = staffRepository.findAllByDeletedFalseOrderByCreatedAtDesc();
+        StringBuilder csv = new StringBuilder();
+        csv.append("id,tenantId,employeeId,firstName,lastName,phone,email,designation,dateOfJoining,dateOfLeaving,employmentType,basicSalary,active,createdAt\n");
+        for (StaffEntity row : rows) {
+            csv.append(csv(row.getId())).append(',')
+                    .append(csv(row.getTenantId())).append(',')
+                    .append(csv(row.getEmployeeId())).append(',')
+                    .append(csv(row.getFirstName())).append(',')
+                    .append(csv(row.getLastName())).append(',')
+                    .append(csv(row.getPhone())).append(',')
+                    .append(csv(row.getEmail())).append(',')
+                    .append(csv(row.getDesignation())).append(',')
+                    .append(csv(row.getDateOfJoining())).append(',')
+                    .append(csv(row.getDateOfLeaving())).append(',')
+                    .append(csv(row.getEmploymentType())).append(',')
+                    .append(csv(row.getBasicSalary())).append(',')
+                    .append(csv(row.isActive())).append(',')
+                    .append(csv(row.getCreatedAt()))
+                    .append('\n');
+        }
+        return csv.toString();
+    }
+
     private void validateDateRange(LocalDate fromDate, LocalDate toDate) {
         if (fromDate == null || toDate == null) {
             throw new BadRequestException("Both from and to dates are required");
@@ -297,5 +322,13 @@ public class StaffService {
                 entity.getCheckOutTime(),
                 entity.getStatus(),
                 entity.getMarkedBy());
+    }
+
+    private String csv(Object value) {
+        if (value == null) {
+            return "\"\"";
+        }
+        String text = value.toString().replace("\"", "\"\"");
+        return "\"" + text + "\"";
     }
 }

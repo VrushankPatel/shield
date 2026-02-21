@@ -1,0 +1,71 @@
+{
+  "version": "phase16-v1",
+  "tables": [
+    {
+      "name": "staff_leave",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "staff_id", "type": "UUID", "nullable": false, "references": "staff(id)"},
+        {"name": "leave_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "from_date", "type": "DATE", "nullable": false},
+        {"name": "to_date", "type": "DATE", "nullable": false},
+        {"name": "number_of_days", "type": "INTEGER", "nullable": false},
+        {"name": "reason", "type": "VARCHAR(2000)", "nullable": true},
+        {"name": "status", "type": "VARCHAR(50)", "nullable": false, "default": "'PENDING'"},
+        {"name": "approved_by", "type": "UUID", "nullable": true, "references": "users(id)"},
+        {"name": "approval_date", "type": "DATE", "nullable": true}
+      ],
+      "indexes": [
+        {"name": "idx_staff_leave_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_staff_leave_staff", "columns": ["tenant_id", "staff_id"]},
+        {"name": "idx_staff_leave_status", "columns": ["tenant_id", "status"]},
+        {"name": "idx_staff_leave_dates", "columns": ["tenant_id", "from_date", "to_date"]}
+      ]
+    },
+    {
+      "name": "payroll_component",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "component_name", "type": "VARCHAR(100)", "nullable": false},
+        {"name": "component_type", "type": "VARCHAR(50)", "nullable": false},
+        {"name": "taxable", "type": "BOOLEAN", "nullable": false, "default": "TRUE"}
+      ],
+      "indexes": [
+        {"name": "idx_payroll_component_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_payroll_component_name", "columns": ["tenant_id", "component_name"]},
+        {"name": "idx_payroll_component_type", "columns": ["tenant_id", "component_type"]}
+      ]
+    },
+    {
+      "name": "staff_salary_structure",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "staff_id", "type": "UUID", "nullable": false, "references": "staff(id)"},
+        {"name": "payroll_component_id", "type": "UUID", "nullable": false, "references": "payroll_component(id)"},
+        {"name": "amount", "type": "NUMERIC(12,2)", "nullable": false},
+        {"name": "active", "type": "BOOLEAN", "nullable": false, "default": "TRUE"},
+        {"name": "effective_from", "type": "DATE", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_staff_salary_structure_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_staff_salary_structure_staff", "columns": ["tenant_id", "staff_id"]},
+        {"name": "idx_staff_salary_structure_component", "columns": ["tenant_id", "payroll_component_id"]},
+        {"name": "idx_staff_salary_structure_active", "columns": ["tenant_id", "active"]}
+      ]
+    },
+    {
+      "name": "payroll_detail",
+      "tenantScoped": true,
+      "columns": [
+        {"name": "payroll_id", "type": "UUID", "nullable": false, "references": "payroll(id)"},
+        {"name": "payroll_component_id", "type": "UUID", "nullable": false, "references": "payroll_component(id)"},
+        {"name": "amount", "type": "NUMERIC(12,2)", "nullable": false}
+      ],
+      "indexes": [
+        {"name": "idx_payroll_detail_tenant", "columns": ["tenant_id"]},
+        {"name": "idx_payroll_detail_payroll", "columns": ["tenant_id", "payroll_id"]},
+        {"name": "idx_payroll_detail_component", "columns": ["tenant_id", "payroll_component_id"]}
+      ]
+    }
+  ]
+}

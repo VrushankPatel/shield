@@ -147,7 +147,7 @@ Exit Criteria:
 - Full modules 7 and 8 parity.
 
 ### M8. Staff & Payroll Completion
-Status: `PARTIAL`
+Status: `COMPLETE`
 
 Deliverables:
 - Add remaining staff endpoints:

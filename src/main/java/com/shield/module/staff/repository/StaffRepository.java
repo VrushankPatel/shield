@@ -1,6 +1,7 @@
 package com.shield.module.staff.repository;
 
 import com.shield.module.staff.entity.StaffEntity;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -16,4 +17,6 @@ public interface StaffRepository extends JpaRepository<StaffEntity, UUID> {
     Page<StaffEntity> findAllByDesignationIgnoreCaseAndDeletedFalse(String designation, Pageable pageable);
 
     Optional<StaffEntity> findByIdAndDeletedFalse(UUID id);
+
+    List<StaffEntity> findAllByDeletedFalseOrderByCreatedAtDesc();
 }
