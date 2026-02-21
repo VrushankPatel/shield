@@ -28,8 +28,12 @@ import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
 import io.jsonwebtoken.Claims;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.HexFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,11 +136,9 @@ public class AuthService {
             throw new UnauthorizedException("Invalid credentials");
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
-
+        AuthResponse response = issueAuthResponse(user);
         auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN", "users", user.getId(), null);
-        return new AuthResponse(accessToken, refreshToken, "Bearer", accessTokenTtlMinutes * 60);
+        return response;
     }
 
     @Transactional
@@ -191,13 +193,12 @@ public class AuthService {
         token.setConsumedAt(Instant.now());
         authTokenRepository.save(token);
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
-
+        AuthResponse response = issueAuthResponse(user);
         auditLogService.record(user.getTenantId(), user.getId(), "AUTH_LOGIN_OTP_VERIFIED", "users", user.getId(), null);
-        return new AuthResponse(accessToken, refreshToken, "Bearer", accessTokenTtlMinutes * 60);
+        return response;
     }
 
+    @Transactional
     public AuthResponse refresh(RefreshRequest request) {
         String refreshToken = jwtService.stripBearerPrefix(request.refreshToken());
         if (!jwtService.isTokenValid(refreshToken)) {
@@ -206,17 +207,33 @@ public class AuthService {
 
         Claims claims = jwtService.parseClaims(refreshToken);
         String tokenType = claims.get("tokenType", String.class);
-        if (!"refresh".equals(tokenType)) {
+        String principalType = claims.get("principalType", String.class);
+        if (!"refresh".equals(tokenType) || !"USER".equalsIgnoreCase(principalType)) {
             throw new UnauthorizedException("Invalid token type");
         }
 
         UUID userId = UUID.fromString(claims.get("userId", String.class));
-        UUID tenantId = UUID.fromString(claims.get("tenantId", String.class));
-        String email = claims.getSubject();
-        String role = claims.get("role", String.class);
+        String refreshTokenHash = hashToken(refreshToken);
+        AuthTokenEntity activeSession = authTokenRepository
+                .findByTokenTypeAndTokenValueAndConsumedAtIsNullAndDeletedFalse(AuthTokenType.REFRESH_SESSION, refreshTokenHash)
+                .orElseThrow(() -> new UnauthorizedException("Refresh token is no longer valid"));
 
-        String accessToken = jwtService.generateAccessToken(userId, tenantId, email, role);
-        return new AuthResponse(accessToken, refreshToken, "Bearer", accessTokenTtlMinutes * 60);
+        if (activeSession.getExpiresAt().isBefore(Instant.now())) {
+            activeSession.setConsumedAt(Instant.now());
+            authTokenRepository.save(activeSession);
+            throw new UnauthorizedException("Refresh token has expired");
+        }
+
+        UserEntity user = userRepository.findByIdAndDeletedFalse(userId)
+                .filter(existing -> existing.getStatus() == UserStatus.ACTIVE)
+                .orElseThrow(() -> new UnauthorizedException("User not available for refresh"));
+
+        activeSession.setConsumedAt(Instant.now());
+        authTokenRepository.save(activeSession);
+
+        AuthResponse response = issueAuthResponse(user);
+        auditLogService.record(user.getTenantId(), user.getId(), "AUTH_REFRESH", "users", user.getId(), null);
+        return response;
     }
 
     @Transactional
@@ -248,6 +265,7 @@ public class AuthService {
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
+        revokeRefreshSessions(user.getTenantId(), user.getId());
 
         token.setConsumedAt(Instant.now());
         authTokenRepository.save(token);
@@ -270,6 +288,7 @@ public class AuthService {
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
+        revokeRefreshSessions(user.getTenantId(), user.getId());
         auditLogService.record(user.getTenantId(), user.getId(), "AUTH_PASSWORD_CHANGED", "users", user.getId(), null);
     }
 
@@ -301,9 +320,53 @@ public class AuthService {
         }
 
         Claims claims = jwtService.parseClaims(token);
-        UUID userId = UUID.fromString(claims.get("userId", String.class));
-        UUID tenantId = UUID.fromString(claims.get("tenantId", String.class));
+        if (!"USER".equalsIgnoreCase(claims.get("principalType", String.class))) {
+            return;
+        }
+
+        UUID userId = parseUuidClaim(claims.get("userId", String.class), "userId");
+        UUID tenantId = parseUuidClaim(claims.get("tenantId", String.class), "tenantId");
+        revokeRefreshSessions(tenantId, userId);
         auditLogService.record(tenantId, userId, "AUTH_LOGOUT", "users", userId, null);
+    }
+
+    private AuthResponse issueAuthResponse(UserEntity user) {
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getTenantId(), user.getEmail(), user.getRole().name());
+        createRefreshSession(user, refreshToken);
+        return new AuthResponse(accessToken, refreshToken, "Bearer", accessTokenTtlMinutes * 60);
+    }
+
+    private void createRefreshSession(UserEntity user, String refreshToken) {
+        Claims refreshClaims = jwtService.parseClaims(refreshToken);
+        Date expiry = refreshClaims.getExpiration();
+        if (expiry == null) {
+            throw new UnauthorizedException("Invalid refresh token expiry");
+        }
+
+        AuthTokenEntity token = new AuthTokenEntity();
+        token.setTenantId(user.getTenantId());
+        token.setUserId(user.getId());
+        token.setTokenType(AuthTokenType.REFRESH_SESSION);
+        token.setTokenValue(hashToken(refreshToken));
+        token.setExpiresAt(expiry.toInstant());
+        token.setMetadata("JWT_REFRESH");
+        authTokenRepository.save(token);
+    }
+
+    private void revokeRefreshSessions(UUID tenantId, UUID userId) {
+        List<AuthTokenEntity> activeSessions = authTokenRepository
+                .findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
+                        tenantId,
+                        userId,
+                        AuthTokenType.REFRESH_SESSION);
+        if (activeSessions.isEmpty()) {
+            return;
+        }
+
+        Instant now = Instant.now();
+        activeSessions.forEach(token -> token.setConsumedAt(now));
+        authTokenRepository.saveAll(activeSessions);
     }
 
     private String createToken(UserEntity user, AuthTokenType tokenType, Instant expiresAt, String metadata) {
@@ -434,5 +497,23 @@ public class AuthService {
 
     private String generateTokenValue() {
         return UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private UUID parseUuidClaim(String value, String claimName) {
+        try {
+            return UUID.fromString(value);
+        } catch (Exception ex) {
+            throw new UnauthorizedException("Invalid token claim: " + claimName);
+        }
+    }
+
+    private String hashToken(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(bytes);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Unable to hash token", ex);
+        }
     }
 }

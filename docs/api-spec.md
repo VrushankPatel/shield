@@ -13,6 +13,9 @@
 - RBAC with Spring Security + method security
 - Tenant context derived from JWT `tenantId` claim for tenant-scoped endpoints
 - Platform root uses dedicated principal type (`ROOT`) with token version invalidation
+- User refresh sessions are stored server-side (`auth_token` with `REFRESH_SESSION`)
+- Refresh token rotation is enforced; reused refresh tokens are rejected
+- Logout, password change, and password reset revoke active refresh sessions
 
 ## Platform Root APIs
 - `POST /platform/root/login`
@@ -44,4 +47,5 @@ Root lifecycle behavior:
 The backend is API-first and frontend-agnostic. React Native clients should use:
 - short-lived access token + refresh flow
 - secure storage for tokens
+- refresh token replacement on every refresh response
 - forced re-login on root token invalidation or credential rotation

@@ -97,6 +97,7 @@ public class JwtService {
         claims.put("tokenType", tokenType);
         claims.put("principalType", principalType);
         claims.put("tokenVersion", tokenVersion);
+        claims.put("jti", UUID.randomUUID().toString());
 
         return Jwts.builder()
                 .subject(email)

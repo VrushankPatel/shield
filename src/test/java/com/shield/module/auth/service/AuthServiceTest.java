@@ -38,6 +38,10 @@ import com.shield.module.user.repository.UserRepository;
 import com.shield.security.jwt.JwtService;
 import com.shield.security.model.ShieldPrincipal;
 import io.jsonwebtoken.Claims;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Date;
+import java.util.HexFormat;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -127,6 +131,9 @@ class AuthServiceTest {
         when(passwordEncoder.matches("password123", "hash")).thenReturn(true);
         when(jwtService.generateAccessToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("access");
         when(jwtService.generateRefreshToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("refresh");
+        when(jwtService.parseClaims("refresh")).thenReturn(claims);
+        when(claims.getExpiration()).thenReturn(Date.from(Instant.now().plusSeconds(1800)));
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AuthResponse response = authService.login(new LoginRequest("admin@shield.dev", "password123"));
 
@@ -135,6 +142,7 @@ class AuthServiceTest {
         assertEquals("Bearer", response.tokenType());
         assertEquals(1800L, response.expiresIn());
         verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGIN"), eq("users"), eq(userId), any());
+        verify(authTokenRepository).save(any(AuthTokenEntity.class));
     }
 
     @Test
@@ -219,6 +227,9 @@ class AuthServiceTest {
         when(passwordEncoder.matches("123456", "otp-hash")).thenReturn(true);
         when(jwtService.generateAccessToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("access-otp");
         when(jwtService.generateRefreshToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("refresh-otp");
+        when(jwtService.parseClaims("refresh-otp")).thenReturn(claims);
+        when(claims.getExpiration()).thenReturn(Date.from(Instant.now().plusSeconds(1800)));
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AuthResponse response = authService.verifyLoginOtp(new LoginOtpVerifyRequest("challenge-token", "123456"));
 
@@ -320,21 +331,46 @@ class AuthServiceTest {
     void refreshShouldIssueNewAccessToken() {
         UUID userId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
+        String rawRefreshToken = "refresh-token";
+        String refreshTokenHash = hashToken(rawRefreshToken);
 
-        when(jwtService.stripBearerPrefix("Bearer refresh-token")).thenReturn("refresh-token");
-        when(jwtService.isTokenValid("refresh-token")).thenReturn(true);
-        when(jwtService.parseClaims("refresh-token")).thenReturn(claims);
+        AuthTokenEntity refreshSession = new AuthTokenEntity();
+        refreshSession.setId(UUID.randomUUID());
+        refreshSession.setTenantId(tenantId);
+        refreshSession.setUserId(userId);
+        refreshSession.setTokenType(AuthTokenType.REFRESH_SESSION);
+        refreshSession.setTokenValue(refreshTokenHash);
+        refreshSession.setExpiresAt(Instant.now().plusSeconds(600));
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setEmail("admin@shield.dev");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+
+        Claims rotatedClaims = org.mockito.Mockito.mock(Claims.class);
+
+        when(jwtService.stripBearerPrefix("Bearer refresh-token")).thenReturn(rawRefreshToken);
+        when(jwtService.isTokenValid(rawRefreshToken)).thenReturn(true);
+        when(jwtService.parseClaims(rawRefreshToken)).thenReturn(claims);
         when(claims.get("tokenType", String.class)).thenReturn("refresh");
+        when(claims.get("principalType", String.class)).thenReturn("USER");
         when(claims.get("userId", String.class)).thenReturn(userId.toString());
-        when(claims.get("tenantId", String.class)).thenReturn(tenantId.toString());
-        when(claims.getSubject()).thenReturn("admin@shield.dev");
-        when(claims.get("role", String.class)).thenReturn("ADMIN");
+        when(authTokenRepository.findByTokenTypeAndTokenValueAndConsumedAtIsNullAndDeletedFalse(
+                AuthTokenType.REFRESH_SESSION, refreshTokenHash)).thenReturn(Optional.of(refreshSession));
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.of(user));
         when(jwtService.generateAccessToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("new-access");
+        when(jwtService.generateRefreshToken(userId, tenantId, "admin@shield.dev", "ADMIN")).thenReturn("rotated-refresh");
+        when(jwtService.parseClaims("rotated-refresh")).thenReturn(rotatedClaims);
+        when(rotatedClaims.getExpiration()).thenReturn(Date.from(Instant.now().plusSeconds(1800)));
+        when(authTokenRepository.save(any(AuthTokenEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AuthResponse response = authService.refresh(new RefreshRequest("Bearer refresh-token"));
 
         assertEquals("new-access", response.accessToken());
-        assertEquals("refresh-token", response.refreshToken());
+        assertEquals("rotated-refresh", response.refreshToken());
+        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_REFRESH"), eq("users"), eq(userId), any());
     }
 
     @Test
@@ -386,6 +422,8 @@ class AuthServiceTest {
         when(authTokenRepository.findByTokenValueAndDeletedFalse("reset-token")).thenReturn(Optional.of(token));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode("NewPassword#123")).thenReturn("new-hash");
+        when(authTokenRepository.findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
+                tenantId, userId, AuthTokenType.REFRESH_SESSION)).thenReturn(List.of());
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         authService.resetPassword(new ResetPasswordRequest("reset-token", "NewPassword#123"));
@@ -443,6 +481,39 @@ class AuthServiceTest {
     }
 
     @Test
+    void changePasswordShouldRevokeRefreshSessionsWhenSuccessful() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        user.setTenantId(tenantId);
+        user.setPasswordHash("stored-hash");
+
+        AuthTokenEntity session = new AuthTokenEntity();
+        session.setId(UUID.randomUUID());
+        session.setTenantId(tenantId);
+        session.setUserId(userId);
+        session.setTokenType(AuthTokenType.REFRESH_SESSION);
+        session.setTokenValue(hashToken("refresh"));
+        session.setExpiresAt(Instant.now().plusSeconds(300));
+
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current-pass", "stored-hash")).thenReturn(true);
+        when(passwordEncoder.matches("new-pass-123", "stored-hash")).thenReturn(false);
+        when(passwordEncoder.encode("new-pass-123")).thenReturn("new-hash");
+        when(authTokenRepository.findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
+                tenantId, userId, AuthTokenType.REFRESH_SESSION)).thenReturn(List.of(session));
+        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ShieldPrincipal principal = new ShieldPrincipal(userId, tenantId, "user@shield.dev", "TENANT");
+        authService.changePassword(principal, new ChangePasswordRequest("current-pass", "new-pass-123"));
+
+        assertEquals("new-hash", user.getPasswordHash());
+        verify(authTokenRepository).saveAll(any());
+    }
+
+    @Test
     void logoutShouldSkipAuditWhenTokenInvalid() {
         when(jwtService.stripBearerPrefix("Bearer bad")).thenReturn("bad");
         when(jwtService.isTokenValid("bad")).thenReturn(false);
@@ -450,5 +521,43 @@ class AuthServiceTest {
         authService.logout("Bearer bad");
 
         verify(auditLogService, never()).record(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void logoutShouldRevokeRefreshSessionsForUserPrincipal() {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+
+        AuthTokenEntity session = new AuthTokenEntity();
+        session.setId(UUID.randomUUID());
+        session.setTenantId(tenantId);
+        session.setUserId(userId);
+        session.setTokenType(AuthTokenType.REFRESH_SESSION);
+        session.setTokenValue(hashToken("refresh"));
+        session.setExpiresAt(Instant.now().plusSeconds(300));
+
+        when(jwtService.stripBearerPrefix("Bearer access")).thenReturn("access");
+        when(jwtService.isTokenValid("access")).thenReturn(true);
+        when(jwtService.parseClaims("access")).thenReturn(claims);
+        when(claims.get("principalType", String.class)).thenReturn("USER");
+        when(claims.get("userId", String.class)).thenReturn(userId.toString());
+        when(claims.get("tenantId", String.class)).thenReturn(tenantId.toString());
+        when(authTokenRepository.findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
+                tenantId, userId, AuthTokenType.REFRESH_SESSION)).thenReturn(List.of(session));
+
+        authService.logout("Bearer access");
+
+        verify(authTokenRepository).saveAll(any());
+        verify(auditLogService).record(eq(tenantId), eq(userId), eq("AUTH_LOGOUT"), eq("users"), eq(userId), any());
+    }
+
+    private static String hashToken(String rawToken) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(bytes);
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }

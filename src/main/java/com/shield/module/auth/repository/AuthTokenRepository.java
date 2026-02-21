@@ -11,6 +11,10 @@ public interface AuthTokenRepository extends JpaRepository<AuthTokenEntity, UUID
 
     Optional<AuthTokenEntity> findByTokenValueAndDeletedFalse(String tokenValue);
 
+    Optional<AuthTokenEntity> findByTokenTypeAndTokenValueAndConsumedAtIsNullAndDeletedFalse(
+            AuthTokenType tokenType,
+            String tokenValue);
+
     List<AuthTokenEntity> findAllByTenantIdAndUserIdAndTokenTypeAndConsumedAtIsNullAndDeletedFalse(
             UUID tenantId,
             UUID userId,

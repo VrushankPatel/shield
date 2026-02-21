@@ -26,6 +26,7 @@
 - Database: singleton PostgreSQL container
 - Focus:
   - platform root lifecycle flow (root login -> forced change password -> stale token invalidation -> society onboarding)
+  - auth session security flow (refresh rotation, logout revocation, password-change/reset revocation)
   - Flyway migrations applied on fresh database
   - full auth -> JWT -> secured endpoint lifecycle
   - identity lifecycle flows (register, verify-email, forgot/reset/change password)

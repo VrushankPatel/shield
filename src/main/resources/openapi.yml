@@ -49,19 +49,19 @@ paths:
   /auth/refresh:
     post:
       tags: [Auth]
-      summary: Refresh token
+      summary: Refresh token (rotates refresh session)
       security: []
       responses:
         '200':
-          description: Token refreshed
+          description: Token refreshed with rotated refresh token
   /auth/refresh-token:
     post:
       tags: [Auth]
-      summary: Refresh token (alias)
+      summary: Refresh token alias (rotates refresh session)
       security: []
       responses:
         '200':
-          description: Token refreshed
+          description: Token refreshed with rotated refresh token
   /auth/forgot-password:
     post:
       tags: [Auth]
@@ -81,7 +81,7 @@ paths:
   /auth/change-password:
     post:
       tags: [Auth]
-      summary: Change password
+      summary: Change password (revokes active refresh sessions)
       responses:
         '200':
           description: Password changed
@@ -102,7 +102,7 @@ paths:
   /auth/logout:
     post:
       tags: [Auth]
-      summary: Logout
+      summary: Logout (revokes active refresh sessions)
       responses:
         '200':
           description: Logout successful
