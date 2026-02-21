@@ -249,10 +249,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    host = os.getenv("SONAR_HOST_URL", "https://sonarcloud.io").rstrip("/")
-    project_key = os.getenv("SONAR_PROJECT_KEY", "VrushankPatel_shield")
+    host = (os.getenv("SONAR_HOST_URL") or "https://sonarcloud.io").rstrip("/")
+    project_key = os.getenv("SONAR_PROJECT_KEY") or "VrushankPatel_shield"
     token = os.getenv("SONAR_TOKEN")
-    max_issues = int(os.getenv("SONAR_REPORT_MAX_ISSUES", "500"))
+    max_issues = int(os.getenv("SONAR_REPORT_MAX_ISSUES") or "500")
 
     output_dir_arg = args.output_dir_flag or args.output_dir or "target/quality-reports/sonar"
     output_dir = pathlib.Path(output_dir_arg)
