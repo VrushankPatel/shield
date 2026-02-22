@@ -60,6 +60,12 @@ public class SecurityConfig {
     @Value("${shield.security.headers.hsts-enabled:false}")
     private boolean hstsEnabled;
 
+    @Value("${springdoc.api-docs.enabled:false}")
+    private boolean apiDocsEnabled;
+
+    @Value("${springdoc.swagger-ui.enabled:false}")
+    private boolean swaggerUiEnabled;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -85,32 +91,33 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(restAuthenticationEntryPoint)
                         .accessDeniedHandler(restAccessDeniedHandler))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/actuator/health",
-                                "/actuator/prometheus")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/login/otp/send",
-                                "/api/v1/auth/login/otp/verify",
-                                "/api/v1/auth/refresh",
-                                "/api/v1/auth/refresh-token",
-                                "/api/v1/auth/forgot-password",
-                                "/api/v1/auth/reset-password",
-                                "/api/v1/auth/logout",
-                                "/api/v1/platform/root/login",
-                                "/api/v1/platform/root/refresh",
-                                "/api/v1/payments/webhook/**")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/verify-email/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/tenants").hasRole("ADMIN")
-                        .anyRequest()
-                        .authenticated())
+                .authorizeHttpRequests(auth -> {
+                    if (apiDocsEnabled) {
+                        auth.requestMatchers("/v3/api-docs/**").permitAll();
+                    }
+                    if (swaggerUiEnabled) {
+                        auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll();
+                    }
+                    auth.requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
+                            .requestMatchers(HttpMethod.POST,
+                                    "/api/v1/auth/register",
+                                    "/api/v1/auth/login",
+                                    "/api/v1/auth/login/otp/send",
+                                    "/api/v1/auth/login/otp/verify",
+                                    "/api/v1/auth/refresh",
+                                    "/api/v1/auth/refresh-token",
+                                    "/api/v1/auth/forgot-password",
+                                    "/api/v1/auth/reset-password",
+                                    "/api/v1/auth/logout",
+                                    "/api/v1/platform/root/login",
+                                    "/api/v1/platform/root/refresh",
+                                    "/api/v1/payments/webhook/**")
+                            .permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/auth/verify-email/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/v1/tenants").hasRole("ADMIN")
+                            .anyRequest()
+                            .authenticated();
+                })
                 .addFilterBefore(correlationIdFilter, LogoutFilter.class)
                 .addFilterBefore(loginRateLimiterFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

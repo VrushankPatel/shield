@@ -89,6 +89,10 @@ Password policy:
 - `PASSWORD_POLICY_REQUIRE_DIGIT`
 - `PASSWORD_POLICY_REQUIRE_SPECIAL`
 
+Swagger/OpenAPI exposure:
+- `SWAGGER_API_DOCS_ENABLED` (set `false` in production)
+- `SWAGGER_UI_ENABLED` (set `false` in production)
+
 API/browser security surface:
 - `CORS_ALLOWED_ORIGINS`
 - `CORS_ALLOWED_METHODS`

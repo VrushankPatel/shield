@@ -30,6 +30,15 @@ Configurable environment variables:
 - `PASSWORD_POLICY_REQUIRE_DIGIT` (default `true`)
 - `PASSWORD_POLICY_REQUIRE_SPECIAL` (default `true`)
 
+## 2.2 Swagger/OpenAPI Controls
+Swagger and OpenAPI endpoints are controlled by environment variables:
+- `SWAGGER_API_DOCS_ENABLED` (default `false`)
+- `SWAGGER_UI_ENABLED` (default `false`)
+
+Recommended:
+- `dev.env`: both `true`
+- `prod.env`: both `false` unless explicitly protected via auth/network controls
+
 ## 3. Platform Root Account Behavior
 No manual seed password is required.
 

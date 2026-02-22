@@ -37,6 +37,7 @@ It is a multi-tenant Spring Boot backend for residential society operations with
 - Developer integration inputs: `docs/developer_request.md`
 - Plan gap analysis: `docs/implementation-gap-analysis.md`
 - Pending milestones: `docs/pending-milestones.md`
+- Requirements cross-check: `docs/requirements-crosscheck.md`
 
 ## Environment Strategy (`dev.env`, `prod.env`)
 `dev.env` and `prod.env` are committed as **templates**. Keep real secrets in secure stores or local override files.
@@ -72,8 +73,8 @@ mvn spring-boot:run
 ```
 
 4. Open API docs:
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- Swagger UI: `http://localhost:8080/swagger-ui.html` (enabled when `SWAGGER_UI_ENABLED=true`)
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs` (enabled when `SWAGGER_API_DOCS_ENABLED=true`)
 
 ## Docker Compose Full Stack
 Run app + postgres + redis using production template values:
@@ -164,6 +165,8 @@ Runtime environment secrets (examples):
 - `PAYMENT_WEBHOOK_PROVIDER_SECRETS`
 - `ROOT_BOOTSTRAP_CREDENTIAL_FILE` (secure path for first-run root credential output)
 - `PAYMENT_WEBHOOK_REQUIRE_PROVIDER_SECRET` (recommended `true` in production)
+- `SWAGGER_API_DOCS_ENABLED` (recommended `false` in production)
+- `SWAGGER_UI_ENABLED` (recommended `false` in production)
 - `PASSWORD_POLICY_MIN_LENGTH`, `PASSWORD_POLICY_MAX_LENGTH`
 - `PASSWORD_POLICY_REQUIRE_UPPER`, `PASSWORD_POLICY_REQUIRE_LOWER`
 - `PASSWORD_POLICY_REQUIRE_DIGIT`, `PASSWORD_POLICY_REQUIRE_SPECIAL`
